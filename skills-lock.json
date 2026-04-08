@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "skills": {
+    "agent-browser": {
+      "source": "vercel/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "2f771f8eb25f9856d2169a4de4766de94e2bdbff999f42c458c8f1e2ca405c03"
+    },
+    "ai-elements": {
+      "source": "vercel/ai-elements",
+      "sourceType": "github",
+      "computedHash": "84f3a2a57fa71ae5061786280987575d673792d6dda9a63941efb2795b83543a"
+    },
+    "next-best-practices": {
+      "source": "vercel/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "515ba75178bd44875812d9a560bdf14651f86709f89cf1d4f209638e879807f3"
+    },
+    "next-cache-components": {
+      "source": "vercel/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "a94b83ddcd2ff1c30722577f693b1bfe32f2e1a83abdd6c08c2d6cc6753b53c8"
+    },
+    "turborepo": {
+      "source": "vercel/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "ac4c9e481f94ab7d0c337513c8f20328ce1207a3d61d4257df70d0c1e03c0f17"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel/vercel-skills",
+      "sourceType": "github",
+      "computedHash": "4365be772fd3b41994a72ad478472c6d680678e7f3859860ab010e9c46e48ee0"
+    },
+    "vercel-react-native-skills": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "computedHash": "2e9088a7333666d8c2833b8ff58bd51b955501c42b4c7244f72b4cbf22dafcc4"
+    }
+  }
+}
