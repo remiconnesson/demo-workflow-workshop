@@ -289,7 +289,7 @@ function CheckoutView({
               <div className="flex items-center gap-2 font-extrabold text-yellow-900">
                  <span className="text-lg">✨</span> Perks available
               </div>
-              <p className="mt-1 text-sm font-medium text-yellow-800">You're earning points on this order!</p>
+              <p className="mt-1 text-sm font-medium text-yellow-800">You&apos;re earning points on this order!</p>
             </div>
 
             <ul className="mb-6 space-y-4 border-b border-gray-100 pb-6">

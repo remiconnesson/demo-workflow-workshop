@@ -3,11 +3,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Fraunces, Karla } from "next/font/google";
 type IconProps = { size?: number; strokeWidth?: number; className?: string };
-const makeIcon = (d: string) => ({ size = 16, strokeWidth = 2, className }: IconProps) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d={d} />
-  </svg>
-);
+const makeIcon = (d: string) => {
+  const Icon = ({ size = 16, strokeWidth = 2, className }: IconProps) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d={d} />
+    </svg>
+  );
+  return Icon;
+};
 const Plus = makeIcon("M12 5v14M5 12h14");
 const Minus = makeIcon("M5 12h14");
 const Check = makeIcon("M20 6L9 17l-5-5");
@@ -82,7 +85,7 @@ export default function PapercraftDonutsDemo() {
     if (lastEvent?.type === "waiting_for_hook") {
       const timer = setTimeout(() => {
         let kind = "";
-        let accepted = true;
+        const accepted = true;
         if (lastEvent.step === "notifyRestaurant") kind = "restaurant-accept";
         else if (lastEvent.step === "assignDriver") kind = "driver-accept";
         else if (lastEvent.step === "trackDelivery") kind = "delivered";
@@ -513,7 +516,7 @@ export default function PapercraftDonutsDemo() {
                   ) : events.some(c => c.type === "compensating" && c.action === e.action) ? (
                     <span className="text-[#c48b5a] font-bold animate-pulse">...</span>
                   ) : (
-                    <span className="text-gray-500 font-bold">Q'd</span>
+                    <span className="text-gray-500 font-bold">Q&apos;d</span>
                   )}
                 </div>
               ))}
