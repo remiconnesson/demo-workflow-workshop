@@ -100,9 +100,14 @@ export function useOrderRun(
   const [error, setError] = useState<string | null>(null);
 
   const orderIdRef = useRef<string | null>(null);
+  const waitingOnRef = useRef<OrderStepId | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const scheduledOrderIdRef = useRef<string | null>(null);
   const autoResumeTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    waitingOnRef.current = waitingOn;
+  }, [waitingOn]);
 
   const clearScheduledResume = useCallback(
     (reason: string) => {
@@ -192,12 +197,25 @@ export function useOrderRun(
             current === event.step ? null : current,
           );
           break;
-        case "step_failed":
+        case "step_failed": {
+          const failedStep = event.step as OrderStepId;
           setStepState((current) => ({
             ...current,
-            [event.step as OrderStepId]: "failed",
+            [failedStep]: "failed",
           }));
+          if (waitingOnRef.current === failedStep) {
+            clearScheduledResume("step_failed");
+            setWaitingOn(null);
+            setWaitStrategy(null);
+            console.info("[order-run] wait_cleared_on_failure", {
+              source,
+              scenarioId: scenario.scenarioId,
+              orderId: orderIdRef.current,
+              step: failedStep,
+            });
+          }
           break;
+        }
         case "step_skipped":
           setStepState((current) => ({
             ...current,

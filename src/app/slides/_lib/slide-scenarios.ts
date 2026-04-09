@@ -154,6 +154,17 @@ export const slideScenarios = {
       demoMode: "replayProbeBeforeAssignDriver" as const,
     },
   },
+  errorsFatal: {
+    scenarioId: "errors-fatal",
+    title: "FatalError stops immediately",
+    subtitle: "Permanent failure, no retries, rollback begins at once.",
+    autoStart: true,
+    input: {
+      ...BASE_INPUT,
+      failAt: "notifyRestaurant" as const,
+      autoAck: true,
+    },
+  },
   errorsUnhandled: {
     scenarioId: "errors-uncaught",
     title: "Uncaught Error retries by default",

@@ -10,6 +10,10 @@ const MODES: Record<string, { label: string; scenario: OrderRunScenario }> = {
     label: "Uncaught Error",
     scenario: slideScenarios.errorsUnhandled,
   },
+  fatal: {
+    label: "FatalError",
+    scenario: slideScenarios.errorsFatal,
+  },
   retryable: {
     label: "RetryableError",
     scenario: slideScenarios.idempotency,
@@ -27,7 +31,10 @@ export function ErrorsLab() {
           <button
             key={key}
             onClick={() => {
-              console.info("[slide-errors] mode", { mode: key });
+              console.info("[slide-errors] mode", {
+                mode: key,
+                scenarioId: value.scenario.scenarioId,
+              });
               setMode(key);
             }}
             className={`rounded-full border px-4 py-2 text-sm transition-colors ${
