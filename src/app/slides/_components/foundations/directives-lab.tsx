@@ -8,6 +8,9 @@ export function DirectivesLab() {
     <LiveOrderConceptLab
       slide="directives"
       scenario={slideScenarios.directives}
+      showCompensations={false}
+      showChips={false}
+      maxEvents={6}
     />
   );
 }

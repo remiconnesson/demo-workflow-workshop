@@ -134,20 +134,22 @@ export function OrderConceptLab({
             })}
           </div>
 
-          {current.callout ? (
-            <div
-              className={`mt-8 rounded-xl border px-5 py-4 ${CALLOUT_STYLE[current.callout.tone]}`}
-            >
-              <div className="text-sm font-semibold uppercase tracking-[0.2em]">
-                {current.callout.title}
-              </div>
-              <div className="mt-2 text-base text-zinc-300">
-                {current.callout.body}
-              </div>
+          <div
+            className={`mt-8 rounded-xl border px-5 py-4 min-h-[72px] transition-all duration-300 ${
+              current.callout
+                ? CALLOUT_STYLE[current.callout.tone]
+                : "border-transparent opacity-0"
+            }`}
+          >
+            <div className="text-sm font-semibold uppercase tracking-[0.2em]">
+              {current.callout?.title ?? "\u00A0"}
             </div>
-          ) : null}
+            <div className="mt-2 text-base text-zinc-300">
+              {current.callout?.body ?? "\u00A0"}
+            </div>
+          </div>
 
-          <div className="mt-8 rounded-xl border border-white/10 bg-black p-4 font-mono text-sm">
+          <div className="mt-8 rounded-xl border border-white/10 bg-black p-4 font-mono text-sm min-h-[120px]">
             {current.logs.map((log, i) => (
               <div key={i} className="flex gap-4 py-1">
                 <span
@@ -160,18 +162,18 @@ export function OrderConceptLab({
             ))}
           </div>
 
-          {current.compensationOrder?.length ? (
-            <div className="mt-6 flex flex-wrap gap-3">
-              {current.compensationOrder.map((action) => (
-                <span
-                  key={action}
-                  className="rounded-full border border-fuchsia-400/40 bg-black px-4 py-2 font-mono text-sm text-fuchsia-200"
-                >
-                  {action}
-                </span>
-              ))}
-            </div>
-          ) : null}
+          <div className={`mt-6 flex flex-wrap gap-3 min-h-[40px] transition-opacity duration-300 ${
+            current.compensationOrder?.length ? "opacity-100" : "opacity-0"
+          }`}>
+            {(current.compensationOrder ?? []).map((action) => (
+              <span
+                key={action}
+                className="rounded-full border border-fuchsia-400/40 bg-black px-4 py-2 font-mono text-sm text-fuchsia-200"
+              >
+                {action}
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </ScenarioPlayer>

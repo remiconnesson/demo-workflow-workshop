@@ -6,7 +6,7 @@ export default function ApprovalGateSlide() {
   return (
     <div className="flex h-full w-full items-center justify-center gap-16 px-20">
       {/* Left: code */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-2xl">
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
           Approval Gate
         </div>
@@ -29,10 +29,14 @@ export default function ApprovalGateSlide() {
       </div>
 
       {/* Right: live hook demo */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-md">
         <LiveOrderConceptLab
           slide="approval-gate"
           scenario={slideScenarios.approvalGate}
+          highlightSteps={["notifyRestaurant"]}
+          showCompensations={false}
+          showChips={false}
+          maxEvents={4}
         />
       </div>
     </div>

@@ -8,6 +8,10 @@ export function IdempotencyLab() {
     <LiveOrderConceptLab
       slide="idempotency"
       scenario={slideScenarios.idempotency}
+      highlightSteps={["chargePayment"]}
+      showCompensations={false}
+      showChips={false}
+      maxEvents={6}
     />
   );
 }

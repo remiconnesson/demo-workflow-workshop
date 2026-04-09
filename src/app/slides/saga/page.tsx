@@ -6,7 +6,7 @@ export default function SagaSlide() {
   return (
     <div className="flex h-full w-full items-center justify-center gap-16 px-20">
       {/* Left: code */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-lg">
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
           Saga Pattern
         </div>
@@ -31,10 +31,12 @@ export default function SagaSlide() {
       </div>
 
       {/* Right: live rollback demo */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-2xl">
         <LiveOrderConceptLab
           slide="saga"
           scenario={slideScenarios.saga}
+          showChips={false}
+          maxEvents={8}
         />
       </div>
     </div>

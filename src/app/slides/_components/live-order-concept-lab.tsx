@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { ORDER_STEPS, type SlideStepState } from "@/lib/order-contract";
 import {
@@ -182,12 +183,119 @@ function WaitStatePanel({
   );
 }
 
+const VERCEL_DASHBOARD_BASE =
+  "https://vercel.com/vercel-labs/2026-04-08-12-09-food-delivery";
+
+function DashboardModal({
+  url,
+  onClose,
+}: {
+  url: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[100] flex flex-col bg-black/95 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div className="flex items-center justify-between px-8 py-4 border-b border-white/10">
+        <span className="font-mono text-lg text-zinc-400 truncate">
+          {url}
+        </span>
+        <button
+          onClick={onClose}
+          className="rounded-lg border border-white/10 px-5 py-2 text-lg font-semibold text-zinc-300 hover:border-white/30 hover:text-white transition-colors"
+        >
+          Close <kbd className="ml-2 rounded bg-white/10 px-2 py-0.5 text-sm">Esc</kbd>
+        </button>
+      </div>
+      <iframe
+        src={url}
+        className="flex-1 w-full border-0"
+        onClick={(e) => e.stopPropagation()}
+        title="Vercel Workflow Dashboard"
+      />
+    </div>,
+    document.body,
+  );
+}
+
+function DebugDrawer({
+  runId,
+  orderId,
+}: {
+  runId: string | null;
+  orderId: string | null;
+}) {
+  const [dashboardUrl, setDashboardUrl] = useState<string | null>(null);
+
+  if (!runId) return null;
+
+  const command = `npx workflow runs inspect ${runId}`;
+  const url = `${VERCEL_DASHBOARD_BASE}/workflow/runs/${runId}`;
+
+  return (
+    <>
+      {dashboardUrl && (
+        <DashboardModal url={dashboardUrl} onClose={() => setDashboardUrl(null)} />
+      )}
+      <div className="group relative mt-4">
+        {/* hover trigger — thin bar */}
+        <div className="h-1 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors" />
+        {/* drawer content — slides up on hover */}
+        <div className="absolute bottom-full left-0 right-0 mb-1 rounded-lg border border-white/10 bg-zinc-950/95 px-4 py-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 pointer-events-none group-hover:pointer-events-auto backdrop-blur">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDashboardUrl(url)}
+              className="flex-1 text-left font-mono text-sm text-zinc-400 hover:text-white transition-colors truncate"
+              title="Open Vercel Workflow dashboard"
+            >
+              <span className="text-zinc-600">$</span> {command}
+            </button>
+            {orderId && (
+              <span className="font-mono text-xs text-zinc-600 shrink-0">
+                {orderId}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function LiveOrderConceptLab({
   slide,
   scenario,
+  showTimeline = true,
+  showEventFeed = true,
+  showCompensations = true,
+  showChips = true,
+  highlightSteps,
+  maxEvents,
 }: {
   slide: string;
   scenario: OrderRunScenario;
+  /** Show the 6-step timeline row. Default true. */
+  showTimeline?: boolean;
+  /** Show the NDJSON event feed. Default true. */
+  showEventFeed?: boolean;
+  /** Show the fuchsia compensation pills. Default true. */
+  showCompensations?: boolean;
+  /** Show the scenario config chips (fail:none, autoAck:on, etc). Default true. */
+  showChips?: boolean;
+  /** Only show these steps in the timeline (dim others). */
+  highlightSteps?: string[];
+  /** Cap the event feed to the last N events. */
+  maxEvents?: number;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
   const [clockNow, setClockNow] = useState(() => performance.now());
@@ -325,17 +433,15 @@ export function LiveOrderConceptLab({
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-zinc-950 p-8">
+    <div className="rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
             {scenario.title}
           </div>
-          {scenario.subtitle ? (
-            <div className="mt-2 text-lg text-zinc-400">
-              {scenario.subtitle}
-            </div>
-          ) : null}
+          <div className="mt-2 text-lg text-zinc-400 min-h-[28px]">
+            {scenario.subtitle ?? "\u00A0"}
+          </div>
         </div>
         <div className="flex gap-2">
           <button
@@ -354,17 +460,19 @@ export function LiveOrderConceptLab({
       </div>
 
       {/* phase card */}
-      <div className={`mt-6 rounded-xl border p-4 ${phaseCardClass(phase)}`}>
-        <div className="flex flex-wrap gap-2">
-          {scenarioChips.map((chip) => (
-            <span
-              key={chip}
-              className="rounded-full border border-white/10 bg-black/20 px-3 py-1 font-mono text-xs text-zinc-200"
-            >
-              {chip}
-            </span>
-          ))}
-        </div>
+      <div className={`mt-6 rounded-xl border p-4 min-h-[80px] transition-colors duration-300 ${phaseCardClass(phase)}`}>
+        {showChips && (
+          <div className="flex flex-wrap gap-2">
+            {scenarioChips.map((chip) => (
+              <span
+                key={chip}
+                className="rounded-full border border-white/10 bg-black/20 px-3 py-1 font-mono text-xs text-zinc-200"
+              >
+                {chip}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="mt-3 text-sm font-semibold uppercase tracking-[0.2em]">
           {phase === "idle" && "Ready"}
           {phase === "running" && "Streaming live"}
@@ -400,27 +508,16 @@ export function LiveOrderConceptLab({
               : "Rollback completed.")}
           {phase === "error" && controller.error}
         </div>
-        {controller.resumeToast ? (
-          <div className="mt-3 rounded-lg border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
-            {controller.resumeToast}
-          </div>
-        ) : null}
-        {phase === "waiting" && controller.waitingOn && waitStrategy ? (
-          <WaitStatePanel
-            step={controller.waitingOn}
-            strategy={waitStrategy}
-            countdownLabel={countdownLabel}
-            driverTimeout={scenario.input.driverTimeout}
-          />
-        ) : null}
       </div>
 
       {/* step timeline */}
+      {showTimeline && (
       <div className="mt-8 flex flex-wrap gap-4">
         {ORDER_STEPS.map((step) => {
           const state = controller.stepState[step.id] ?? "pending";
+          const dimmed = highlightSteps && !highlightSteps.includes(step.id);
           return (
-            <div key={step.id} className="min-w-[130px] flex-1">
+            <div key={step.id} className={`min-w-[130px] flex-1 transition-opacity ${dimmed ? "opacity-25" : ""}`}>
               <div
                 className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold ${STATE_STYLE[state]}`}
               >
@@ -444,12 +541,17 @@ export function LiveOrderConceptLab({
           );
         })}
       </div>
+      )}
 
-      {/* manual hook controls */}
-      {showManualControls ? (
-        <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
+      {/* manual hook controls — always rendered when scenario uses manual hooks, visibility via opacity */}
+      {!scenario.input.autoAck ? (
+        <div className={`mt-6 rounded-xl border p-5 min-h-[100px] transition-all duration-300 ${
+          showManualControls
+            ? "border-amber-500/30 bg-amber-500/5 opacity-100"
+            : "border-white/5 bg-transparent opacity-30"
+        }`}>
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-            Waiting on {controller.waitingOn}
+            {showManualControls ? `Waiting on ${controller.waitingOn}` : "Hook controls"}
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             {controller.waitingOn === "notifyRestaurant" ? (
@@ -518,11 +620,12 @@ export function LiveOrderConceptLab({
       ) : null}
 
       {/* event feed */}
-      <div className="mt-8 rounded-xl border border-white/10 bg-black p-4 font-mono text-sm max-h-[400px] overflow-y-auto">
+      {showEventFeed && (
+      <div className="mt-8 rounded-xl border border-white/10 bg-black p-4 font-mono text-sm h-[200px] overflow-y-auto">
         {controller.events.length === 0 ? (
           <div className="text-zinc-600">No events yet.</div>
         ) : (
-          controller.events.map((event, index) => {
+          (maxEvents ? controller.events.slice(-maxEvents) : controller.events).map((event, index) => {
             const line = formatEventLine(event);
             return (
               <div key={index} className="flex gap-4 py-1">
@@ -537,10 +640,13 @@ export function LiveOrderConceptLab({
           })
         )}
       </div>
+      )}
 
       {/* compensations */}
-      {controller.compensations.length > 0 ? (
-        <div className="mt-6 flex flex-wrap gap-3">
+      {showCompensations && (
+        <div className={`mt-6 flex flex-wrap gap-3 min-h-[40px] transition-opacity duration-300 ${
+          controller.compensations.length > 0 ? "opacity-100" : "opacity-0"
+        }`}>
           {controller.compensations.map((action) => (
             <span
               key={action}
@@ -550,14 +656,22 @@ export function LiveOrderConceptLab({
             </span>
           ))}
         </div>
-      ) : null}
+      )}
 
       {/* error display */}
-      {controller.error ? (
-        <div className="mt-6 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
-          {controller.error}
-        </div>
-      ) : null}
+      <div className={`rounded-xl border p-4 text-sm transition-all duration-300 ${
+        controller.error
+          ? "mt-6 border-red-500/30 bg-red-500/5 text-red-300 opacity-100"
+          : "h-0 mt-0 p-0 border-transparent opacity-0 overflow-hidden"
+      }`}>
+        {controller.error || "\u00A0"}
+      </div>
+
+      {/* debug drawer — peeks up on hover, shows npx command + clickable dashboard link */}
+      <DebugDrawer
+        runId={controller.runId}
+        orderId={controller.orderId}
+      />
     </div>
   );
 }

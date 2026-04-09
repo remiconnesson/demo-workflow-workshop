@@ -13,6 +13,8 @@ export default function CompensationTimelineSlide() {
       <LiveOrderConceptLab
         slide="compensation-timeline"
         scenario={slideScenarios.compensationTimeline}
+        showChips={false}
+        maxEvents={8}
       />
     </div>
   );

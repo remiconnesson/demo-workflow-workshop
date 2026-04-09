@@ -8,6 +8,9 @@ export function WorkflowCodeLab() {
     <LiveOrderConceptLab
       slide="workflow-code"
       scenario={slideScenarios.workflowCode}
+      showCompensations={false}
+      showChips={false}
+      maxEvents={6}
     />
   );
 }

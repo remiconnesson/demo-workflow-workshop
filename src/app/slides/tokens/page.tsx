@@ -6,7 +6,7 @@ export default function TokensSlide() {
   return (
     <div className="flex h-full w-full items-center justify-center gap-16 px-20">
       {/* Left: token explanation */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-2xl">
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
           Hook Tokens
         </div>
@@ -32,10 +32,14 @@ export default function TokensSlide() {
       </div>
 
       {/* Right: live hook demo */}
-      <div className="flex-1 max-w-xl">
+      <div className="flex-1 max-w-lg flex flex-col gap-6">
         <LiveOrderConceptLab
           slide="tokens"
           scenario={slideScenarios.tokens}
+          highlightSteps={["notifyRestaurant"]}
+          showCompensations={false}
+          showChips={false}
+          maxEvents={4}
         />
       </div>
     </div>

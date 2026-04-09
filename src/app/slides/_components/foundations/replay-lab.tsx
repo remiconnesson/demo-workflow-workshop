@@ -8,6 +8,9 @@ export function ReplayLab() {
     <LiveOrderConceptLab
       slide="replay"
       scenario={slideScenarios.replay}
+      showCompensations={false}
+      showChips={false}
+      maxEvents={8}
     />
   );
 }

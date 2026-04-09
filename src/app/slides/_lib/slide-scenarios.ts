@@ -28,7 +28,7 @@ export const slideScenarios = {
     scenarioId: "demo-happy-path",
     title: "Triangle Donuts \u00b7 happy path",
     subtitle: "All six steps complete on a real run.",
-    autoStart: true,
+    autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },
   workflowCode: {
@@ -42,7 +42,7 @@ export const slideScenarios = {
     scenarioId: "idempotency",
     title: "Same stepId on retry",
     subtitle: "Real RetryableError path using the production workflow.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: "chargePaymentRetryable" as const,
@@ -74,7 +74,7 @@ export const slideScenarios = {
     scenarioId: "driver-decline-rollback",
     title: "Driver decline triggers rollback",
     subtitle: "Restaurant accepts, driver declines, compensations unwind.",
-    autoStart: true,
+    autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
     scriptedResumes: [
       {
@@ -93,7 +93,7 @@ export const slideScenarios = {
     scenarioId: "compensation-timeline-rollback",
     title: "Real compensation order",
     subtitle: "The same rollback run as the saga slide.",
-    autoStart: true,
+    autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
     scriptedResumes: [
       {
@@ -112,7 +112,7 @@ export const slideScenarios = {
     scenarioId: "streaming-happy-path",
     title: "Event stream",
     subtitle: "Raw workflow events over NDJSON.",
-    autoStart: true,
+    autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },
   // --- New demo modes (Task 4) ---
@@ -121,7 +121,7 @@ export const slideScenarios = {
     title: "Earlier work is not repeated",
     subtitle:
       "A real retry is injected immediately before assignDriver.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
@@ -134,7 +134,7 @@ export const slideScenarios = {
     title: "What the durable version avoids",
     subtitle:
       "Run the real replay probe while the slide copy explains the naive failure mode.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
@@ -146,7 +146,7 @@ export const slideScenarios = {
     scenarioId: "durable-checkpoints",
     title: "Checkpoints survive retries",
     subtitle: "Same live replay probe, different explanatory copy.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
@@ -158,7 +158,7 @@ export const slideScenarios = {
     scenarioId: "errors-fatal",
     title: "FatalError stops immediately",
     subtitle: "Permanent failure, no retries, rollback begins at once.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: "notifyRestaurant" as const,
@@ -169,7 +169,7 @@ export const slideScenarios = {
     scenarioId: "errors-uncaught",
     title: "Uncaught Error retries by default",
     subtitle: "Real automatic retry branch.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
@@ -182,7 +182,7 @@ export const slideScenarios = {
     title: "Driver timeout wins the race",
     subtitle:
       "Restaurant accepts, driver never responds, timeout fires on-stage.",
-    autoStart: true,
+    autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
