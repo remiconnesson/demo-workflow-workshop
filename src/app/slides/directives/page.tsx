@@ -1,4 +1,5 @@
-import { Kw, Dir, Fn, Cmt, Punc } from "../_components/code-tokens";
+import { Kw, Dir, Fn, Punc } from "../_components/code-tokens";
+import { DirectivesLab } from "../_components/foundations/directives-lab";
 
 export default function DirectivesSlide() {
   return (
@@ -51,10 +52,9 @@ export default function DirectivesSlide() {
         </div>
       </div>
 
-      <p className="mt-6 text-xl text-zinc-400 text-center max-w-3xl">
-        Each <span className="font-mono text-emerald-400">await</span> is a durable checkpoint.
-        The runtime replays from the last completed step on restart.
-      </p>
+      <div className="w-full max-w-6xl">
+        <DirectivesLab />
+      </div>
     </div>
   );
 }

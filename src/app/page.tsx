@@ -3,8 +3,12 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import {
+  FAIL_OPTIONS,
+  ORDER_STEPS as STEPS,
+  type FailStep,
+} from "@/lib/order-contract";
 import type {
-  FailStep,
   OrderEvent,
   OrderInput,
   OrderItem,
@@ -24,26 +28,6 @@ const MENU: MenuItem[] = [
 ];
 
 type StepState = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
-
-const STEPS: { id: string; label: string; sub: string }[] = [
-  { id: "validateOrder", label: "Validate order", sub: "Schema & stock" },
-  { id: "chargePayment", label: "Charge payment", sub: "Stripe authorize" },
-  { id: "notifyRestaurant", label: "Notify bakery", sub: "Await accept" },
-  { id: "assignDriver", label: "Assign courier", sub: "Dispatch" },
-  { id: "trackDelivery", label: "Track delivery", sub: "Live ETA" },
-  { id: "sendReceipt", label: "Send receipt", sub: "Email + SMS" },
-];
-
-const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
-  { value: null, label: "No failure (happy path)" },
-  { value: "validateOrder", label: "Fail at validateOrder" },
-  { value: "chargePayment", label: "Fail at chargePayment" },
-  { value: "chargePaymentRetryable", label: "Rate limit payment once" },
-  { value: "notifyRestaurant", label: "Fail at notifyRestaurant" },
-  { value: "assignDriver", label: "Fail at assignDriver" },
-  { value: "trackDelivery", label: "Fail at trackDelivery" },
-  { value: "sendReceipt", label: "Fail at sendReceipt" },
-];
 
 function TriangleMark({ size = 20, className = "" }: { size?: number; className?: string }) {
   return (

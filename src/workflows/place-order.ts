@@ -6,23 +6,14 @@ import {
   getWritable,
   sleep,
 } from "workflow";
+import {
+  type CompensationAction,
+  type FailStep,
+  hookTokens,
+} from "@/lib/order-contract";
 
-// ---------- Types ----------
-
-export type FailStep =
-  | "validateOrder"
-  | "chargePayment"
-  | "chargePaymentRetryable"
-  | "notifyRestaurant"
-  | "assignDriver"
-  | "trackDelivery"
-  | "sendReceipt"
-  | null;
-
-export type CompensationAction =
-  | "refundPayment"
-  | "cancelRestaurantOrder"
-  | "releaseDriver";
+export type { CompensationAction, FailStep } from "@/lib/order-contract";
+export { hookTokens } from "@/lib/order-contract";
 
 export type OrderItem = {
   id: string;
@@ -66,13 +57,7 @@ export type OrderResult = {
   compensationOrder: CompensationAction[];
 };
 
-// ---------- Hook tokens ----------
-
-export const hookTokens = {
-  restaurantAccept: (orderId: string) => `order:${orderId}:restaurant-accept`,
-  driverAccept: (orderId: string) => `order:${orderId}:driver-accept`,
-  delivered: (orderId: string) => `order:${orderId}:delivered`,
-};
+// ---------- Hook tokens (re-exported from @/lib/order-contract) ----------
 
 // ---------- Workflow ----------
 

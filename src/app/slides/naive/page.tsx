@@ -1,4 +1,5 @@
-import { Kw, Fn, Str, Cmt, Punc } from "../_components/code-tokens";
+import { Kw, Fn, Cmt, Punc } from "../_components/code-tokens";
+import { NaiveLab } from "../_components/foundations/naive-lab";
 
 export default function NaiveSlide() {
   return (
@@ -27,35 +28,9 @@ export default function NaiveSlide() {
         </pre>
       </div>
 
-      {/* Right: pain point */}
+      {/* Right: interactive crash lab */}
       <div className="flex-1 max-w-xl">
-        <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-10">
-          <div className="flex items-center gap-3">
-            <span className="h-3 w-3 rounded-full bg-red-500" />
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-red-400">
-              Failure Scenario
-            </span>
-          </div>
-
-          <h3 className="mt-6 text-3xl font-semibold tracking-tight">
-            Server restarts between step 2 and 3
-          </h3>
-
-          <ul className="mt-8 flex flex-col gap-5 text-xl text-zinc-400">
-            <li className="flex items-start gap-4">
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500/60" />
-              Payment charged, but restaurant never notified
-            </li>
-            <li className="flex items-start gap-4">
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500/60" />
-              No rollback. No record. No recovery.
-            </li>
-            <li className="flex items-start gap-4">
-              <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red-500/60" />
-              Customer charged for food that never arrives
-            </li>
-          </ul>
-        </div>
+        <NaiveLab />
       </div>
     </div>
   );
