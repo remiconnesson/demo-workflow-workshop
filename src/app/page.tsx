@@ -38,6 +38,7 @@ const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "No failure (happy path)" },
   { value: "validateOrder", label: "Fail at validateOrder" },
   { value: "chargePayment", label: "Fail at chargePayment" },
+  { value: "chargePaymentRetryable", label: "Rate limit payment once" },
   { value: "notifyRestaurant", label: "Fail at notifyRestaurant" },
   { value: "assignDriver", label: "Fail at assignDriver" },
   { value: "trackDelivery", label: "Fail at trackDelivery" },
@@ -165,6 +166,15 @@ function kindColor(kind: string) {
   }
 }
 
+function formatEventTime(date: Date = new Date()): string {
+  return date.toLocaleTimeString("en-US", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 export default function V29Page() {
   const [cart, setCart] = useState<MenuItem[]>(
     MENU.map((m) => ({ ...m, qty: m.id === "deployer" ? 1 : 0 })),
@@ -184,6 +194,10 @@ export default function V29Page() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [waitingOn, setWaitingOn] = useState<string | null>(null);
+  const [eventTimes, setEventTimes] = useState<string[]>([]);
+  const [autoResumeAt, setAutoResumeAt] = useState<number | null>(null);
+  const [clockNow, setClockNow] = useState(() => performance.now());
+  const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [failOpen, setFailOpen] = useState(false);
 
   const autoAckRef = useRef(autoAck);
@@ -223,6 +237,20 @@ export default function V29Page() {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
   }, [events]);
 
+  // countdown clock for auto-resume
+  useEffect(() => {
+    if (autoResumeAt === null) return;
+    const t = window.setInterval(() => setClockNow(performance.now()), 50);
+    return () => window.clearInterval(t);
+  }, [autoResumeAt]);
+
+  // auto-dismiss resume toast
+  useEffect(() => {
+    if (!resumeToast) return;
+    const t = window.setTimeout(() => setResumeToast(null), 1400);
+    return () => window.clearTimeout(t);
+  }, [resumeToast]);
+
   const cartItems = cart.filter((i) => i.qty > 0);
   const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const fee = cartItems.length > 0 ? 2.0 : 0;
@@ -256,12 +284,15 @@ export default function V29Page() {
     setOrderId(null);
     setRunId(null);
     setEvents([]);
+    setEventTimes([]);
     setStepState({});
     setCompensations([]);
     setDoneStatus(null);
     setStartedAt(null);
     setElapsed(0);
     setWaitingOn(null);
+    setAutoResumeAt(null);
+    setResumeToast(null);
     orderIdRef.current = null;
   };
 
@@ -308,6 +339,7 @@ export default function V29Page() {
         if (!line.trim()) continue;
         const ev = JSON.parse(line) as OrderEvent;
         setEvents((prev) => [...prev, ev]);
+        setEventTimes((prev) => [...prev, formatEventTime()]);
 
         switch (ev.type) {
           case "step_running":
@@ -324,9 +356,19 @@ export default function V29Page() {
             setStepState((s) => ({ ...s, [ev.step]: "skipped" }));
             break;
           case "waiting_for_hook": {
+            console.info("[demo-ui] waiting_for_hook", {
+              step: ev.step,
+              autoAck: autoAckRef.current,
+              token: ev.token,
+            });
             setStepState((s) => ({ ...s, [ev.step]: "waiting" }));
             setWaitingOn(ev.step);
             if (autoAckRef.current) {
+              console.info("[demo-ui] auto_ack_scheduled", {
+                step: ev.step,
+                delayMs: 800,
+              });
+              setAutoResumeAt(performance.now() + 800);
               const kind =
                 ev.step === "notifyRestaurant"
                   ? "restaurant-accept"
@@ -336,19 +378,44 @@ export default function V29Page() {
               setTimeout(() => {
                 void resume(kind, kind === "delivered" ? {} : { accepted: true });
               }, 800);
+            } else {
+              setAutoResumeAt(null);
             }
             break;
           }
           case "hook_resolved":
+            console.info("[demo-ui] hook_resolved", {
+              step: ev.step,
+              detail: ev.detail ?? null,
+            });
+            console.info("[demo-ui] resume_toast", {
+              step: ev.step,
+              detail: ev.detail ?? null,
+            });
+            setStepState((s) => ({ ...s, [ev.step]: "success" }));
             setWaitingOn((w) => (w === ev.step ? null : w));
+            setAutoResumeAt(null);
+            setResumeToast(`${ev.detail ?? ev.step} — workflow resumed`);
             break;
           case "compensation_pushed":
+            console.info("[demo-ui] compensation_registered", {
+              action: ev.action,
+              forStep: ev.forStep,
+            });
+            break;
+          case "compensated":
+            console.info("[demo-ui] compensation_executed", { action: ev.action });
             setCompensations((c) => [...c, ev.action]);
             break;
           case "done":
+            console.info("[demo-ui] done", {
+              status: ev.status,
+              orderId: ev.orderId,
+            });
             setDoneStatus(ev.status);
             setRunning(false);
             setWaitingOn(null);
+            setAutoResumeAt(null);
             break;
         }
       }
@@ -686,9 +753,12 @@ export default function V29Page() {
                   color="red"
                 />
               </div>
-              <h3 className="mt-3 text-3xl font-semibold tracking-tight">Simulate failure</h3>
+              <h3 className="mt-3 text-3xl font-semibold tracking-tight">
+                Simulate failure or retry
+              </h3>
               <p className="mt-2 text-lg text-zinc-500">
-                Force the saga to fail at a specific step to watch compensations run in reverse.
+                Force a fatal step or a one-time payment rate limit so the next slide explains
+                something the audience just watched.
               </p>
               <div ref={failRef} className="relative mt-6">
                 <button
@@ -842,6 +912,43 @@ export default function V29Page() {
                 />
               </label>
 
+              {waitingOn && autoAck && autoResumeAt !== null && (
+                <div className="mt-6 overflow-hidden rounded-xl border border-amber-500/30 bg-amber-500/5">
+                  <div className="flex items-center justify-between gap-6 px-6 py-5">
+                    <div>
+                      <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
+                        Pause made visible
+                      </div>
+                      <div className="mt-2 text-2xl font-semibold">{waitingOn}</div>
+                      <div className="mt-1 text-base text-zinc-400">
+                        Auto-resume is scheduled so the audience can feel the pause before the workflow
+                        wakes back up.
+                      </div>
+                    </div>
+                    <div
+                      className={`rounded-full border border-amber-400/40 bg-black px-4 py-2 text-xl text-amber-200 ${geistMono.className}`}
+                    >
+                      {Math.max(0, (autoResumeAt - clockNow) / 1000).toFixed(1)}s
+                    </div>
+                  </div>
+                  <div
+                    className="h-1 bg-amber-400/80 transition-[width] duration-75"
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, ((autoResumeAt - clockNow) / 800) * 100),
+                      )}%`,
+                    }}
+                  />
+                </div>
+              )}
+
+              {resumeToast && (
+                <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-4 text-lg text-emerald-200 transition-all duration-300">
+                  {resumeToast}
+                </div>
+              )}
+
               {/* manual hook controls — visible when waiting & autoAck off */}
               {waitingOn && !autoAck && (
                 <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-6">
@@ -932,13 +1039,14 @@ export default function V29Page() {
               ) : (
                 events.map((e, i) => {
                   const { kind, msg } = formatEventLine(e);
-                  const t = new Date().toISOString().substring(11, 19);
                   return (
                     <div
                       key={i}
                       className="flex items-start gap-6 border-b border-white/5 py-3 last:border-0"
                     >
-                      <span className="shrink-0 text-zinc-600">{t}</span>
+                      <span className="shrink-0 text-zinc-600">
+                        {eventTimes[i] ?? "00:00:00"}
+                      </span>
                       <span className={`shrink-0 font-semibold ${kindColor(kind)}`}>{kind}</span>
                       <span className="flex-1 text-zinc-200">{msg}</span>
                     </div>
@@ -949,7 +1057,7 @@ export default function V29Page() {
           </section>
 
           {/* compensations */}
-          <section className={`rounded-2xl border p-10 transition-colors ${
+          <section className={`rounded-2xl border p-10 transition-all duration-500 ${
             compensations.length > 0
               ? "border-fuchsia-500/20 bg-fuchsia-500/5"
               : "border-white/10 bg-zinc-950"
