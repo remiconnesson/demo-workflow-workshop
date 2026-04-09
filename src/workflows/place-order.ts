@@ -167,7 +167,18 @@ export async function placeOrderWorkflow(
       })),
     ]);
     if (driverResult.kind === "timeout") {
+      const timeoutLabel = input.driverTimeout ?? "2m";
       await emit({ type: "log", message: "Driver did not accept in time" });
+      await emit({
+        type: "step_failed",
+        step: "assignDriver",
+        label: "Assign driver",
+        error: `Timed out after ${timeoutLabel}`,
+      });
+      console.info("[workflow] driver_timeout", {
+        orderId,
+        driverTimeout: timeoutLabel,
+      });
       throw new FatalError(`Driver assignment timed out for order ${orderId}`);
     }
     await emit({

@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ORDER_STEPS, type SlideStepState } from "@/lib/order-contract";
 import {
   useOrderRun,
   type OrderRunScenario,
   type ResumeBody,
+  type WaitStrategy,
 } from "@/lib/order-run-client";
 import type { OrderEvent } from "@/workflows/place-order";
 
@@ -16,8 +17,6 @@ type DemoPhase =
   | "completed"
   | "rolled_back"
   | "error";
-
-type HookStep = "notifyRestaurant" | "assignDriver" | "trackDelivery";
 
 function getDemoPhase(args: {
   running: boolean;
@@ -123,6 +122,66 @@ function kindColor(kind: string): string {
   }
 }
 
+function WaitStatePanel({
+  step,
+  strategy,
+  countdownLabel,
+  driverTimeout,
+}: {
+  step: string;
+  strategy: WaitStrategy;
+  countdownLabel: string | null;
+  driverTimeout?: string;
+}) {
+  const tone =
+    strategy === "manual"
+      ? "border-amber-400/30 bg-amber-400/10 text-amber-100"
+      : strategy === "silent"
+        ? "border-fuchsia-400/30 bg-fuchsia-400/10 text-fuchsia-100"
+        : strategy === "scripted"
+          ? "border-sky-400/30 bg-sky-400/10 text-sky-100"
+          : "border-emerald-400/30 bg-emerald-400/10 text-emerald-100";
+
+  const title =
+    strategy === "manual"
+      ? "Manual decision required"
+      : strategy === "silent"
+        ? "Timeout is deciding"
+        : strategy === "scripted"
+          ? "Scripted response queued"
+          : "Auto-resume queued";
+
+  const detail =
+    strategy === "manual"
+      ? `Use the controls below to resume ${step} with a real hook payload.`
+      : strategy === "silent"
+        ? `The workflow is intentionally dormant at ${step}. No controls are shown; timeout is armed for ${driverTimeout ?? "2m"}.`
+        : strategy === "scripted"
+          ? `This slide will send the next hook payload automatically in ${countdownLabel ?? "\u2026"} so one presenter click demonstrates the concept cleanly.`
+          : `This hook is real. Auto-ack will resume it in ${countdownLabel ?? "\u2026"} to keep the run moving.`;
+
+  const pill =
+    strategy === "silent" ? (driverTimeout ?? "2m") : (countdownLabel ?? "queued");
+
+  return (
+    <div
+      className={`mt-4 rounded-xl border px-4 py-3 transition-all duration-300 ${tone}`}
+    >
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.2em]">
+            {title}
+          </div>
+          <div className="mt-2 text-sm text-zinc-200">{detail}</div>
+        </div>
+        <div className="rounded-full border border-white/15 bg-black/30 px-3 py-1 font-mono text-xs animate-pulse">
+          {pill}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LiveOrderConceptLab({
   slide,
   scenario,
@@ -153,39 +212,45 @@ export function LiveOrderConceptLab({
       : controller.autoResumeAt - clockNow,
   );
 
-  const scriptedWait =
-    controller.scheduledResume?.step === controller.waitingOn &&
-    controller.scheduledResume.source === "scripted";
-  const autoAckWait =
-    controller.scheduledResume?.step === controller.waitingOn &&
-    controller.scheduledResume.source === "autoAck";
-  const silentWait = Boolean(
-    controller.waitingOn &&
-      scenario.silentWaitingSteps?.includes(
-        controller.waitingOn as HookStep,
-      ),
-  );
+  const waitStrategy = controller.waitStrategy;
   const showManualControls =
-    Boolean(controller.waitingOn) &&
-    !controller.scheduledResume &&
-    !silentWait;
+    controller.waitingOn !== null && waitStrategy === "manual";
 
   const scenarioChips = [
     `fail:${scenario.input.failAt ?? "none"}`,
     `autoAck:${scenario.input.autoAck ? "on" : "manual"}`,
     `mode:${scenario.input.demoMode ?? "standard"}`,
+    ...(scenario.scriptedResumes?.length
+      ? [
+          `scripted:${scenario.scriptedResumes.map(({ step }) => step).join(",")}`,
+        ]
+      : []),
+    ...(scenario.silentWaitingSteps?.length
+      ? [`silent:${scenario.silentWaitingSteps.join(",")}`]
+      : []),
     ...(scenario.input.driverTimeout && scenario.input.driverTimeout !== "2m"
       ? [`driverTimeout:${scenario.input.driverTimeout}`]
       : []),
   ];
 
-  // phase transition logging
+  // phase transition logging (signature-guarded to avoid noise)
+  const lastPhaseSignatureRef = useRef("");
   useEffect(() => {
+    const signature = JSON.stringify({
+      phase,
+      waitingOn: controller.waitingOn,
+      waitStrategy,
+      runId: controller.runId,
+      orderId: controller.orderId,
+    });
+    if (signature === lastPhaseSignatureRef.current) return;
+    lastPhaseSignatureRef.current = signature;
     console.info("[slide-live] phase", {
       slide,
       scenarioId: scenario.scenarioId,
       phase,
       waitingOn: controller.waitingOn,
+      waitStrategy,
       runId: controller.runId,
       orderId: controller.orderId,
       eventCount: controller.events.length,
@@ -195,9 +260,29 @@ export function LiveOrderConceptLab({
     scenario.scenarioId,
     phase,
     controller.waitingOn,
+    waitStrategy,
     controller.runId,
     controller.orderId,
     controller.events.length,
+  ]);
+
+  // wait-panel log
+  useEffect(() => {
+    if (phase !== "waiting" || !controller.waitingOn || !waitStrategy) return;
+    console.info("[slide-live] wait_panel", {
+      slide,
+      scenarioId: scenario.scenarioId,
+      waitingOn: controller.waitingOn,
+      waitStrategy,
+      driverTimeout: scenario.input.driverTimeout ?? "2m",
+    });
+  }, [
+    slide,
+    scenario.scenarioId,
+    phase,
+    controller.waitingOn,
+    waitStrategy,
+    scenario.input.driverTimeout,
   ]);
 
   // Listen for slide:run and slide:reset keyboard events
@@ -284,11 +369,13 @@ export function LiveOrderConceptLab({
           {phase === "idle" && "Ready"}
           {phase === "running" && "Streaming live"}
           {phase === "waiting" &&
-            (scriptedWait
+            (waitStrategy === "scripted"
               ? `Scripted wait at ${controller.waitingOn}`
-              : silentWait
-                ? `Waiting at ${controller.waitingOn}`
-                : `Paused at ${controller.waitingOn}`)}
+              : waitStrategy === "autoAck"
+                ? `Auto-resume at ${controller.waitingOn}`
+                : waitStrategy === "silent"
+                  ? `Silent wait at ${controller.waitingOn}`
+                  : `Paused at ${controller.waitingOn}`)}
           {phase === "completed" && "Workflow completed"}
           {phase === "rolled_back" && "Workflow rolled back"}
           {phase === "error" && "Connection issue"}
@@ -298,11 +385,11 @@ export function LiveOrderConceptLab({
           {phase === "running" &&
             `${controller.events.length} events received.`}
           {phase === "waiting" &&
-            (scriptedWait
+            (waitStrategy === "scripted"
               ? `Scripted response in ${countdownLabel ?? "\u2026"}`
-              : autoAckWait
+              : waitStrategy === "autoAck"
                 ? `Auto-resume in ${countdownLabel ?? "\u2026"}`
-                : silentWait && controller.waitingOn === "assignDriver"
+                : waitStrategy === "silent"
                   ? `Waiting for driver response. Timeout armed for ${scenario.input.driverTimeout ?? "2m"}.`
                   : "Resume from the hook controls below.")}
           {phase === "completed" &&
@@ -317,6 +404,14 @@ export function LiveOrderConceptLab({
           <div className="mt-3 rounded-lg border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
             {controller.resumeToast}
           </div>
+        ) : null}
+        {phase === "waiting" && controller.waitingOn && waitStrategy ? (
+          <WaitStatePanel
+            step={controller.waitingOn}
+            strategy={waitStrategy}
+            countdownLabel={countdownLabel}
+            driverTimeout={scenario.input.driverTimeout}
+          />
         ) : null}
       </div>
 

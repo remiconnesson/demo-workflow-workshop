@@ -20,6 +20,8 @@ export type ScriptedResume = {
   body: ResumeBody;
 };
 
+export type WaitStrategy = "manual" | "silent" | "autoAck" | "scripted";
+
 export type ScheduledResume = {
   step: HookStep;
   at: number;
@@ -44,6 +46,7 @@ export type OrderRunController = {
   events: OrderEvent[];
   stepState: Partial<Record<OrderStepId, SlideStepState>>;
   waitingOn: OrderStepId | null;
+  waitStrategy: WaitStrategy | null;
   compensations: string[];
   doneStatus: "completed" | "rolled_back" | null;
   autoResumeAt: number | null;
@@ -85,6 +88,7 @@ export function useOrderRun(
     Partial<Record<OrderStepId, SlideStepState>>
   >({});
   const [waitingOn, setWaitingOn] = useState<OrderStepId | null>(null);
+  const [waitStrategy, setWaitStrategy] = useState<WaitStrategy | null>(null);
   const [compensations, setCompensations] = useState<string[]>([]);
   const [doneStatus, setDoneStatus] = useState<
     "completed" | "rolled_back" | null
@@ -154,6 +158,7 @@ export function useOrderRun(
       setEvents([]);
       setStepState({});
       setWaitingOn(null);
+      setWaitStrategy(null);
       setCompensations([]);
       setDoneStatus(null);
       setResumeToast(null);
@@ -207,9 +212,21 @@ export function useOrderRun(
           const scripted = scenario.scriptedResumes?.find(
             (candidate) => candidate.step === step,
           );
+          const strategy: WaitStrategy = scripted
+            ? "scripted"
+            : scenario.input.autoAck
+              ? "autoAck"
+              : scenario.silentWaitingSteps?.includes(step)
+                ? "silent"
+                : "manual";
+          setWaitStrategy(strategy);
+
           const body =
-            scripted?.body ??
-            (scenario.input.autoAck ? defaultResumeForStep(step) : null);
+            strategy === "scripted"
+              ? scripted!.body
+              : strategy === "autoAck"
+                ? defaultResumeForStep(step)
+                : null;
           if (!body) {
             setAutoResumeAt(null);
             setScheduledResume(null);
@@ -218,9 +235,7 @@ export function useOrderRun(
               scenarioId: scenario.scenarioId,
               orderId: orderIdRef.current,
               step,
-              strategy: scenario.silentWaitingSteps?.includes(step)
-                ? "silent"
-                : "manual",
+              strategy,
               driverTimeout:
                 step === "assignDriver"
                   ? (scenario.input.driverTimeout ?? "2m")
@@ -233,20 +248,23 @@ export function useOrderRun(
           const delayMs = scripted?.delayMs ?? 800;
           const scheduledOrderId = orderIdRef.current;
           const at = performance.now() + delayMs;
+          const scheduledSource: ScheduledResume["source"] = strategy as
+            | "scripted"
+            | "autoAck";
           scheduledOrderIdRef.current = scheduledOrderId;
           setAutoResumeAt(at);
           setScheduledResume({
             step,
             at,
             body,
-            source: scripted ? "scripted" : "autoAck",
+            source: scheduledSource,
           });
           console.info("[order-run] wait_strategy", {
             source,
             scenarioId: scenario.scenarioId,
             orderId: scheduledOrderId,
             step,
-            strategy: scripted ? "scripted" : "autoAck",
+            strategy,
             delayMs,
             body,
           });
@@ -278,6 +296,7 @@ export function useOrderRun(
         }
         case "hook_resolved":
           clearScheduledResume("hook_resolved");
+          setWaitStrategy(null);
           setStepState((current) => ({
             ...current,
             [event.step as OrderStepId]: "success",
@@ -292,6 +311,7 @@ export function useOrderRun(
           break;
         case "done":
           clearScheduledResume("done");
+          setWaitStrategy(null);
           setDoneStatus(event.status);
           setRunning(false);
           setWaitingOn(null);
@@ -412,6 +432,7 @@ export function useOrderRun(
     events,
     stepState,
     waitingOn,
+    waitStrategy,
     compensations,
     doneStatus,
     autoResumeAt,
