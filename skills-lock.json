@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "84f3a2a57fa71ae5061786280987575d673792d6dda9a63941efb2795b83543a"
     },
+    "chat-sdk": {
+      "source": "vercel/chat",
+      "sourceType": "github",
+      "computedHash": "3096b59a9d6fc8ced2871c770441817696985cb995a0a9b85ac36c1a5da91062"
+    },
     "next-best-practices": {
       "source": "vercel/vercel-skills",
       "sourceType": "github",
@@ -20,6 +25,11 @@
       "source": "vercel/vercel-skills",
       "sourceType": "github",
       "computedHash": "a94b83ddcd2ff1c30722577f693b1bfe32f2e1a83abdd6c08c2d6cc6753b53c8"
+    },
+    "next-forge": {
+      "source": "vercel/next-forge",
+      "sourceType": "github",
+      "computedHash": "a86e2c471ca234580f78364d0ce9cabd68c6049caaa35b60c8d4933d06424fcb"
     },
     "shadcn": {
       "source": "vercel-labs/json-render",
@@ -50,6 +60,11 @@
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",
       "computedHash": "18664220dc6dc14b824b0b2de59fd43c1ae745cd0d0dbd663db27c741da1577b"
+    },
+    "workflow": {
+      "source": "vercel/workflow",
+      "sourceType": "github",
+      "computedHash": "c7393b61bde8f21ee7419998eac1b8766b3a34209349677eb4502996da05d231"
     }
   }
 }

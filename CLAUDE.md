@@ -1,1 +1,2 @@
 @AGENTS.md
+@.impeccable.md
