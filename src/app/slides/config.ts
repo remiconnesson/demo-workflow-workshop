@@ -6,7 +6,7 @@ export type SlideInfo = {
 };
 
 export const SLIDES: SlideInfo[] = [
-  // ─── ACT 1: "Let me show you something" ──────────────────────
+  // ─── ACT 1: The Setup ───────────────────────────────────────
   {
     slug: "title",
     title: "Cold Open",
@@ -34,11 +34,9 @@ export const SLIDES: SlideInfo[] = [
       "TRANSITION: Press r to run the live workflow on this slide. Press Shift+R to reset.",
     ].join("\n"),
   },
-
-  // ─── ACT 2: "What could go wrong" ────────────────────────────
   {
     slug: "naive",
-    title: "The Naive Version",
+    title: "What If It Crashes?",
     number: 3,
     notes: [
       "SAY: \"That was pretty smooth. But here's how it's actually built — if you were writing it the normal way.\"",
@@ -53,10 +51,10 @@ export const SLIDES: SlideInfo[] = [
     ].join("\n"),
   },
 
-  // ─── ACT 3: "Two magic words" ────────────────────────────────
+  // ─── ACT 2: The Fix ─────────────────────────────────────────
   {
     slug: "directives",
-    title: "Directives",
+    title: "Two Lines That Change Everything",
     number: 4,
     notes: [
       "SAY: \"Here's the fix. Two words: 'use workflow' and 'use step'.\"",
@@ -83,7 +81,7 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "replay",
-    title: "Deterministic Replay",
+    title: "Pick Up Where You Left Off",
     number: 6,
     notes: [
       "SAY: \"So what actually happens when the server crashes?\"",
@@ -97,55 +95,11 @@ export const SLIDES: SlideInfo[] = [
     ].join("\n"),
   },
 
-  // ─── ACT 4: "The small things that matter" ───────────────────
-  {
-    slug: "idempotency",
-    title: "Idempotency",
-    number: 7,
-    notes: [
-      "SAY: \"Here's a detail that matters. Every step gets a unique, deterministic ID — stepId. And the runtime tracks which attempt you're on.\"",
-      "",
-      "POINT to the idempotencyKey line: \"Pass stepId to any external API as a deduplication key. If the step retries, the same key goes out — the API deduplicates.\"",
-      "",
-      "SAY: \"You get this for free. No UUIDs. No database. The demo proves it — run 'Rate limit payment once' and watch the same stepId appear on both attempts.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
-  },
-  {
-    slug: "errors",
-    title: "Error Handling",
-    number: 8,
-    notes: [
-      "SAY: \"Three levels of errors. An uncaught Error? The runtime retries automatically. A FatalError? Stop retrying — start compensating. A RetryableError? You choose exactly when to retry.\"",
-      "",
-      "POINT to the retry timeline: \"Two attempts. First one throws RetryableError with retryAfter: '2s'. Second one succeeds — same stepId. That's the exact demo behavior.\"",
-      "",
-      "SAY: \"The demo 'Rate limit payment once' scenario shows this live. One retry, same stepId, controlled backoff.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
-  },
-  {
-    slug: "glossary-foundations",
-    title: "Glossary: The Basics",
-    number: 9,
-    notes: [
-      "SAY: \"Let's pause and name what we've seen. If you're working with an AI coding agent, these are the phrases that get you the right code.\"",
-      "",
-      "Skim through each term. Don't read the prompts aloud — they're for the audience to photograph and try later.",
-      "",
-      "SAY: \"Durable execution, checkpoints, idempotency, error types. You've now seen all four in action.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
-  },
-
-  // ─── ACT 5: "Waiting without burning money" ──────────────────
+  // ─── ACT 3: Waiting Without Burning Money ───────────────────
   {
     slug: "sleep",
-    title: "Durable Sleep",
-    number: 10,
+    title: "Wait Without Paying",
+    number: 7,
     notes: [
       "SAY: \"New problem. What if you need to wait? Not milliseconds — days. How do you wait 7 days in a serverless function?\"",
       "",
@@ -157,8 +111,8 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "hooks",
-    title: "Hooks",
-    number: 11,
+    title: "Wait for a Human",
+    number: 8,
     notes: [
       "SAY: \"Same idea, but for people. The restaurant needs to accept the order. That could take 10 minutes.\"",
       "",
@@ -171,8 +125,8 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "tokens",
-    title: "Hook Tokens",
-    number: 12,
+    title: "Resume from Anywhere",
+    number: 9,
     notes: [
       "SAY: \"The hook has a name — a token. 'order-123-restaurant-accept'. It's predictable. You control it.\"",
       "",
@@ -185,8 +139,8 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "approval-gate",
-    title: "Approval Gate",
-    number: 13,
+    title: "What If They Say No?",
+    number: 10,
     notes: [
       "SAY: \"Combine a hook with a timeout and you get an approval gate. Wait for the manager — but not forever.\"",
       "",
@@ -197,12 +151,26 @@ export const SLIDES: SlideInfo[] = [
       "TRANSITION: Press r to run the live workflow on this slide. Hooks are manual — accept or reject from the slide buttons. Press Shift+R to reset.",
     ].join("\n"),
   },
+  {
+    slug: "timeout-race",
+    title: "Two Minutes or You're Out",
+    number: 11,
+    notes: [
+      "SAY: \"This is from the actual demo code. The driver has 2 minutes to accept.\"",
+      "",
+      "SAY: \"Promise.race — the hook vs sleep('2m'). Whoever finishes first wins.\"",
+      "",
+      "POINT to outcomes: \"Accept → continue. Timeout → cancel and compensate.\"",
+      "",
+      "TRANSITION: Press →.",
+    ].join("\n"),
+  },
 
-  // ─── ACT 6: "Cleaning up the mess" ───────────────────────────
+  // ─── ACT 4: When Things Go Wrong ────────────────────────────
   {
     slug: "saga",
-    title: "Saga / Compensation",
-    number: 14,
+    title: "Undo Everything",
+    number: 12,
     notes: [
       "SAY: \"Okay — the hard question. What happens when something fails AFTER you've already charged the card?\"",
       "",
@@ -214,8 +182,8 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "compensation-timeline",
-    title: "Compensation Timeline",
-    number: 15,
+    title: "Watch It Roll Back",
+    number: 13,
     notes: [
       "SAY: \"The driver hook resolves with a decline, and that business outcome triggers rollback.\"",
       "",
@@ -227,11 +195,11 @@ export const SLIDES: SlideInfo[] = [
     ].join("\n"),
   },
 
-  // ─── ACT 7: "Composing bigger things" ────────────────────────
+  // ─── ACT 5: Composition ─────────────────────────────────────
   {
     slug: "parallel",
-    title: "Parallel Steps",
-    number: 16,
+    title: "Do Three Things at Once",
+    number: 14,
     notes: [
       "SAY: \"Now let's talk about composing workflows. What if you need to do three things at once?\"",
       "",
@@ -243,23 +211,9 @@ export const SLIDES: SlideInfo[] = [
     ].join("\n"),
   },
   {
-    slug: "timeout-race",
-    title: "Timeout Pattern",
-    number: 17,
-    notes: [
-      "SAY: \"This is from the actual demo code. The driver has 2 minutes to accept.\"",
-      "",
-      "SAY: \"Promise.race — the hook vs sleep('2m'). Whoever finishes first wins.\"",
-      "",
-      "POINT to outcomes: \"Accept → continue. Timeout → cancel and compensate.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
-  },
-  {
     slug: "fan-out",
-    title: "Fan-Out",
-    number: 18,
+    title: "Tell Everyone",
+    number: 15,
     notes: [
       "SAY: \"Delivery's delayed. You need to tell everyone — customer, restaurant, driver, support. All at once.\"",
       "",
@@ -270,8 +224,8 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "process-manager",
-    title: "Process Manager",
-    number: 19,
+    title: "The Whole Lifecycle",
+    number: 16,
     notes: [
       "SAY: \"The full order lifecycle as a state machine. But there's no state machine library. It's just if/else and await.\"",
       "",
@@ -280,26 +234,56 @@ export const SLIDES: SlideInfo[] = [
       "TRANSITION: Press →.",
     ].join("\n"),
   },
+
+  // ─── ACT 6: The Payoff ──────────────────────────────────────
   {
-    slug: "glossary-patterns",
-    title: "Glossary: The Patterns",
-    number: 20,
+    slug: "streaming",
+    title: "Watch It Happen",
+    number: 17,
     notes: [
-      "SAY: \"One more set of terms for your AI agent toolkit.\"",
+      "SAY: \"Last piece. Every colored line you saw in the event feed? That's a real workflow event, streamed to the browser.\"",
       "",
-      "Skim through. These are the building blocks the audience will use to compose their own workflows.",
+      "POINT to code: \"getWritable() gives you a stream in any step. Write events, they show up as lines on the dashboard.\"",
       "",
-      "SAY: \"Hooks for humans. Sagas for cleanup. Fan-out for broadcasting. Timeouts for deadlines. You've seen them all work tonight.\"",
+      "SAY: \"No polling. No WebSockets. Just HTTP.\"",
+      "",
+      "TRANSITION: Press r to run the live workflow on this slide. Point at the live event feed. \"That's getWritable in action.\" Then press →.",
+    ].join("\n"),
+  },
+
+  // ─── ACT 7: The Details ─────────────────────────────────────
+  {
+    slug: "idempotency",
+    title: "Never Charge Twice",
+    number: 18,
+    notes: [
+      "SAY: \"Here's a detail that matters. Every step gets a unique, deterministic ID — stepId. And the runtime tracks which attempt you're on.\"",
+      "",
+      "POINT to the idempotencyKey line: \"Pass stepId to any external API as a deduplication key. If the step retries, the same key goes out — the API deduplicates.\"",
+      "",
+      "SAY: \"You get this for free. No UUIDs. No database. The demo proves it — run 'Rate limit payment once' and watch the same stepId appear on both attempts.\"",
       "",
       "TRANSITION: Press →.",
     ].join("\n"),
   },
-
-  // ─── ACT 8: "How the UI stays alive" ─────────────────────────
+  {
+    slug: "errors",
+    title: "Three Kinds of Failure",
+    number: 19,
+    notes: [
+      "SAY: \"Three levels of errors. An uncaught Error? The runtime retries automatically. A FatalError? Stop retrying — start compensating. A RetryableError? You choose exactly when to retry.\"",
+      "",
+      "POINT to the retry timeline: \"Two attempts. First one throws RetryableError with retryAfter: '2s'. Second one succeeds — same stepId. That's the exact demo behavior.\"",
+      "",
+      "SAY: \"The demo 'Rate limit payment once' scenario shows this live. One retry, same stepId, controlled backoff.\"",
+      "",
+      "TRANSITION: Press →.",
+    ].join("\n"),
+  },
   {
     slug: "serialization",
-    title: "Serialization",
-    number: 21,
+    title: "Data Crosses Boundaries",
+    number: 20,
     notes: [
       "SAY: \"One gotcha before we wrap up. Data between workflows and steps is copied, not shared.\"",
       "",
@@ -310,26 +294,12 @@ export const SLIDES: SlideInfo[] = [
       "TRANSITION: Press →.",
     ].join("\n"),
   },
-  {
-    slug: "streaming",
-    title: "Streaming",
-    number: 22,
-    notes: [
-      "SAY: \"Last piece. Every colored line you saw in the event feed? That's a real workflow event, streamed to the browser.\"",
-      "",
-      "POINT to code: \"getWritable() gives you a stream in any step. Write events, they show up as lines on the dashboard.\"",
-      "",
-      "SAY: \"No polling. No WebSockets. Just HTTP.\"",
-      "",
-      "TRANSITION: Press r to run the live workflow on this slide. Point at the live event feed. \"That's getWritable in action.\" Then press → for the close.",
-    ].join("\n"),
-  },
 
-  // ─── ACT 9: "Go build" ───────────────────────────────────────
+  // ─── ACT 8: Go Build ────────────────────────────────────────
   {
     slug: "close",
     title: "Ship It",
-    number: 23,
+    number: 21,
     notes: [
       "SAY: \"That's the Workflow SDK. Two words — 'use workflow' and 'use step'. Everything else follows from there.\"",
       "",
