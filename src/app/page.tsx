@@ -99,6 +99,50 @@ function SlideHotspot({
   );
 }
 
+type DemoPhase =
+  | "idle"
+  | "running"
+  | "waiting"
+  | "completed"
+  | "rolled_back"
+  | "error";
+
+function getDemoPhase(args: {
+  running: boolean;
+  waitingOn: string | null;
+  doneStatus: "completed" | "rolled_back" | null;
+  error: string | null;
+}): DemoPhase {
+  if (args.error) return "error";
+  if (args.waitingOn) return "waiting";
+  if (args.doneStatus === "completed") return "completed";
+  if (args.doneStatus === "rolled_back") return "rolled_back";
+  if (args.running) return "running";
+  return "idle";
+}
+
+function phaseCardClass(phase: DemoPhase): string {
+  switch (phase) {
+    case "running":
+      return "border-sky-400/30 bg-sky-400/5 text-sky-100";
+    case "waiting":
+      return "border-amber-400/30 bg-amber-400/5 text-amber-100";
+    case "completed":
+      return "border-emerald-400/30 bg-emerald-400/5 text-emerald-100";
+    case "rolled_back":
+      return "border-fuchsia-400/30 bg-fuchsia-400/5 text-fuchsia-100";
+    case "error":
+      return "border-red-400/30 bg-red-400/5 text-red-100";
+    default:
+      return "border-white/10 bg-white/5 text-zinc-200";
+  }
+}
+
+function formatCountdown(ms: number | null): string | null {
+  if (ms === null) return null;
+  return `${(Math.max(0, ms) / 1000).toFixed(1)}s`;
+}
+
 function formatEventLine(e: OrderEvent): { kind: string; msg: string } {
   switch (e.type) {
     case "step_running":
@@ -278,7 +322,38 @@ export default function V29Page() {
   };
 
   // Convenience aliases
-  const { running, orderId, runId, events, stepState, compensations, doneStatus, waitingOn, autoResumeAt, resumeToast } = run;
+  const { running, orderId, runId, events, stepState, compensations, doneStatus, waitingOn, autoResumeAt, resumeToast, error } = run;
+
+  const phase = getDemoPhase({ running, waitingOn, doneStatus, error });
+  const countdownLabel = formatCountdown(
+    autoResumeAt === null ? null : autoResumeAt - clockNow,
+  );
+  const scenarioChips = [
+    `fail:${failAt ?? "none"}`,
+    `autoAck:${autoAck ? "on" : "manual"}`,
+  ];
+
+  useEffect(() => {
+    console.info("[home-demo] phase", {
+      phase,
+      runId,
+      orderId,
+      eventCount: events.length,
+      countdownLabel,
+    });
+  }, [phase, runId, orderId, events.length, countdownLabel]);
+
+  useEffect(() => {
+    console.info("[home-demo] ui_state", {
+      running,
+      orderId,
+      runId,
+      waitingOn,
+      doneStatus,
+      eventCount: events.length,
+      hasError: Boolean(error),
+    });
+  }, [running, orderId, runId, waitingOn, doneStatus, events.length, error]);
 
   const phoneView: "menu" | "tracking" = orderId ? "tracking" : "menu";
 
@@ -596,6 +671,47 @@ export default function V29Page() {
               </div>
             </div>
           </section>
+
+          {/* phase card + scenario fingerprint */}
+          <div className={`rounded-2xl border p-4 backdrop-blur ${phaseCardClass(phase)}`}>
+            <div className="flex flex-wrap gap-2">
+              {scenarioChips.map((chip) => (
+                <span
+                  key={chip}
+                  className={`rounded-full border border-white/10 bg-black/20 px-3 py-1 font-mono text-xs text-zinc-200 ${geistMono.className}`}
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]">
+              {phase === "idle" && "Ready"}
+              {phase === "running" && "Streaming live"}
+              {phase === "waiting" && `Paused at ${waitingOn}`}
+              {phase === "completed" && "Workflow completed"}
+              {phase === "rolled_back" && "Workflow rolled back"}
+              {phase === "error" && "Connection issue"}
+            </div>
+            <div className="mt-2 text-base text-zinc-300">
+              {phase === "idle" && "Press Place order to run the real workflow."}
+              {phase === "running" && `${events.length} events received in ${fmtElapsed(elapsed)}`}
+              {phase === "waiting" &&
+                (autoAck
+                  ? `Auto-resume in ${countdownLabel}`
+                  : "Resume from the hook controls below.")}
+              {phase === "completed" && `Run ${runId ?? "—"} finished successfully.`}
+              {phase === "rolled_back" &&
+                (compensations.length > 0
+                  ? `Compensations: ${compensations.join(" → ")}`
+                  : "Rollback completed.")}
+              {phase === "error" && error}
+            </div>
+            {resumeToast ? (
+              <div className="mt-3 rounded-xl border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
+                {resumeToast}
+              </div>
+            ) : null}
+          </div>
 
           {/* controls row */}
           <section className="grid gap-8 lg:grid-cols-2">
