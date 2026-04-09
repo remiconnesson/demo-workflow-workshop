@@ -52,8 +52,6 @@ export function ErrorsLab() {
         slide="errors"
         scenario={current.scenario}
         showCompensations={false}
-        showChips={false}
-        maxEvents={6}
       />
     </div>
   );

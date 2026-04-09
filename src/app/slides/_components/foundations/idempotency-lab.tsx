@@ -10,8 +10,6 @@ export function IdempotencyLab() {
       scenario={slideScenarios.idempotency}
       highlightSteps={["chargePayment"]}
       showCompensations={false}
-      showChips={false}
-      maxEvents={6}
     />
   );
 }

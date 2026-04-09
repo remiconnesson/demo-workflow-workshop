@@ -9,8 +9,6 @@ export function DirectivesLab() {
       slide="directives"
       scenario={slideScenarios.directives}
       showCompensations={false}
-      showChips={false}
-      maxEvents={6}
     />
   );
 }

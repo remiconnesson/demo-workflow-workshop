@@ -3,12 +3,23 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import {
   FAIL_OPTIONS,
   ORDER_STEPS as STEPS,
   type FailStep,
+  type OrderStepId,
 } from "@/lib/order-contract";
-import type { OrderEvent, OrderItem } from "@/workflows/place-order";
+
+const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
+  validateOrder: <ClipboardCheck size={24} className="text-black" strokeWidth={2.5} />,
+  chargePayment: <CreditCard size={24} className="text-black" strokeWidth={2.5} />,
+  notifyRestaurant: <ChefHat size={24} className="text-black" strokeWidth={2.5} />,
+  assignDriver: <Bike size={24} className="text-black" strokeWidth={2.5} />,
+  trackDelivery: <MapPin size={24} className="text-black" strokeWidth={2.5} />,
+  sendReceipt: <Receipt size={24} className="text-black" strokeWidth={2.5} />,
+};
+import type { OrderItem } from "@/workflows/place-order";
 import { useOrderRun, type OrderRunScenario } from "@/lib/order-run-client";
 
 
@@ -122,83 +133,6 @@ function getDemoPhase(args: {
   return "idle";
 }
 
-function phaseCardClass(phase: DemoPhase): string {
-  switch (phase) {
-    case "running":
-      return "border-sky-400/30 bg-sky-400/5 text-sky-100";
-    case "waiting":
-      return "border-amber-400/30 bg-amber-400/5 text-amber-100";
-    case "completed":
-      return "border-emerald-400/30 bg-emerald-400/5 text-emerald-100";
-    case "rolled_back":
-      return "border-fuchsia-400/30 bg-fuchsia-400/5 text-fuchsia-100";
-    case "error":
-      return "border-red-400/30 bg-red-400/5 text-red-100";
-    default:
-      return "border-white/10 bg-white/5 text-zinc-200";
-  }
-}
-
-function formatCountdown(ms: number | null): string | null {
-  if (ms === null) return null;
-  return `${(Math.max(0, ms) / 1000).toFixed(1)}s`;
-}
-
-function formatEventLine(e: OrderEvent): { kind: string; msg: string } {
-  switch (e.type) {
-    case "step_running":
-      return { kind: "RUN", msg: `${e.step} · ${e.label}` };
-    case "step_succeeded":
-      return { kind: "OK ", msg: `${e.step}${e.detail ? ` · ${e.detail}` : ""}` };
-    case "step_failed":
-      return { kind: "ERR", msg: `${e.step} · ${e.error}` };
-    case "step_skipped":
-      return { kind: "SKP", msg: `${e.step}` };
-    case "waiting_for_hook":
-      return { kind: "WAI", msg: `${e.step} · awaiting ${e.token}` };
-    case "hook_resolved":
-      return { kind: "HOK", msg: `${e.step}${e.detail ? ` · ${e.detail}` : ""}` };
-    case "compensation_pushed":
-      return { kind: "CMP", msg: `pushed ${e.action} (for ${e.forStep})` };
-    case "compensating":
-      return { kind: "CMP", msg: `running ${e.action}` };
-    case "compensated":
-      return { kind: "CMP", msg: `done ${e.action}` };
-    case "log":
-      return { kind: "LOG", msg: e.message };
-    case "done":
-      return { kind: "END", msg: `${e.status} · ${e.orderId}` };
-  }
-}
-
-function kindColor(kind: string) {
-  switch (kind) {
-    case "OK ":
-      return "text-emerald-400";
-    case "ERR":
-      return "text-red-400";
-    case "WAI":
-    case "HOK":
-      return "text-amber-400";
-    case "CMP":
-      return "text-fuchsia-400";
-    case "RUN":
-      return "text-sky-400";
-    case "END":
-      return "text-white";
-    default:
-      return "text-zinc-500";
-  }
-}
-
-function formatEventTime(date: Date = new Date()): string {
-  return date.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
 
 export default function V29Page() {
   const [cart, setCart] = useState<MenuItem[]>(
@@ -235,25 +169,10 @@ export default function V29Page() {
 
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [eventTimes, setEventTimes] = useState<string[]>([]);
   const [clockNow, setClockNow] = useState(() => performance.now());
   const [failOpen, setFailOpen] = useState(false);
 
-  const feedRef = useRef<HTMLDivElement>(null);
   const failRef = useRef<HTMLDivElement>(null);
-  const prevEventCount = useRef(0);
-
-  // Track event timestamps as new events arrive
-  useEffect(() => {
-    if (run.events.length > prevEventCount.current) {
-      const newTimes = Array.from(
-        { length: run.events.length - prevEventCount.current },
-        () => formatEventTime(),
-      );
-      setEventTimes((prev) => [...prev, ...newTimes]);
-    }
-    prevEventCount.current = run.events.length;
-  }, [run.events.length]);
 
 
   // close fail dropdown on outside click / Esc
@@ -282,18 +201,6 @@ export default function V29Page() {
     return () => clearInterval(t);
   }, [startedAt, run.doneStatus]);
 
-  // event feed autoscroll
-  useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-  }, [run.events]);
-
-  // countdown clock for auto-resume
-  useEffect(() => {
-    if (run.autoResumeAt === null) return;
-    const t = window.setInterval(() => setClockNow(performance.now()), 50);
-    return () => window.clearInterval(t);
-  }, [run.autoResumeAt]);
-
   const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const fee = cartItems.length > 0 ? 2.0 : 0;
   const total = subtotal + fee;
@@ -307,8 +214,6 @@ export default function V29Page() {
 
   const placeOrder = async () => {
     if (run.running) return;
-    setEventTimes([]);
-    prevEventCount.current = 0;
     setElapsed(0);
     setStartedAt(Date.now());
     await run.start();
@@ -318,21 +223,19 @@ export default function V29Page() {
     run.reset("user-reset");
     setStartedAt(null);
     setElapsed(0);
-    setEventTimes([]);
-    prevEventCount.current = 0;
   };
 
   // Convenience aliases
   const { running, orderId, runId, events, stepState, compensations, doneStatus, waitingOn, autoResumeAt, resumeToast, error } = run;
 
+  // countdown clock for auto-resume panel
+  useEffect(() => {
+    if (autoResumeAt === null) return;
+    const t = window.setInterval(() => setClockNow(performance.now()), 50);
+    return () => window.clearInterval(t);
+  }, [autoResumeAt]);
+
   const phase = getDemoPhase({ running, waitingOn, doneStatus, error });
-  const countdownLabel = formatCountdown(
-    autoResumeAt === null ? null : autoResumeAt - clockNow,
-  );
-  const scenarioChips = [
-    `fail:${failAt ?? "none"}`,
-    `autoAck:${autoAck ? "on" : "manual"}`,
-  ];
 
   useEffect(() => {
     console.info("[home-demo] phase", {
@@ -340,21 +243,8 @@ export default function V29Page() {
       runId,
       orderId,
       eventCount: events.length,
-      countdownLabel,
     });
-  }, [phase, runId, orderId, events.length, countdownLabel]);
-
-  useEffect(() => {
-    console.info("[home-demo] ui_state", {
-      running,
-      orderId,
-      runId,
-      waitingOn,
-      doneStatus,
-      eventCount: events.length,
-      hasError: Boolean(error),
-    });
-  }, [running, orderId, runId, waitingOn, doneStatus, events.length, error]);
+  }, [phase, runId, orderId, events.length]);
 
   const phoneView: "menu" | "tracking" = orderId ? "tracking" : "menu";
 
@@ -506,7 +396,7 @@ export default function V29Page() {
                         ? "Something went wrong."
                         : "Heading your way"}
                   </h2>
-                  <p className={`text-xl text-zinc-500 ${geistMono.className}`}>{orderId}</p>
+                  {/* orderId removed — not audience-readable */}
 
                   <div className="mt-10 flex flex-col gap-0">
                     {STEPS.map((s, i) => {
@@ -585,11 +475,7 @@ export default function V29Page() {
                         ? "Orchestrating…"
                         : "Ready to dispatch"}
                 </h1>
-                <div className={`mt-4 flex items-center gap-6 text-xl text-zinc-400 ${geistMono.className}`}>
-                  <span>{orderId ?? "—"}</span>
-                  <span className="text-zinc-700">•</span>
-                  <span>run {runId ?? "—"}</span>
-                </div>
+                {/* orderId/runId removed — developer detail goes to debug drawer only */}
               </div>
               <div className="flex items-center gap-10">
                 <div>
@@ -644,7 +530,7 @@ export default function V29Page() {
                         <div className={`h-[2px] flex-1 ${i === 0 ? "opacity-0" : lineColor}`} />
                         <div className={`${nodeBase} ${nodeStyle}`}>
                           {state === "success" ? (
-                            <TriangleMark size={24} className="text-black" />
+                            STEP_ICON[s.id as OrderStepId]
                           ) : state === "failed" ? (
                             "!"
                           ) : state === "running" ? (
@@ -680,46 +566,6 @@ export default function V29Page() {
             </div>
           </section>
 
-          {/* phase card + scenario fingerprint */}
-          <div className={`rounded-2xl border p-4 backdrop-blur ${phaseCardClass(phase)}`}>
-            <div className="flex flex-wrap gap-2">
-              {scenarioChips.map((chip) => (
-                <span
-                  key={chip}
-                  className={`rounded-full border border-white/10 bg-black/20 px-3 py-1 font-mono text-xs text-zinc-200 ${geistMono.className}`}
-                >
-                  {chip}
-                </span>
-              ))}
-            </div>
-            <div className="mt-4 text-sm font-semibold uppercase tracking-[0.2em]">
-              {phase === "idle" && "Ready"}
-              {phase === "running" && "Streaming live"}
-              {phase === "waiting" && `Paused at ${waitingOn}`}
-              {phase === "completed" && "Workflow completed"}
-              {phase === "rolled_back" && "Workflow rolled back"}
-              {phase === "error" && "Connection issue"}
-            </div>
-            <div className="mt-2 text-base text-zinc-300">
-              {phase === "idle" && "Press Place order to run the real workflow."}
-              {phase === "running" && `${events.length} events received in ${fmtElapsed(elapsed)}`}
-              {phase === "waiting" &&
-                (autoAck
-                  ? `Auto-resume in ${countdownLabel}`
-                  : "Resume from the hook controls below.")}
-              {phase === "completed" && `Run ${runId ?? "—"} finished successfully.`}
-              {phase === "rolled_back" &&
-                (compensations.length > 0
-                  ? `Compensations: ${compensations.join(" → ")}`
-                  : "Rollback completed.")}
-              {phase === "error" && error}
-            </div>
-            {resumeToast ? (
-              <div className="mt-3 rounded-xl border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
-                {resumeToast}
-              </div>
-            ) : null}
-          </div>
 
           {/* controls row */}
           <section className="grid gap-8 lg:grid-cols-2">
@@ -738,10 +584,6 @@ export default function V29Page() {
               <h3 className="mt-3 text-3xl font-semibold tracking-tight">
                 Simulate failure or retry
               </h3>
-              <p className="mt-2 text-lg text-zinc-500">
-                Force a fatal step or a one-time payment rate limit so the next slide explains
-                something the audience just watched.
-              </p>
               <div ref={failRef} className="relative mt-6">
                 <button
                   type="button"
@@ -870,9 +712,6 @@ export default function V29Page() {
                 />
               </div>
               <h3 className="mt-3 text-3xl font-semibold tracking-tight">Auto-resume</h3>
-              <p className="mt-2 text-lg text-zinc-500">
-                When enabled, paused steps auto-acknowledge after 800ms so the run completes end-to-end.
-              </p>
               <label className="mt-6 flex cursor-pointer items-center justify-between rounded-xl border border-white/10 bg-black px-6 py-5">
                 <span className="text-xl">Automatic hook resolution</span>
                 <span
@@ -902,10 +741,6 @@ export default function V29Page() {
                         Pause made visible
                       </div>
                       <div className="mt-2 text-2xl font-semibold">{waitingOn}</div>
-                      <div className="mt-1 text-base text-zinc-400">
-                        Auto-resume is scheduled so the audience can feel the pause before the workflow
-                        wakes back up.
-                      </div>
                     </div>
                     <div
                       className={`rounded-full border border-amber-400/40 bg-black px-4 py-2 text-xl text-amber-200 ${geistMono.className}`}
@@ -925,11 +760,6 @@ export default function V29Page() {
                 </div>
               )}
 
-              {resumeToast && (
-                <div className="mt-6 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-6 py-4 text-lg text-emerald-200 transition-all duration-300">
-                  {resumeToast}
-                </div>
-              )}
 
               {/* manual hook controls — visible when waiting & autoAck off */}
               {waitingOn && !autoAck && (
@@ -989,54 +819,7 @@ export default function V29Page() {
             </div>
           </section>
 
-          {/* event feed */}
-          <section className="rounded-2xl border border-white/10 bg-zinc-950">
-            <div className="flex items-center justify-between border-b border-white/10 px-10 py-6">
-              <div>
-                <div className="flex items-center gap-3">
-                  <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                    Logs
-                  </div>
-                  <SlideHotspot
-                    href="/slides/streaming"
-                    label="Streaming"
-                    active={events.length > 0}
-                    color="sky"
-                  />
-                </div>
-                <h3 className="mt-2 text-2xl font-semibold tracking-tight">Event stream</h3>
-              </div>
-              <div className={`text-lg text-zinc-500 ${geistMono.className}`}>
-                {events.length} events
-              </div>
-            </div>
-            <div
-              ref={feedRef}
-              className={`max-h-[520px] min-h-[260px] overflow-y-auto px-10 py-6 ${geistMono.className} text-lg leading-relaxed`}
-            >
-              {events.length === 0 ? (
-                <div className="py-8 text-xl text-zinc-600">
-                  No events yet. Place an order from the phone to start the saga.
-                </div>
-              ) : (
-                events.map((e, i) => {
-                  const { kind, msg } = formatEventLine(e);
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-start gap-6 border-b border-white/5 py-3 last:border-0"
-                    >
-                      <span className="shrink-0 text-zinc-600">
-                        {eventTimes[i] ?? "00:00:00"}
-                      </span>
-                      <span className={`shrink-0 font-semibold ${kindColor(kind)}`}>{kind}</span>
-                      <span className="flex-1 text-zinc-200">{msg}</span>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </section>
+          {/* event feed removed — developer detail goes to debug drawer */}
 
           {/* compensations */}
           <section className={`rounded-2xl border p-10 transition-all duration-500 ${

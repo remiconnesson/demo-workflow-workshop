@@ -35,8 +35,6 @@ export default function SagaSlide() {
         <LiveOrderConceptLab
           slide="saga"
           scenario={slideScenarios.saga}
-          showChips={false}
-          maxEvents={8}
         />
       </div>
     </div>

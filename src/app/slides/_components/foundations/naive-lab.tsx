@@ -9,8 +9,6 @@ export function NaiveLab() {
       slide="naive"
       scenario={slideScenarios.naive}
       showCompensations={false}
-      showChips={false}
-      maxEvents={6}
     />
   );
 }

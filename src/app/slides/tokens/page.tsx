@@ -38,8 +38,6 @@ export default function TokensSlide() {
           scenario={slideScenarios.tokens}
           highlightSteps={["notifyRestaurant"]}
           showCompensations={false}
-          showChips={false}
-          maxEvents={4}
         />
       </div>
     </div>

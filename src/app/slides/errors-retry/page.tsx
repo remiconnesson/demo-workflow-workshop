@@ -75,10 +75,6 @@ export default function ErrorsRetrySlide() {
             ))}
           </div>
 
-          <p className="mt-6 text-base text-zinc-500">
-            Default: 3 retries. <span className="font-mono text-sky-300">attempt</span> from{" "}
-            <span className="font-mono text-white">getStepMetadata()</span> gives you the retry count for custom backoff.
-          </p>
         </div>
       </div>
     </div>

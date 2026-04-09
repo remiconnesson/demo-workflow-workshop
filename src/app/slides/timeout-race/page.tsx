@@ -41,8 +41,6 @@ export default function TimeoutRaceSlide() {
           scenario={slideScenarios.timeoutRace}
           highlightSteps={["notifyRestaurant", "assignDriver"]}
           showCompensations={false}
-          showChips={false}
-          maxEvents={6}
         />
       </div>
     </div>

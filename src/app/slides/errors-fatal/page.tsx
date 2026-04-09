@@ -76,10 +76,6 @@ export default function ErrorsFatalSlide() {
               </div>
             ))}
           </div>
-          <p className="mt-6 text-base text-zinc-500">
-            Every failure in the demo throws <span className="font-mono text-red-400">FatalError</span> —
-            skips retries and triggers the compensation stack immediately.
-          </p>
         </div>
       </div>
     </div>

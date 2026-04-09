@@ -35,8 +35,6 @@ export default function ApprovalGateSlide() {
           scenario={slideScenarios.approvalGate}
           highlightSteps={["notifyRestaurant"]}
           showCompensations={false}
-          showChips={false}
-          maxEvents={4}
         />
       </div>
     </div>

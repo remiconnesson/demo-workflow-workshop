@@ -2,7 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import type { FailStep, OrderEvent, OrderInput, OrderItem } from "@/workflows/place-order";
+
+const STEP_ICON: Record<string, React.ReactNode> = {
+  validateOrder: <ClipboardCheck size={32} strokeWidth={2.5} />,
+  chargePayment: <CreditCard size={32} strokeWidth={2.5} />,
+  notifyRestaurant: <ChefHat size={32} strokeWidth={2.5} />,
+  assignDriver: <Bike size={32} strokeWidth={2.5} />,
+  trackDelivery: <MapPin size={32} strokeWidth={2.5} />,
+  sendReceipt: <Receipt size={32} strokeWidth={2.5} />,
+};
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -386,18 +396,17 @@ export default function VercelDashboardDemo() {
                   let textColor = "text-zinc-500";
                   let detailColor = "text-zinc-600";
                   let detailText = "Pending execution";
-                  let Triangle = "△";
 
-                  if (isRunning) { iconColor = "text-sky-400 animate-pulse"; textColor = "text-white"; detailColor = "text-sky-400"; detailText = "Building..."; Triangle = "▲"; }
-                  if (isWaiting) { iconColor = "text-amber-400 animate-pulse"; textColor = "text-white"; detailColor = "text-amber-400"; detailText = "Awaiting webhook..."; Triangle = "▲"; }
-                  if (isSuccess) { iconColor = "text-emerald-400"; textColor = "text-white"; detailColor = "text-emerald-400"; detailText = "Completed in ~ms"; Triangle = "▲"; }
-                  if (isFailed) { iconColor = "text-rose-500"; textColor = "text-rose-500"; detailColor = "text-rose-500"; detailText = "Execution failed"; Triangle = "▲"; }
-                  if (isSkipped) { iconColor = "text-zinc-600 opacity-50"; textColor = "text-zinc-600"; detailColor = "text-zinc-600"; detailText = "Skipped by orchestrator"; Triangle = "△"; }
+                  if (isRunning) { iconColor = "text-sky-400 animate-pulse"; textColor = "text-white"; detailColor = "text-sky-400"; detailText = "Building..."; }
+                  if (isWaiting) { iconColor = "text-amber-400 animate-pulse"; textColor = "text-white"; detailColor = "text-amber-400"; detailText = "Awaiting webhook..."; }
+                  if (isSuccess) { iconColor = "text-emerald-400"; textColor = "text-white"; detailColor = "text-emerald-400"; detailText = "Completed in ~ms"; }
+                  if (isFailed) { iconColor = "text-rose-500"; textColor = "text-rose-500"; detailColor = "text-rose-500"; detailText = "Execution failed"; }
+                  if (isSkipped) { iconColor = "text-zinc-600 opacity-50"; textColor = "text-zinc-600"; detailColor = "text-zinc-600"; detailText = "Skipped by orchestrator"; }
 
                   return (
                     <div key={step.key} className="flex items-start gap-8 bg-[#0a0a0a] xl:bg-transparent p-4 xl:p-0 rounded-xl xl:rounded-none z-10">
-                      <div className={`text-5xl bg-[#0a0a0a] xl:bg-transparent ${iconColor}`}>
-                        {Triangle}
+                      <div className={`bg-[#0a0a0a] xl:bg-transparent ${iconColor}`}>
+                        {STEP_ICON[step.key] ?? "△"}
                       </div>
                       <div className="flex flex-col gap-2 mt-2">
                         <span className={`text-3xl font-semibold tracking-tight ${textColor}`}>{step.label}</span>

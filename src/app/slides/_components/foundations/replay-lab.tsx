@@ -9,8 +9,6 @@ export function ReplayLab() {
       slide="replay"
       scenario={slideScenarios.replay}
       showCompensations={false}
-      showChips={false}
-      maxEvents={8}
     />
   );
 }

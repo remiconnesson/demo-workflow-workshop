@@ -5,6 +5,16 @@ import {
   type OrderStepId,
   type SlideStepState,
 } from "@/lib/order-contract";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
+
+const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
+  validateOrder: <ClipboardCheck size={24} strokeWidth={2.5} />,
+  chargePayment: <CreditCard size={24} strokeWidth={2.5} />,
+  notifyRestaurant: <ChefHat size={24} strokeWidth={2.5} />,
+  assignDriver: <Bike size={24} strokeWidth={2.5} />,
+  trackDelivery: <MapPin size={24} strokeWidth={2.5} />,
+  sendReceipt: <Receipt size={24} strokeWidth={2.5} />,
+};
 import { ScenarioPlayer, type ScenarioFrame } from "./scenario-player";
 
 export type OrderLabLog = {
@@ -114,7 +124,7 @@ export function OrderConceptLab({
                     className={`flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold ${NODE_STYLE[state]}`}
                   >
                     {state === "success"
-                      ? "\u25B2"
+                      ? STEP_ICON[step.id]
                       : state === "waiting"
                         ? "II"
                         : state === "running"

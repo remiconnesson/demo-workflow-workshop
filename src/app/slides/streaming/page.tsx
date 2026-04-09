@@ -37,7 +37,6 @@ export default function StreamingSlide() {
           scenario={slideScenarios.streaming}
           showTimeline={false}
           showCompensations={false}
-          showChips={false}
         />
       </div>
     </div>

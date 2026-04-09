@@ -2,6 +2,16 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Press_Start_2P, VT323 } from "next/font/google";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
+
+const STEP_ICON: Record<string, React.ReactNode> = {
+  validateOrder: <ClipboardCheck size={28} strokeWidth={2.5} />,
+  chargePayment: <CreditCard size={28} strokeWidth={2.5} />,
+  notifyRestaurant: <ChefHat size={28} strokeWidth={2.5} />,
+  assignDriver: <Bike size={28} strokeWidth={2.5} />,
+  trackDelivery: <MapPin size={28} strokeWidth={2.5} />,
+  sendReceipt: <Receipt size={28} strokeWidth={2.5} />,
+};
 
 const pressStart = Press_Start_2P({ weight: "400", subsets: ["latin"], display: "swap" });
 const vt323 = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
@@ -361,7 +371,7 @@ export default function TriangleArcadeDemo() {
                                     let borderClass = 'border-[#555] text-[#555] shadow-none';
                                     let bgClass = 'bg-transparent';
                                     let animClass = '';
-                                    let icon = '△';
+                                    let icon: React.ReactNode = STEP_ICON[step] ?? '△';
 
                                     if (isRunning) {
                                         borderClass = 'border-[#ffee00] text-[#ffee00] shadow-[0_0_15px_#ffee00]';
@@ -369,16 +379,14 @@ export default function TriangleArcadeDemo() {
                                     } else if (isWaiting) {
                                         borderClass = 'border-[#ffee00] text-[#ffee00] border-dashed shadow-[0_0_15px_#ffee00]';
                                         animClass = 'animate-bounce scale-110';
-                                        icon = '▲';
                                     } else if (isSuccess) {
                                         borderClass = 'border-[#00e5ff] text-[#00e5ff] shadow-[0_0_10px_#00e5ff]';
                                         bgClass = 'bg-[#00e5ff]/20';
-                                        icon = '▲';
                                     } else if (isFailed) {
                                         borderClass = 'border-[#ff0000] text-[#ff0000] shadow-[0_0_15px_#ff0000]';
                                         bgClass = 'bg-[#ff0000]/20';
                                         animClass = 'animate-pulse';
-                                        icon = '▼';
+                                        icon = '!';
                                     } else if (isSkipped) {
                                         borderClass = 'border-[#555] text-[#555] opacity-50';
                                         icon = '–';

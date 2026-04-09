@@ -35,8 +35,6 @@ export default function HooksSlide() {
           scenario={slideScenarios.hooks}
           highlightSteps={["notifyRestaurant"]}
           showCompensations={false}
-          showChips={false}
-          maxEvents={6}
         />
       </div>
     </div>
