@@ -286,7 +286,9 @@ export function useOrderRun(
       input: {
         orderId: input.orderId,
         failAt: input.failAt ?? null,
-        autoAck: input.autoAck ?? false,
+        autoAck: input.autoAck ?? true,
+        demoMode: input.demoMode ?? "standard",
+        driverTimeout: input.driverTimeout ?? "2m",
         itemCount: input.items.length,
       },
     });

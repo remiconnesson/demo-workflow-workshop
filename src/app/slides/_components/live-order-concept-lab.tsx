@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ORDER_STEPS, type SlideStepState } from "@/lib/order-contract";
 import {
   useOrderRun,
@@ -8,6 +8,50 @@ import {
   type ResumeBody,
 } from "@/lib/order-run-client";
 import type { OrderEvent } from "@/workflows/place-order";
+
+type DemoPhase =
+  | "idle"
+  | "running"
+  | "waiting"
+  | "completed"
+  | "rolled_back"
+  | "error";
+
+function getDemoPhase(args: {
+  running: boolean;
+  waitingOn: string | null;
+  doneStatus: "completed" | "rolled_back" | null;
+  error: string | null;
+}): DemoPhase {
+  if (args.error) return "error";
+  if (args.waitingOn) return "waiting";
+  if (args.doneStatus === "completed") return "completed";
+  if (args.doneStatus === "rolled_back") return "rolled_back";
+  if (args.running) return "running";
+  return "idle";
+}
+
+function phaseCardClass(phase: DemoPhase): string {
+  switch (phase) {
+    case "running":
+      return "border-sky-400/30 bg-sky-400/5 text-sky-100";
+    case "waiting":
+      return "border-amber-400/30 bg-amber-400/5 text-amber-100";
+    case "completed":
+      return "border-emerald-400/30 bg-emerald-400/5 text-emerald-100";
+    case "rolled_back":
+      return "border-fuchsia-400/30 bg-fuchsia-400/5 text-fuchsia-100";
+    case "error":
+      return "border-red-400/30 bg-red-400/5 text-red-100";
+    default:
+      return "border-white/10 bg-white/5 text-zinc-200";
+  }
+}
+
+function formatCountdown(ms: number | null): string | null {
+  if (ms === null) return null;
+  return `${(Math.max(0, ms) / 1000).toFixed(1)}s`;
+}
 
 const STATE_STYLE: Record<SlideStepState, string> = {
   pending: "border-white/15 text-zinc-600",
@@ -85,6 +129,54 @@ export function LiveOrderConceptLab({
   scenario: OrderRunScenario;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
+  const [clockNow, setClockNow] = useState(() => performance.now());
+
+  // countdown ticker for auto-resume
+  useEffect(() => {
+    if (controller.autoResumeAt === null) return;
+    const t = window.setInterval(() => setClockNow(performance.now()), 50);
+    return () => window.clearInterval(t);
+  }, [controller.autoResumeAt]);
+
+  const phase = getDemoPhase({
+    running: controller.running,
+    waitingOn: controller.waitingOn,
+    doneStatus: controller.doneStatus,
+    error: controller.error,
+  });
+
+  const countdownLabel = formatCountdown(
+    controller.autoResumeAt === null
+      ? null
+      : controller.autoResumeAt - clockNow,
+  );
+
+  const scenarioChips = [
+    `fail:${scenario.input.failAt ?? "none"}`,
+    `autoAck:${scenario.input.autoAck ? "on" : "manual"}`,
+    `mode:${scenario.input.demoMode ?? "standard"}`,
+  ];
+
+  // phase transition logging
+  useEffect(() => {
+    console.info("[slide-live] phase", {
+      slide,
+      scenarioId: scenario.scenarioId,
+      phase,
+      runId: controller.runId,
+      orderId: controller.orderId,
+      eventCount: controller.events.length,
+      countdownLabel,
+    });
+  }, [
+    slide,
+    scenario.scenarioId,
+    phase,
+    controller.runId,
+    controller.orderId,
+    controller.events.length,
+    countdownLabel,
+  ]);
 
   // Listen for slide:run and slide:reset keyboard events
   useEffect(() => {
@@ -152,6 +244,49 @@ export function LiveOrderConceptLab({
             Reset
           </button>
         </div>
+      </div>
+
+      {/* phase card */}
+      <div className={`mt-6 rounded-xl border p-4 ${phaseCardClass(phase)}`}>
+        <div className="flex flex-wrap gap-2">
+          {scenarioChips.map((chip) => (
+            <span
+              key={chip}
+              className="rounded-full border border-white/10 bg-black/20 px-3 py-1 font-mono text-xs text-zinc-200"
+            >
+              {chip}
+            </span>
+          ))}
+        </div>
+        <div className="mt-3 text-sm font-semibold uppercase tracking-[0.2em]">
+          {phase === "idle" && "Ready"}
+          {phase === "running" && "Streaming live"}
+          {phase === "waiting" && `Paused at ${controller.waitingOn}`}
+          {phase === "completed" && "Workflow completed"}
+          {phase === "rolled_back" && "Workflow rolled back"}
+          {phase === "error" && "Connection issue"}
+        </div>
+        <div className="mt-2 text-sm text-zinc-300">
+          {phase === "idle" && "Press Run to start the real workflow."}
+          {phase === "running" &&
+            `${controller.events.length} events received.`}
+          {phase === "waiting" &&
+            (scenario.input.autoAck
+              ? `Auto-resume in ${countdownLabel}`
+              : "Resume from the hook controls below.")}
+          {phase === "completed" &&
+            `Run ${controller.runId ?? "\u2014"} finished successfully.`}
+          {phase === "rolled_back" &&
+            (controller.compensations.length > 0
+              ? `Compensations: ${controller.compensations.join(" \u2192 ")}`
+              : "Rollback completed.")}
+          {phase === "error" && controller.error}
+        </div>
+        {controller.resumeToast ? (
+          <div className="mt-3 rounded-lg border border-emerald-400/30 bg-emerald-400/5 px-4 py-3 text-sm text-emerald-200">
+            {controller.resumeToast}
+          </div>
+        ) : null}
       </div>
 
       {/* step timeline */}
