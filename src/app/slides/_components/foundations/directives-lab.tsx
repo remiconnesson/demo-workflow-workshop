@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { OrderConceptLab } from "../order-concept-lab";
-import { foundations } from "../../_data/foundations";
+import { LiveOrderConceptLab } from "../live-order-concept-lab";
+import { slideScenarios } from "../../_lib/slide-scenarios";
 
 export function DirectivesLab() {
-  useEffect(() => {
-    console.info("[slide-foundations] scenario", {
-      slide: "directives",
-      scenarioId: "fragile-vs-durable",
-    });
-  }, []);
-
   return (
-    <OrderConceptLab
+    <LiveOrderConceptLab
       slide="directives"
-      scenarioId="fragile-vs-durable"
-      frames={foundations.directives}
+      scenario={slideScenarios.directives}
     />
   );
 }

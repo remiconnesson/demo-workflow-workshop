@@ -1,10 +1,12 @@
-import { Kw, Dir, Fn, Cmt, Punc } from "../_components/code-tokens";
+import { Kw, Dir, Fn, Punc } from "../_components/code-tokens";
+import { LiveOrderConceptLab } from "../_components/live-order-concept-lab";
+import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function StreamingSlide() {
   return (
     <div className="flex h-full w-full items-center justify-center gap-16 px-20">
       {/* Left: code */}
-      <div className="flex-1 max-w-2xl">
+      <div className="flex-1 max-w-xl">
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
           From the demo code
         </div>
@@ -28,49 +30,13 @@ export default function StreamingSlide() {
         </p>
       </div>
 
-      {/* Right: mock event feed */}
+      {/* Right: live event feed */}
       <div className="flex-1 max-w-xl">
-        <div className="rounded-2xl border border-white/10 bg-zinc-950 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 px-10 py-6">
-            <div>
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                Logs
-              </div>
-              <div className="mt-1 text-2xl font-semibold tracking-tight">Event stream</div>
-            </div>
-            <div className="font-mono text-lg text-zinc-500">6 events</div>
-          </div>
-
-          <div className="px-10 py-6 font-mono text-lg leading-loose">
-            <EventLine time="12:00:01" kind="RUN" color="text-sky-400" msg="validateOrder" />
-            <EventLine time="12:00:01" kind="OK " color="text-emerald-400" msg="validateOrder · 2 items, $8.50" />
-            <EventLine time="12:00:02" kind="RUN" color="text-sky-400" msg="chargePayment" />
-            <EventLine time="12:00:02" kind="OK " color="text-emerald-400" msg="chargePayment · Charged $10.50" />
-            <EventLine time="12:00:03" kind="WAI" color="text-amber-400" msg="notifyRestaurant · awaiting hook" />
-            <EventLine time="12:00:05" kind="HOK" color="text-amber-400" msg="notifyRestaurant · accepted" />
-          </div>
-        </div>
+        <LiveOrderConceptLab
+          slide="streaming"
+          scenario={slideScenarios.streaming}
+        />
       </div>
-    </div>
-  );
-}
-
-function EventLine({
-  time,
-  kind,
-  color,
-  msg,
-}: {
-  time: string;
-  kind: string;
-  color: string;
-  msg: string;
-}) {
-  return (
-    <div className="flex items-start gap-6 border-b border-white/5 py-3 last:border-0">
-      <span className="shrink-0 text-zinc-600">{time}</span>
-      <span className={`shrink-0 font-semibold ${color}`}>{kind}</span>
-      <span className="flex-1 text-zinc-200">{msg}</span>
     </div>
   );
 }

@@ -8,11 +8,12 @@ import {
 } from "workflow";
 import {
   type CompensationAction,
+  type DemoMode,
   type FailStep,
   hookTokens,
 } from "@/lib/order-contract";
 
-export type { CompensationAction, FailStep } from "@/lib/order-contract";
+export type { CompensationAction, DemoMode, FailStep } from "@/lib/order-contract";
 export { hookTokens } from "@/lib/order-contract";
 
 export type OrderItem = {
@@ -30,6 +31,8 @@ export type OrderInput = {
   // Demo controls
   failAt?: FailStep;
   autoAck?: boolean; // automatically resume hooks after a short delay
+  demoMode?: DemoMode;
+  driverTimeout?: string; // e.g. "1s", "2m" — defaults to "2m"
 };
 
 export type OrderEvent =
@@ -130,6 +133,9 @@ export async function placeOrderWorkflow(
       );
     }
 
+    // 3b. Replay probe (demo mode only — injects a retry before assignDriver)
+    await replayProbe(input);
+
     // 4. Assign driver + wait for acceptance (with timeout)
     const driverId = await assignDriver(input, failAt === "assignDriver");
     {
@@ -156,7 +162,9 @@ export async function placeOrderWorkflow(
     });
     const driverResult = await Promise.race([
       driverHook.then((r) => ({ kind: "resolved" as const, r })),
-      sleep("2m").then(() => ({ kind: "timeout" as const })),
+      sleep((input.driverTimeout ?? "2m") as "2m").then(() => ({
+        kind: "timeout" as const,
+      })),
     ]);
     if (driverResult.kind === "timeout") {
       await emit({ type: "log", message: "Driver did not accept in time" });
@@ -269,6 +277,24 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function replayProbe(input: OrderInput): Promise<void> {
+  "use step";
+  if (input.demoMode !== "replayProbeBeforeAssignDriver") return;
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    const { stepId, attempt } = getStepMetadata();
+    await writer.write({
+      type: "log",
+      message: `replayProbe stepId=${stepId} attempt=${attempt}`,
+    });
+    if (attempt === 1) {
+      throw new Error("Injected replay probe before assignDriver");
+    }
+  } finally {
+    writer.releaseLock();
+  }
+}
+
 async function validateOrder(
   input: OrderInput,
   shouldFail: boolean,
@@ -325,7 +351,16 @@ async function chargePayment(
       stepId,
       attempt,
       failAt: input.failAt ?? null,
+      demoMode: input.demoMode ?? "standard",
     });
+    if (input.demoMode === "chargePaymentUnhandledOnce" && attempt === 1) {
+      await writer.write({
+        type: "log",
+        message:
+          "chargePayment throwing uncaught Error to demonstrate default retry",
+      });
+      throw new Error("Transient payment gateway outage");
+    }
     await delay(600);
     if (input.failAt === "chargePaymentRetryable" && attempt === 1) {
       await writer.write({

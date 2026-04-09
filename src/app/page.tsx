@@ -1,18 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import {
   FAIL_OPTIONS,
   ORDER_STEPS as STEPS,
   type FailStep,
 } from "@/lib/order-contract";
-import type {
-  OrderEvent,
-  OrderInput,
-  OrderItem,
-} from "@/workflows/place-order";
+import type { OrderEvent, OrderItem } from "@/workflows/place-order";
+import { useOrderRun, type OrderRunScenario } from "@/lib/order-run-client";
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -27,7 +24,6 @@ const MENU: MenuItem[] = [
   { id: "isr", name: "ISR Glaze", desc: "Revalidates on taste", price: 5.5, qty: 0 },
 ];
 
-type StepState = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
 
 function TriangleMark({ size = 20, className = "" }: { size?: number; className?: string }) {
   return (
@@ -168,46 +164,52 @@ export default function V29Page() {
   const [failAt, setFailAt] = useState<FailStep>(null);
   const [autoAck, setAutoAck] = useState(true);
 
-  const [running, setRunning] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [runId, setRunId] = useState<string | null>(null);
-  const [events, setEvents] = useState<OrderEvent[]>([]);
-  const [stepState, setStepState] = useState<Record<string, StepState>>({});
-  const [compensations, setCompensations] = useState<string[]>([]);
-  const [doneStatus, setDoneStatus] = useState<"completed" | "rolled_back" | null>(null);
+  const cartItems = cart.filter((i) => i.qty > 0);
+
+  const scenario = useMemo<OrderRunScenario>(
+    () => ({
+      scenarioId: "main-demo",
+      title: "Triangle Donuts",
+      input: {
+        customerName,
+        address,
+        items: cartItems.map(({ id, name, price, qty }) => ({
+          id,
+          name,
+          price,
+          qty,
+        })),
+        failAt,
+        autoAck,
+      },
+    }),
+    [customerName, address, cartItems, failAt, autoAck],
+  );
+
+  const run = useOrderRun("home", scenario);
+
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
-  const [waitingOn, setWaitingOn] = useState<string | null>(null);
   const [eventTimes, setEventTimes] = useState<string[]>([]);
-  const [autoResumeAt, setAutoResumeAt] = useState<number | null>(null);
   const [clockNow, setClockNow] = useState(() => performance.now());
-  const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [failOpen, setFailOpen] = useState(false);
 
-  const autoAckRef = useRef(autoAck);
-  autoAckRef.current = autoAck;
-  const orderIdRef = useRef<string | null>(null);
-  const autoAckTimeoutRef = useRef<number | null>(null);
-  const scheduledOrderIdRef = useRef<string | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
   const failRef = useRef<HTMLDivElement>(null);
+  const prevEventCount = useRef(0);
 
-  function clearAutoAck(reason: string) {
-    if (autoAckTimeoutRef.current !== null) {
-      window.clearTimeout(autoAckTimeoutRef.current);
-      autoAckTimeoutRef.current = null;
-      console.info("[demo-ui] auto_ack_cleared", { reason });
-    }
-    scheduledOrderIdRef.current = null;
-    setAutoResumeAt(null);
-  }
-
-  // clear pending auto-ack when toggling auto-ack off
+  // Track event timestamps as new events arrive
   useEffect(() => {
-    if (!autoAck && autoAckTimeoutRef.current !== null) {
-      clearAutoAck("autoAck_toggled_off");
+    if (run.events.length > prevEventCount.current) {
+      const newTimes = Array.from(
+        { length: run.events.length - prevEventCount.current },
+        () => formatEventTime(),
+      );
+      setEventTimes((prev) => [...prev, ...newTimes]);
     }
-  }, [autoAck]);
+    prevEventCount.current = run.events.length;
+  }, [run.events.length]);
+
 
   // close fail dropdown on outside click / Esc
   useEffect(() => {
@@ -230,31 +232,23 @@ export default function V29Page() {
 
   // live elapsed ticker
   useEffect(() => {
-    if (!startedAt || doneStatus) return;
+    if (!startedAt || run.doneStatus) return;
     const t = setInterval(() => setElapsed(Date.now() - startedAt), 100);
     return () => clearInterval(t);
-  }, [startedAt, doneStatus]);
+  }, [startedAt, run.doneStatus]);
 
   // event feed autoscroll
   useEffect(() => {
     feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
-  }, [events]);
+  }, [run.events]);
 
   // countdown clock for auto-resume
   useEffect(() => {
-    if (autoResumeAt === null) return;
+    if (run.autoResumeAt === null) return;
     const t = window.setInterval(() => setClockNow(performance.now()), 50);
     return () => window.clearInterval(t);
-  }, [autoResumeAt]);
+  }, [run.autoResumeAt]);
 
-  // auto-dismiss resume toast
-  useEffect(() => {
-    if (!resumeToast) return;
-    const t = window.setTimeout(() => setResumeToast(null), 1400);
-    return () => window.clearTimeout(t);
-  }, [resumeToast]);
-
-  const cartItems = cart.filter((i) => i.qty > 0);
   const subtotal = cartItems.reduce((s, i) => s + i.price * i.qty, 0);
   const fee = cartItems.length > 0 ? 2.0 : 0;
   const total = subtotal + fee;
@@ -266,177 +260,25 @@ export default function V29Page() {
       c.map((i) => (i.id === id ? { ...i, qty: Math.max(0, i.qty - 1) } : i)),
     );
 
-  const resume = useCallback(
-    async (
-      kind: "restaurant-accept" | "driver-accept" | "delivered",
-      body: Record<string, unknown> = {},
-    ) => {
-      const id = orderIdRef.current;
-      if (!id) return;
-      await fetch(`/api/orders/${id}/resume`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, ...body }),
-      });
-    },
-    [],
-  );
-
-  const reset = () => {
-    clearAutoAck("reset");
-    setRunning(false);
-    setOrderId(null);
-    setRunId(null);
-    setEvents([]);
+  const placeOrder = async () => {
+    if (run.running) return;
     setEventTimes([]);
-    setStepState({});
-    setCompensations([]);
-    setDoneStatus(null);
+    prevEventCount.current = 0;
+    setElapsed(0);
+    setStartedAt(Date.now());
+    await run.start();
+  };
+
+  const resetOrder = () => {
+    run.reset("user-reset");
     setStartedAt(null);
     setElapsed(0);
-    setWaitingOn(null);
-    setResumeToast(null);
-    orderIdRef.current = null;
+    setEventTimes([]);
+    prevEventCount.current = 0;
   };
 
-  const placeOrder = async () => {
-    if (running) return;
-    reset();
-    setRunning(true);
-    setStartedAt(Date.now());
-
-    const input: OrderInput = {
-      orderId: `ord_${Math.random().toString(36).slice(2, 10)}`,
-      customerName,
-      address,
-      items: cartItems.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
-      failAt,
-      autoAck,
-    };
-
-    const res = await fetch("/api/orders/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-    });
-    const { runId: rid, orderId: oid } = (await res.json()) as {
-      runId: string;
-      orderId: string;
-    };
-    setRunId(rid);
-    setOrderId(oid);
-    orderIdRef.current = oid;
-
-    const stream = await fetch(`/api/runs/${rid}/stream`);
-    if (!stream.body) return;
-    const reader = stream.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const ev = JSON.parse(line) as OrderEvent;
-        setEvents((prev) => [...prev, ev]);
-        setEventTimes((prev) => [...prev, formatEventTime()]);
-
-        switch (ev.type) {
-          case "step_running":
-            setStepState((s) => ({ ...s, [ev.step]: "running" }));
-            break;
-          case "step_succeeded":
-            setStepState((s) => ({ ...s, [ev.step]: "success" }));
-            setWaitingOn((w) => (w === ev.step ? null : w));
-            break;
-          case "step_failed":
-            setStepState((s) => ({ ...s, [ev.step]: "failed" }));
-            break;
-          case "step_skipped":
-            setStepState((s) => ({ ...s, [ev.step]: "skipped" }));
-            break;
-          case "waiting_for_hook": {
-            console.info("[demo-ui] waiting_for_hook", {
-              step: ev.step,
-              autoAck: autoAckRef.current,
-              token: ev.token,
-            });
-            setStepState((s) => ({ ...s, [ev.step]: "waiting" }));
-            setWaitingOn(ev.step);
-            if (autoAckRef.current) {
-              clearAutoAck("new_hook");
-              const scheduledOrderId = orderIdRef.current;
-              scheduledOrderIdRef.current = scheduledOrderId;
-              console.info("[demo-ui] auto_ack_scheduled", {
-                step: ev.step,
-                delayMs: 800,
-                scheduledOrderId,
-              });
-              setAutoResumeAt(performance.now() + 800);
-              const kind =
-                ev.step === "notifyRestaurant"
-                  ? "restaurant-accept"
-                  : ev.step === "assignDriver"
-                    ? "driver-accept"
-                    : "delivered";
-              autoAckTimeoutRef.current = window.setTimeout(() => {
-                const activeOrderId = orderIdRef.current;
-                console.info("[demo-ui] auto_ack_fired", {
-                  scheduledOrderId,
-                  activeOrderId,
-                  kind,
-                });
-                if (!scheduledOrderId || scheduledOrderId !== activeOrderId) {
-                  console.info("[demo-ui] auto_ack_ignored_stale", {
-                    scheduledOrderId,
-                    activeOrderId,
-                  });
-                  return;
-                }
-                void resume(kind, kind === "delivered" ? {} : { accepted: true });
-              }, 800);
-            } else {
-              setAutoResumeAt(null);
-            }
-            break;
-          }
-          case "hook_resolved":
-            console.info("[demo-ui] hook_resolved", {
-              step: ev.step,
-              detail: ev.detail ?? null,
-            });
-            clearAutoAck("hook_resolved");
-            setStepState((s) => ({ ...s, [ev.step]: "success" }));
-            setWaitingOn((w) => (w === ev.step ? null : w));
-            setResumeToast(`${ev.detail ?? ev.step} — workflow resumed`);
-            break;
-          case "compensation_pushed":
-            console.info("[demo-ui] compensation_registered", {
-              action: ev.action,
-              forStep: ev.forStep,
-            });
-            break;
-          case "compensated":
-            console.info("[demo-ui] compensation_executed", { action: ev.action });
-            setCompensations((c) => [...c, ev.action]);
-            break;
-          case "done":
-            console.info("[demo-ui] done", {
-              status: ev.status,
-              orderId: ev.orderId,
-            });
-            clearAutoAck("done");
-            setDoneStatus(ev.status);
-            setRunning(false);
-            setWaitingOn(null);
-            break;
-        }
-      }
-    }
-  };
+  // Convenience aliases
+  const { running, orderId, runId, events, stepState, compensations, doneStatus, waitingOn, autoResumeAt, resumeToast } = run;
 
   const phoneView: "menu" | "tracking" = orderId ? "tracking" : "menu";
 
@@ -623,7 +465,7 @@ export default function V29Page() {
 
                 <div className="border-t border-zinc-100 bg-white px-10 pb-12 pt-6">
                   <button
-                    onClick={reset}
+                    onClick={resetOrder}
                     className="w-full rounded-2xl border border-zinc-200 bg-white px-8 py-5 text-xl font-semibold text-zinc-700 transition-colors hover:border-black hover:text-black"
                   >
                     Place another order
@@ -976,14 +818,14 @@ export default function V29Page() {
                     {waitingOn === "notifyRestaurant" && (
                       <>
                         <button
-                          onClick={() => resume("restaurant-accept", { accepted: true })}
+                          onClick={() => void run.resume({ kind: "restaurant-accept", accepted: true })}
                           className="rounded-xl bg-white px-6 py-4 text-lg font-semibold text-black hover:opacity-90"
                         >
                           Restaurant accept
                         </button>
                         <button
                           onClick={() =>
-                            resume("restaurant-accept", { accepted: false, reason: "closed" })
+                            void run.resume({ kind: "restaurant-accept", accepted: false, reason: "closed" })
                           }
                           className="rounded-xl border border-red-500/40 px-6 py-4 text-lg font-semibold text-red-400 hover:bg-red-500/10"
                         >
@@ -994,14 +836,14 @@ export default function V29Page() {
                     {waitingOn === "assignDriver" && (
                       <>
                         <button
-                          onClick={() => resume("driver-accept", { accepted: true })}
+                          onClick={() => void run.resume({ kind: "driver-accept", accepted: true })}
                           className="rounded-xl bg-white px-6 py-4 text-lg font-semibold text-black hover:opacity-90"
                         >
                           Driver accept
                         </button>
                         <button
                           onClick={() =>
-                            resume("driver-accept", { accepted: false, reason: "no drivers" })
+                            void run.resume({ kind: "driver-accept", accepted: false })
                           }
                           className="rounded-xl border border-red-500/40 px-6 py-4 text-lg font-semibold text-red-400 hover:bg-red-500/10"
                         >
@@ -1011,7 +853,7 @@ export default function V29Page() {
                     )}
                     {waitingOn === "trackDelivery" && (
                       <button
-                        onClick={() => resume("delivered")}
+                        onClick={() => void run.resume({ kind: "delivered" })}
                         className="rounded-xl bg-white px-6 py-4 text-lg font-semibold text-black hover:opacity-90"
                       >
                         Mark delivered

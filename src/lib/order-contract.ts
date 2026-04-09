@@ -24,6 +24,11 @@ export type CompensationAction =
   | "cancelRestaurantOrder"
   | "releaseDriver";
 
+export type DemoMode =
+  | "standard"
+  | "chargePaymentUnhandledOnce"
+  | "replayProbeBeforeAssignDriver";
+
 export const ORDER_STEPS = [
   {
     id: "validateOrder",

@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { OrderConceptLab } from "../order-concept-lab";
-import { foundations } from "../../_data/foundations";
+import { LiveOrderConceptLab } from "../live-order-concept-lab";
+import { slideScenarios } from "../../_lib/slide-scenarios";
 
 export function ReplayLab() {
-  useEffect(() => {
-    console.info("[slide-foundations] scenario", {
-      slide: "replay",
-      scenarioId: "deterministic-replay",
-    });
-  }, []);
-
   return (
-    <OrderConceptLab
+    <LiveOrderConceptLab
       slide="replay"
-      scenarioId="deterministic-replay"
-      frames={foundations.replay}
+      scenario={slideScenarios.replay}
     />
   );
 }

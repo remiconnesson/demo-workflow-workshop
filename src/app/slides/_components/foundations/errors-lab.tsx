@@ -1,26 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { OrderConceptLab } from "../order-concept-lab";
-import { foundations } from "../../_data/foundations";
+import { LiveOrderConceptLab } from "../live-order-concept-lab";
+import { slideScenarios } from "../../_lib/slide-scenarios";
+import type { OrderRunScenario } from "@/lib/order-run-client";
 
-const MODES = {
-  error: {
+const MODES: Record<string, { label: string; scenario: OrderRunScenario }> = {
+  uncaught: {
     label: "Uncaught Error",
-    frames: foundations.errorsDefault,
-  },
-  fatal: {
-    label: "FatalError",
-    frames: foundations.errorsFatal,
+    scenario: slideScenarios.errorsUnhandled,
   },
   retryable: {
     label: "RetryableError",
-    frames: foundations.errorsRetryable,
+    scenario: slideScenarios.idempotency,
   },
-} as const;
+};
 
 export function ErrorsLab() {
-  const [mode, setMode] = useState<keyof typeof MODES>("retryable");
+  const [mode, setMode] = useState<keyof typeof MODES>("uncaught");
+  const current = MODES[mode];
 
   return (
     <div className="space-y-4">
@@ -30,7 +28,7 @@ export function ErrorsLab() {
             key={key}
             onClick={() => {
               console.info("[slide-errors] mode", { mode: key });
-              setMode(key as keyof typeof MODES);
+              setMode(key);
             }}
             className={`rounded-full border px-4 py-2 text-sm transition-colors ${
               mode === key
@@ -42,10 +40,10 @@ export function ErrorsLab() {
           </button>
         ))}
       </div>
-      <OrderConceptLab
+      <LiveOrderConceptLab
+        key={mode}
         slide="errors"
-        scenarioId={mode}
-        frames={MODES[mode].frames}
+        scenario={current.scenario}
       />
     </div>
   );

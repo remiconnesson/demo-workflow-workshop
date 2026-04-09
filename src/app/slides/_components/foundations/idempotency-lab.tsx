@@ -1,22 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
-import { OrderConceptLab } from "../order-concept-lab";
-import { foundations } from "../../_data/foundations";
+import { LiveOrderConceptLab } from "../live-order-concept-lab";
+import { slideScenarios } from "../../_lib/slide-scenarios";
 
 export function IdempotencyLab() {
-  useEffect(() => {
-    console.info("[slide-foundations] scenario", {
-      slide: "idempotency",
-      scenarioId: "stable-step-id",
-    });
-  }, []);
-
   return (
-    <OrderConceptLab
+    <LiveOrderConceptLab
       slide="idempotency"
-      scenarioId="stable-step-id"
-      frames={foundations.idempotency}
+      scenario={slideScenarios.idempotency}
     />
   );
 }

@@ -31,7 +31,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "SAY: \"Let me run it for you.\"",
       "",
-      "TRANSITION: Press d → run demo with auto-ack ON. Let the audience watch the full happy path. Then press browser back or use keyboard to return to slides.",
+      "TRANSITION: Press r to run the live workflow on this slide. Press Shift+R to reset.",
     ].join("\n"),
   },
 
@@ -93,7 +93,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "SAY: \"The customer is never double-charged. That's the whole point.\"",
       "",
-      "TRANSITION: Press d → run the demo again. \"Same thing you saw before — but now you know it's durable.\" Then return to slides.",
+      "TRANSITION: Press r to run the live workflow on this slide. Press Shift+R to reset.",
     ].join("\n"),
   },
 
@@ -194,7 +194,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "SAY: \"Let me show you hooks in the demo.\"",
       "",
-      "TRANSITION: Press d → turn OFF auto-ack. Run an order. Show the waiting state. Accept manually. Then return.",
+      "TRANSITION: Press r to run the live workflow on this slide. Hooks are manual — accept or reject from the slide buttons. Press Shift+R to reset.",
     ].join("\n"),
   },
 
@@ -223,7 +223,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "SAY: \"Let me show you this live.\"",
       "",
-      "TRANSITION: Press d → turn OFF auto-ack. Choose 'No failure (happy path)'. Run the order. Click Restaurant accept, then Driver reject. The fuchsia section should stay empty until rollback begins, then show releaseDriver, cancelRestaurantOrder, and refundPayment in that order. Then return.",
+      "TRANSITION: Press r to run the live workflow on this slide. Scripted resumes will accept the restaurant then reject the driver. Watch the fuchsia compensation pills appear in reverse order. Press Shift+R to reset.",
     ].join("\n"),
   },
 
@@ -321,7 +321,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "SAY: \"No polling. No WebSockets. Just HTTP.\"",
       "",
-      "TRANSITION: Press d → point at the live event feed. \"That's getWritable in action.\" Then press → for the close.",
+      "TRANSITION: Press r to run the live workflow on this slide. Point at the live event feed. \"That's getWritable in action.\" Then press → for the close.",
     ].join("\n"),
   },
 
@@ -340,7 +340,7 @@ export const SLIDES: SlideInfo[] = [
       "",
       "PAUSE for applause.",
       "",
-      "OPTIONAL: Press d for one final victory-lap demo at full speed.",
+      "OPTIONAL: Press d to jump to the main demo for one final victory lap.",
     ].join("\n"),
   },
 ];

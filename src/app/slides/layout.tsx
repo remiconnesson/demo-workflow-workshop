@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { SLIDES, getSlideNav } from "./config";
+import { getSlideNav } from "./config";
 
 export default function SlidesLayout({
   children,
@@ -32,6 +32,20 @@ export default function SlidesLayout({
       if (e.key === "d" || e.key === "Home") {
         e.preventDefault();
         router.push("/");
+      }
+      if (e.key === "r") {
+        e.preventDefault();
+        console.info("[slides] run_current", { slug });
+        window.dispatchEvent(
+          new CustomEvent("slide:run", { detail: { slug } }),
+        );
+      }
+      if (e.key === "R") {
+        e.preventDefault();
+        console.info("[slides] reset_current", { slug });
+        window.dispatchEvent(
+          new CustomEvent("slide:reset", { detail: { slug } }),
+        );
       }
       if (e.key === "n") {
         e.preventDefault();

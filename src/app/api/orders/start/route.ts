@@ -11,6 +11,8 @@ export async function POST(req: Request) {
     orderId: input.orderId,
     failAt: input.failAt ?? null,
     autoAck: input.autoAck ?? true,
+    demoMode: input.demoMode ?? "standard",
+    driverTimeout: input.driverTimeout ?? "2m",
     itemCount: input.items.length,
   });
   const run = await start(placeOrderWorkflow, [input]);
