@@ -91,7 +91,8 @@ export default function CompensationTimelineSlide() {
       {/* Annotation */}
       <div className="max-w-3xl text-center">
         <p className="text-xl text-zinc-400">
-          Driver assignment failed at step 4. The compensation stack unwinds in reverse:
+          Restaurant accepted, driver assignment completed, then the driver declined at the hook.
+          That fatal business outcome triggers rollback in reverse order:
           release the driver, cancel the restaurant, refund the payment.
           <span className="text-fuchsia-300"> Every pill you see in the demo is one of these compensations.</span>
         </p>

@@ -1,4 +1,4 @@
-import { Kw, Fn, Str, Cmt, Punc } from "../_components/code-tokens";
+import { Kw, Fn, Str, Punc } from "../_components/code-tokens";
 
 export default function ErrorsSlide() {
   return (
@@ -66,10 +66,8 @@ export default function ErrorsSlide() {
 
           <div className="mt-6 flex flex-col gap-0">
             {[
-              { attempt: 1, delay: "0s", status: "429", color: "border-amber-400 text-amber-300" },
-              { attempt: 2, delay: "1s", status: "429", color: "border-amber-400 text-amber-300" },
-              { attempt: 3, delay: "4s", status: "429", color: "border-amber-400 text-amber-300" },
-              { attempt: 4, delay: "9s", status: "200", color: "border-emerald-400 text-emerald-300" },
+              { attempt: 1, delay: "2s", status: "429", note: "RetryableError", color: "border-amber-400 text-amber-300" },
+              { attempt: 2, delay: "0s", status: "200", note: "same stepId", color: "border-emerald-400 text-emerald-300" },
             ].map((r, i, arr) => (
               <div key={r.attempt}>
                 <div className="flex items-center gap-5">
@@ -87,11 +85,11 @@ export default function ErrorsSlide() {
                         {r.status}
                       </span>
                     </div>
-                    {r.status !== "200" && (
-                      <div className="mt-1 font-mono text-sm text-zinc-500">
-                        wait {r.delay} then retry
-                      </div>
-                    )}
+                    <div className="mt-1 font-mono text-sm text-zinc-500">
+                      {r.status !== "200"
+                        ? `retryAfter: ${r.delay}`
+                        : r.note}
+                    </div>
                   </div>
                 </div>
                 {i < arr.length - 1 && (
@@ -103,10 +101,18 @@ export default function ErrorsSlide() {
 
           <div className="mt-6 rounded-xl border border-white/10 bg-black p-4">
             <pre className="font-mono text-base text-zinc-300">
-              <Kw>const</Kw> <Punc>{"{"}</Punc> attempt <Punc>{"}"}</Punc> = <Fn>getStepMetadata</Fn><Punc>()</Punc>{"\n"}
-              <Kw>const</Kw> backoff = attempt ** 2 * 1000
+              <Kw>const</Kw> <Punc>{"{"}</Punc> stepId, attempt <Punc>{"}"}</Punc> = <Fn>getStepMetadata</Fn><Punc>()</Punc>{"\n"}
+              <Kw>throw new</Kw> <Fn>RetryableError</Fn><Punc>(</Punc><Str>&quot;Rate limited&quot;</Str>,{"\n"}
+              {"  "}<Punc>{"{"}</Punc> retryAfter: <Str>&quot;2s&quot;</Str> <Punc>{"}"}</Punc><Punc>)</Punc>
             </pre>
           </div>
+
+          <p className="mt-4 text-lg text-zinc-400">
+            The demo path: first attempt gets rate limited, throws{" "}
+            <span className="font-mono text-amber-300">RetryableError</span> with{" "}
+            <span className="font-mono text-white">retryAfter: &quot;2s&quot;</span>,
+            then the second attempt succeeds with the same stepId.
+          </p>
         </div>
       </div>
     </div>

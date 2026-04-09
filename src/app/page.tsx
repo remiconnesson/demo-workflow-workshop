@@ -203,8 +203,27 @@ export default function V29Page() {
   const autoAckRef = useRef(autoAck);
   autoAckRef.current = autoAck;
   const orderIdRef = useRef<string | null>(null);
+  const autoAckTimeoutRef = useRef<number | null>(null);
+  const scheduledOrderIdRef = useRef<string | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
   const failRef = useRef<HTMLDivElement>(null);
+
+  function clearAutoAck(reason: string) {
+    if (autoAckTimeoutRef.current !== null) {
+      window.clearTimeout(autoAckTimeoutRef.current);
+      autoAckTimeoutRef.current = null;
+      console.info("[demo-ui] auto_ack_cleared", { reason });
+    }
+    scheduledOrderIdRef.current = null;
+    setAutoResumeAt(null);
+  }
+
+  // clear pending auto-ack when toggling auto-ack off
+  useEffect(() => {
+    if (!autoAck && autoAckTimeoutRef.current !== null) {
+      clearAutoAck("autoAck_toggled_off");
+    }
+  }, [autoAck]);
 
   // close fail dropdown on outside click / Esc
   useEffect(() => {
@@ -280,6 +299,7 @@ export default function V29Page() {
   );
 
   const reset = () => {
+    clearAutoAck("reset");
     setRunning(false);
     setOrderId(null);
     setRunId(null);
@@ -291,7 +311,6 @@ export default function V29Page() {
     setStartedAt(null);
     setElapsed(0);
     setWaitingOn(null);
-    setAutoResumeAt(null);
     setResumeToast(null);
     orderIdRef.current = null;
   };
@@ -364,9 +383,13 @@ export default function V29Page() {
             setStepState((s) => ({ ...s, [ev.step]: "waiting" }));
             setWaitingOn(ev.step);
             if (autoAckRef.current) {
+              clearAutoAck("new_hook");
+              const scheduledOrderId = orderIdRef.current;
+              scheduledOrderIdRef.current = scheduledOrderId;
               console.info("[demo-ui] auto_ack_scheduled", {
                 step: ev.step,
                 delayMs: 800,
+                scheduledOrderId,
               });
               setAutoResumeAt(performance.now() + 800);
               const kind =
@@ -375,7 +398,20 @@ export default function V29Page() {
                   : ev.step === "assignDriver"
                     ? "driver-accept"
                     : "delivered";
-              setTimeout(() => {
+              autoAckTimeoutRef.current = window.setTimeout(() => {
+                const activeOrderId = orderIdRef.current;
+                console.info("[demo-ui] auto_ack_fired", {
+                  scheduledOrderId,
+                  activeOrderId,
+                  kind,
+                });
+                if (!scheduledOrderId || scheduledOrderId !== activeOrderId) {
+                  console.info("[demo-ui] auto_ack_ignored_stale", {
+                    scheduledOrderId,
+                    activeOrderId,
+                  });
+                  return;
+                }
                 void resume(kind, kind === "delivered" ? {} : { accepted: true });
               }, 800);
             } else {
@@ -388,13 +424,9 @@ export default function V29Page() {
               step: ev.step,
               detail: ev.detail ?? null,
             });
-            console.info("[demo-ui] resume_toast", {
-              step: ev.step,
-              detail: ev.detail ?? null,
-            });
+            clearAutoAck("hook_resolved");
             setStepState((s) => ({ ...s, [ev.step]: "success" }));
             setWaitingOn((w) => (w === ev.step ? null : w));
-            setAutoResumeAt(null);
             setResumeToast(`${ev.detail ?? ev.step} — workflow resumed`);
             break;
           case "compensation_pushed":
@@ -412,10 +444,10 @@ export default function V29Page() {
               status: ev.status,
               orderId: ev.orderId,
             });
+            clearAutoAck("done");
             setDoneStatus(ev.status);
             setRunning(false);
             setWaitingOn(null);
-            setAutoResumeAt(null);
             break;
         }
       }

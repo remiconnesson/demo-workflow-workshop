@@ -119,9 +119,9 @@ export const SLIDES: SlideInfo[] = [
     notes: [
       "SAY: \"Three levels of errors. An uncaught Error? The runtime retries automatically. A FatalError? Stop retrying — start compensating. A RetryableError? You choose exactly when to retry.\"",
       "",
-      "POINT to the retry timeline: \"Each retry waits longer. The runtime handles backoff for uncaught errors. RetryableError lets you set your own.\"",
+      "POINT to the retry timeline: \"Two attempts. First one throws RetryableError with retryAfter: '2s'. Second one succeeds — same stepId. That's the exact demo behavior.\"",
       "",
-      "SAY: \"The demo has a 'Rate limit payment once' scenario. It throws RetryableError on the first attempt, succeeds on the second — same stepId both times.\"",
+      "SAY: \"The demo 'Rate limit payment once' scenario shows this live. One retry, same stepId, controlled backoff.\"",
       "",
       "TRANSITION: Press →.",
     ].join("\n"),
@@ -217,9 +217,9 @@ export const SLIDES: SlideInfo[] = [
     title: "Compensation Timeline",
     number: 15,
     notes: [
-      "SAY: \"Here's what it looks like. Steps 1-3 succeeded. Step 4 — driver assignment — failed.\"",
+      "SAY: \"The driver hook resolves with a decline, and that business outcome triggers rollback.\"",
       "",
-      "POINT to fuchsia pills: \"Release driver. Cancel restaurant. Refund payment. In that order.\"",
+      "POINT to fuchsia pills: \"Release driver. Cancel restaurant. Refund payment. Reverse order — last in, first out.\"",
       "",
       "SAY: \"Let me show you this live.\"",
       "",
