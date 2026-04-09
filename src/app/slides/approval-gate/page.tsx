@@ -19,7 +19,7 @@ export default function ApprovalGateSlide() {
           <Punc>{"})"}</Punc>{"\n"}
           {"\n"}
           <Cmt>{"// Send approval email with the token in the link"}</Cmt>{"\n"}
-          <Kw>await</Kw> <Fn>sendApprovalEmail</Fn><Punc>(</Punc>manager, token<Punc>)</Punc>{"\n"}
+          <Kw>await</Kw> <Fn>sendApprovalEmail</Fn><Punc>(</Punc>manager, hook.token<Punc>)</Punc>{"\n"}
           {"\n"}
           <Cmt>{"// Race: approval vs. 1 hour timeout"}</Cmt>{"\n"}
           <Kw>const</Kw> result = <Kw>await</Kw> Promise.<Fn>race</Fn><Punc>([</Punc>{"\n"}

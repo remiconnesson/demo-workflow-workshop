@@ -16,6 +16,10 @@ export default function SlidesLayout({
   const [showNotes, setShowNotes] = useState(false);
 
   useEffect(() => {
+    console.info("[slides] open", { slug });
+  }, [slug]);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" && next) {
         e.preventDefault();

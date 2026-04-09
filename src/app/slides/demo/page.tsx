@@ -62,7 +62,7 @@ export default function DemoSlide() {
         <div className="mt-10 flex flex-col gap-4">
           {[
             { num: "1", label: "Validate order", sub: "Schema & stock check", color: "border-white/15 text-zinc-600" },
-            { num: "2", label: "Charge payment", sub: "Stripe with stepId idempotency", color: "border-white/15 text-zinc-600" },
+            { num: "2", label: "Charge payment", sub: "Stable stepId becomes the payment key", color: "border-white/15 text-zinc-600" },
             { num: "3", label: "Notify restaurant", sub: "Hook: wait for accept/reject", color: "border-amber-400/40 text-amber-300" },
             { num: "4", label: "Assign driver", sub: "Hook: accept with 2m timeout", color: "border-amber-400/40 text-amber-300" },
             { num: "5", label: "Track delivery", sub: "Hook: delivery confirmation", color: "border-amber-400/40 text-amber-300" },

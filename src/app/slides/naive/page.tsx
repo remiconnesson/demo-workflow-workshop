@@ -18,8 +18,8 @@ export default function NaiveSlide() {
           {"\n"}
           {"  "}<Kw>await</Kw> <Fn>validateOrder</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
           {"  "}<Kw>await</Kw> <Fn>chargePayment</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
-          {"  "}<Kw>await</Kw> <Fn>notifyRestaurant</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
           {"  "}<Cmt>{"// ← server crashes here"}</Cmt>{"\n"}
+          {"  "}<Kw>await</Kw> <Fn>notifyRestaurant</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
           {"  "}<Kw>await</Kw> <Fn>assignDriver</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
           {"  "}<Kw>await</Kw> <Fn>trackDelivery</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
           {"  "}<Kw>await</Kw> <Fn>sendReceipt</Fn><Punc>(</Punc>order<Punc>)</Punc>{"\n"}
@@ -38,7 +38,7 @@ export default function NaiveSlide() {
           </div>
 
           <h3 className="mt-6 text-3xl font-semibold tracking-tight">
-            Server restarts between step 3 and 4
+            Server restarts between step 2 and 3
           </h3>
 
           <ul className="mt-8 flex flex-col gap-5 text-xl text-zinc-400">

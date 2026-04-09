@@ -1,6 +1,8 @@
 import {
   FatalError,
+  RetryableError,
   createHook,
+  getStepMetadata,
   getWritable,
   sleep,
 } from "workflow";
@@ -10,6 +12,7 @@ import {
 export type FailStep =
   | "validateOrder"
   | "chargePayment"
+  | "chargePaymentRetryable"
   | "notifyRestaurant"
   | "assignDriver"
   | "trackDelivery"
@@ -322,12 +325,32 @@ async function chargePayment(
   "use step";
   const writer = getWritable<OrderEvent>().getWriter();
   try {
+    const { stepId, attempt } = getStepMetadata();
     await writer.write({
       type: "step_running",
       step: "chargePayment",
       label: "Charge payment",
     });
+    await writer.write({
+      type: "log",
+      message: `chargePayment stepId=${stepId} attempt=${attempt}`,
+    });
+    console.info("[workflow] chargePayment", {
+      orderId: input.orderId,
+      stepId,
+      attempt,
+      failAt: input.failAt ?? null,
+    });
     await delay(600);
+    if (input.failAt === "chargePaymentRetryable" && attempt === 1) {
+      await writer.write({
+        type: "log",
+        message: `Payment API rate limited. Retrying with same stepId ${stepId}`,
+      });
+      throw new RetryableError("Payment API rate limited", {
+        retryAfter: "2s",
+      });
+    }
     if (shouldFail) {
       await writer.write({
         type: "step_failed",
@@ -337,13 +360,13 @@ async function chargePayment(
       });
       throw new FatalError(`chargePayment failed for ${input.orderId}`);
     }
-    const paymentId = `pay_${input.orderId}_${Date.now().toString(36)}`;
+    const paymentId = `pay_${stepId}`;
     const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
     await writer.write({
       type: "step_succeeded",
       step: "chargePayment",
       label: "Charge payment",
-      detail: `Charged $${total.toFixed(2)} (${paymentId})`,
+      detail: `Charged $${total.toFixed(2)} (${paymentId}) key=${stepId}`,
     });
     return paymentId;
   } finally {

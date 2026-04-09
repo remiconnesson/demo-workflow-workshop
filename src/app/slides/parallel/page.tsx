@@ -23,8 +23,9 @@ export default function ParallelSlide() {
         </pre>
 
         <p className="mt-6 text-xl text-zinc-400">
-          Standard <span className="font-mono text-white">Promise.all</span> — no new API. Each branch is a durable step.
-          If one fails, the others still complete.
+          Standard <span className="font-mono text-white">Promise.all</span> starts the branches in parallel.
+          If any branch rejects, the aggregate rejects. Use{" "}
+          <span className="font-mono text-white">Promise.allSettled</span> when you want partial success.
         </p>
       </div>
 

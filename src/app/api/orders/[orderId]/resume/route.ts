@@ -35,5 +35,6 @@ export async function POST(
   }
 
   await resumeHook(token, payload);
+  console.info("[demo] hook_resume", { orderId, kind: body.kind, token });
   return NextResponse.json({ ok: true, token });
 }

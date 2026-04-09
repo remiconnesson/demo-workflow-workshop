@@ -7,7 +7,7 @@ export default function IdempotencySlide() {
         Idempotency
       </div>
       <h2 className="text-5xl font-semibold tracking-tight">
-        Every step runs exactly once
+        Stable step IDs make retries safe
       </h2>
 
       <pre className="mt-6 rounded-2xl border border-white/10 bg-zinc-950 p-10 font-mono text-2xl leading-relaxed max-w-4xl w-full">

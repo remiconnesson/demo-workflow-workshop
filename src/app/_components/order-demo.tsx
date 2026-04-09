@@ -9,10 +9,10 @@ import type {
 } from "@/workflows/place-order";
 
 const MENU: OrderItem[] = [
-  { id: "pho", name: "Beef Phở", price: 14, qty: 0 },
-  { id: "banh", name: "Bánh Mì", price: 10, qty: 0 },
-  { id: "spring", name: "Spring Rolls (4)", price: 8, qty: 0 },
-  { id: "boba", name: "Taro Boba", price: 6, qty: 0 },
+  { id: "deployer", name: "The Deployer", price: 4.5, qty: 0 },
+  { id: "edge", name: "Edge Runtime", price: 4.5, qty: 0 },
+  { id: "cold", name: "Cold Start", price: 3.5, qty: 0 },
+  { id: "cruller", name: "Cron Cruller", price: 4.0, qty: 0 },
 ];
 
 const STEPS: { key: string; label: string }[] = [
@@ -28,6 +28,7 @@ const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
   { value: "chargePayment", label: "Fail at payment" },
+  { value: "chargePaymentRetryable", label: "Rate limit payment once" },
   { value: "notifyRestaurant", label: "Fail at restaurant" },
   { value: "assignDriver", label: "Fail at driver" },
   { value: "sendReceipt", label: "Fail at receipt" },
@@ -37,7 +38,7 @@ type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "sk
 
 export default function OrderDemo() {
   const [cart, setCart] = useState<OrderItem[]>(
-    MENU.map((m) => ({ ...m, qty: m.id === "pho" ? 1 : 0 })),
+    MENU.map((m) => ({ ...m, qty: m.id === "deployer" ? 1 : 0 })),
   );
   const [customerName, setCustomerName] = useState("Ada Lovelace");
   const [address, setAddress] = useState("123 Cupcake Lane, San Francisco");

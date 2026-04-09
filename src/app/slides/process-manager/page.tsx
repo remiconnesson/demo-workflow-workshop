@@ -6,7 +6,7 @@ export default function ProcessManagerSlide() {
       {/* Left: state machine visual */}
       <div className="flex-1 max-w-lg">
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-          Process Manager
+          Next Pattern
         </div>
         <h2 className="mt-3 text-5xl font-semibold tracking-tight">
           State machines as code

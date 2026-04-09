@@ -12,17 +12,31 @@ export default function ErrorsSlide() {
           When to give up, when to retry
         </h2>
 
-        <div className="mt-8 rounded-2xl border border-red-500/20 bg-red-500/5 p-8">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950 p-8">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="h-3 w-3 rounded-full bg-sky-500" />
+            <span className="text-lg font-semibold text-sky-400">Uncaught Error</span>
+            <span className="text-base text-zinc-500">— retried by default</span>
+          </div>
+          <pre className="font-mono text-xl leading-relaxed">
+            <Kw>throw new</Kw> <Fn>Error</Fn><Punc>(</Punc><Str>&quot;Network timeout&quot;</Str><Punc>)</Punc>
+          </pre>
+          <p className="mt-3 text-lg text-zinc-400">
+            The runtime retries automatically with exponential backoff.
+          </p>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/5 p-8">
           <div className="flex items-center gap-3 mb-4">
             <span className="h-3 w-3 rounded-full bg-red-500" />
             <span className="text-lg font-semibold text-red-400">FatalError</span>
-            <span className="text-base text-zinc-500">— give up now</span>
+            <span className="text-base text-zinc-500">— stop retrying</span>
           </div>
           <pre className="font-mono text-xl leading-relaxed">
-            <Kw>throw new</Kw> <Fn>FatalError</Fn><Punc>(</Punc><Str>&quot;Restaurant not found&quot;</Str><Punc>)</Punc>
+            <Kw>throw new</Kw> <Fn>FatalError</Fn><Punc>(</Punc><Str>&quot;Card declined&quot;</Str><Punc>)</Punc>
           </pre>
           <p className="mt-3 text-lg text-zinc-400">
-            Skip retries. Start compensating immediately.
+            This will never work. Start compensating immediately.
           </p>
         </div>
 
@@ -30,15 +44,15 @@ export default function ErrorsSlide() {
           <div className="flex items-center gap-3 mb-4">
             <span className="h-3 w-3 rounded-full bg-amber-500" />
             <span className="text-lg font-semibold text-amber-400">RetryableError</span>
-            <span className="text-base text-zinc-500">— try again later</span>
+            <span className="text-base text-zinc-500">— you choose retryAfter</span>
           </div>
           <pre className="font-mono text-xl leading-relaxed">
             <Kw>throw new</Kw> <Fn>RetryableError</Fn><Punc>(</Punc><Str>&quot;Rate limited&quot;</Str>, <Punc>{"{"}</Punc>{"\n"}
-            {"  "}retryAfter: <Str>&quot;1m&quot;</Str>{"\n"}
+            {"  "}retryAfter: <Str>&quot;2s&quot;</Str>{"\n"}
             <Punc>{"})"}</Punc>
           </pre>
           <p className="mt-3 text-lg text-zinc-400">
-            The service is probably just busy. Back off and retry.
+            You know the service is busy. Set your own backoff.
           </p>
         </div>
       </div>
