@@ -11,6 +11,7 @@ import {
 import type { OrderEvent, OrderItem } from "@/workflows/place-order";
 import { useOrderRun, type OrderRunScenario } from "@/lib/order-run-client";
 
+
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
 
@@ -365,6 +366,13 @@ export default function V29Page() {
 
   return (
     <div className={`h-screen overflow-hidden bg-black text-white ${geist.className}`}>
+      {/* fixed nav to slides */}
+      <Link
+        href="/slides/title"
+        className="fixed bottom-6 left-8 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-zinc-950/80 px-5 py-2 font-mono text-lg text-zinc-400 backdrop-blur transition-colors hover:bg-white/10 hover:text-white"
+      >
+        Slides &rarr;
+      </Link>
       <div className="mx-auto flex h-full max-w-[1920px] flex-col gap-16 p-12 xl:flex-row">
         {/* ──────────────────────────── LEFT: PHONE ──────────────────────────── */}
         <div className="flex shrink-0 justify-center overflow-y-auto overscroll-contain">
@@ -606,14 +614,14 @@ export default function V29Page() {
             </div>
 
             {/* horizontal step timeline */}
-            <div className="mt-12 overflow-x-auto pb-2">
-              <div className="relative flex min-w-max items-start gap-0">
+            <div className="mt-12 pb-2">
+              <div className="relative flex items-start gap-0">
                 {STEPS.map((s, i) => {
                   const state = stepState[s.id] ?? "pending";
                   const isLast = i === STEPS.length - 1;
 
                   const nodeBase =
-                    "relative z-10 flex h-[96px] w-[96px] items-center justify-center rounded-full border-2 text-3xl font-semibold transition-colors";
+                    "relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 text-2xl font-semibold transition-colors";
                   const nodeStyle =
                     state === "success"
                       ? "bg-white border-white text-black"
@@ -631,12 +639,12 @@ export default function V29Page() {
                     state === "success" ? "bg-white" : "bg-white/10";
 
                   return (
-                    <div key={s.id} className="flex min-w-[180px] flex-col items-center">
+                    <div key={s.id} className="flex flex-1 min-w-0 flex-col items-center">
                       <div className="flex w-full items-center">
                         <div className={`h-[2px] flex-1 ${i === 0 ? "opacity-0" : lineColor}`} />
                         <div className={`${nodeBase} ${nodeStyle}`}>
                           {state === "success" ? (
-                            <TriangleMark size={32} className="text-black" />
+                            <TriangleMark size={24} className="text-black" />
                           ) : state === "failed" ? (
                             "!"
                           ) : state === "running" ? (
@@ -649,9 +657,9 @@ export default function V29Page() {
                         </div>
                         <div className={`h-[2px] flex-1 ${isLast ? "opacity-0" : lineColor}`} />
                       </div>
-                      <div className="mt-5 w-full px-2 text-center">
-                        <div className="text-xl font-semibold tracking-tight">{s.label}</div>
-                        <div className={`mt-1 text-base uppercase tracking-wider ${geistMono.className} text-zinc-500`}>
+                      <div className="mt-3 w-full px-1 text-center">
+                        <div className="text-lg font-semibold tracking-tight">{s.label}</div>
+                        <div className={`mt-1 text-sm uppercase tracking-wider ${geistMono.className} text-zinc-500`}>
                           {state}
                         </div>
                         {s.id === "chargePayment" && (

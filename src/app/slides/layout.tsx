@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { DebugDrawer } from "@/app/_components/debug-drawer";
 import { getSlideNav } from "./config";
 
 export default function SlidesLayout({
@@ -14,6 +16,26 @@ export default function SlidesLayout({
   const slug = pathname.split("/").pop() ?? "";
   const { current, prev, next, total } = getSlideNav(slug);
   const [showNotes, setShowNotes] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
+
+  // Listen for workflow run events from child slides
+  useEffect(() => {
+    const onRun = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.runId) {
+        setRunInfo({ runId: detail.runId, orderId: detail.orderId ?? null });
+      }
+    };
+    window.addEventListener("slide:workflow-started", onRun);
+    return () => window.removeEventListener("slide:workflow-started", onRun);
+  }, []);
+
+  // Clear run info on slide change
+  useEffect(() => {
+    setRunInfo(null);
+    setShowDebug(false);
+  }, [slug]);
 
   useEffect(() => {
     console.info("[slides] open", { slug });
@@ -80,11 +102,19 @@ export default function SlidesLayout({
 
       {/* navigation bar */}
       <div className="fixed bottom-6 right-8 z-50 flex items-center gap-0 rounded-full border border-white/10 bg-zinc-950/80 backdrop-blur font-mono text-lg select-none">
+        {/* home */}
+        <Link
+          href="/"
+          className="px-4 py-2 rounded-l-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          Demo
+        </Link>
+        <span className="w-px h-5 bg-white/10" />
         {/* left arrow (clickable) */}
         <button
           onClick={() => prev && router.push(`/slides/${prev.slug}`)}
           disabled={!prev}
-          className={`px-4 py-2 rounded-l-full transition-colors ${
+          className={`px-4 py-2 transition-colors ${
             prev
               ? "text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer"
               : "text-zinc-800 cursor-default"
@@ -112,7 +142,7 @@ export default function SlidesLayout({
         </button>
       </div>
 
-      {/* slide title + notes hint */}
+      {/* slide title + notes hint + debug toggle */}
       <div className="fixed bottom-6 left-8 z-50 flex items-center gap-4 font-mono text-lg select-none">
         <span className="text-zinc-600">{current?.title}</span>
         <button
@@ -125,7 +155,26 @@ export default function SlidesLayout({
         >
           n
         </button>
+        {runInfo && (
+          <button
+            onClick={() => setShowDebug((s) => !s)}
+            className={`rounded border px-2 py-0.5 text-sm transition-colors ${
+              showDebug
+                ? "border-emerald-400/30 text-emerald-400"
+                : "border-white/10 text-zinc-600 hover:text-zinc-400"
+            }`}
+          >
+            $
+          </button>
+        )}
       </div>
+
+      {/* debug drawer — fixed at bottom, toggled by $ button */}
+      {showDebug && runInfo && (
+        <div className="fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
+          <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
+        </div>
+      )}
     </div>
   );
 }
