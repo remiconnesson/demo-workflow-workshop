@@ -10,6 +10,19 @@ const BASE_INPUT = {
   items: BASE_ITEMS,
 };
 
+const AUTO_FINISH_AFTER_RESTAURANT = [
+  {
+    step: "assignDriver" as const,
+    delayMs: 400,
+    body: { kind: "driver-accept" as const, accepted: true },
+  },
+  {
+    step: "trackDelivery" as const,
+    delayMs: 400,
+    body: { kind: "delivered" as const },
+  },
+];
+
 export const slideScenarios = {
   demo: {
     scenarioId: "demo-happy-path",
@@ -23,6 +36,7 @@ export const slideScenarios = {
     title: "Compensation + hook",
     subtitle: "Run the real workflow and stop at the restaurant hook.",
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
+    scriptedResumes: AUTO_FINISH_AFTER_RESTAURANT,
   },
   idempotency: {
     scenarioId: "idempotency",
@@ -40,18 +54,21 @@ export const slideScenarios = {
     title: "Pause. Wait. Resume.",
     subtitle: "Manual hook resumption from the slide.",
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
+    scriptedResumes: AUTO_FINISH_AFTER_RESTAURANT,
   },
   tokens: {
     scenarioId: "tokens-manual",
     title: "Deterministic hook token",
     subtitle: "Same manual wait state, but the slide copy explains the token.",
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
+    scriptedResumes: AUTO_FINISH_AFTER_RESTAURANT,
   },
   approvalGate: {
     scenarioId: "approval-gate",
     title: "Human in the loop",
     subtitle: "Restaurant approval is a real hook pause.",
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
+    scriptedResumes: AUTO_FINISH_AFTER_RESTAURANT,
   },
   saga: {
     scenarioId: "driver-decline-rollback",
@@ -168,5 +185,6 @@ export const slideScenarios = {
         body: { kind: "restaurant-accept" as const, accepted: true },
       },
     ],
+    silentWaitingSteps: ["assignDriver"],
   },
 } satisfies Record<string, OrderRunScenario>;

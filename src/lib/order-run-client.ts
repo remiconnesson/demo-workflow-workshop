@@ -9,13 +9,22 @@ export type ResumeBody =
   | { kind: "driver-accept"; accepted: boolean }
   | { kind: "delivered"; photo?: string };
 
+type HookStep = Extract<
+  OrderStepId,
+  "notifyRestaurant" | "assignDriver" | "trackDelivery"
+>;
+
 export type ScriptedResume = {
-  step: Extract<
-    OrderStepId,
-    "notifyRestaurant" | "assignDriver" | "trackDelivery"
-  >;
+  step: HookStep;
   delayMs?: number;
   body: ResumeBody;
+};
+
+export type ScheduledResume = {
+  step: HookStep;
+  at: number;
+  body: ResumeBody;
+  source: "autoAck" | "scripted";
 };
 
 export type OrderRunScenario = {
@@ -25,6 +34,7 @@ export type OrderRunScenario = {
   autoStart?: boolean;
   input: Omit<OrderInput, "orderId">;
   scriptedResumes?: ScriptedResume[];
+  silentWaitingSteps?: HookStep[];
 };
 
 export type OrderRunController = {
@@ -37,6 +47,7 @@ export type OrderRunController = {
   compensations: string[];
   doneStatus: "completed" | "rolled_back" | null;
   autoResumeAt: number | null;
+  scheduledResume: ScheduledResume | null;
   resumeToast: string | null;
   error: string | null;
   start: () => Promise<void>;
@@ -79,6 +90,8 @@ export function useOrderRun(
     "completed" | "rolled_back" | null
   >(null);
   const [autoResumeAt, setAutoResumeAt] = useState<number | null>(null);
+  const [scheduledResume, setScheduledResume] =
+    useState<ScheduledResume | null>(null);
   const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,6 +113,7 @@ export function useOrderRun(
       }
       scheduledOrderIdRef.current = null;
       setAutoResumeAt(null);
+      setScheduledResume(null);
     },
     [scenario.scenarioId, source],
   );
@@ -186,7 +200,7 @@ export function useOrderRun(
           }));
           break;
         case "waiting_for_hook": {
-          const step = event.step as OrderStepId;
+          const step = event.step as HookStep;
           setStepState((current) => ({ ...current, [step]: "waiting" }));
           setWaitingOn(step);
 
@@ -198,19 +212,41 @@ export function useOrderRun(
             (scenario.input.autoAck ? defaultResumeForStep(step) : null);
           if (!body) {
             setAutoResumeAt(null);
+            setScheduledResume(null);
+            console.info("[order-run] wait_strategy", {
+              source,
+              scenarioId: scenario.scenarioId,
+              orderId: orderIdRef.current,
+              step,
+              strategy: scenario.silentWaitingSteps?.includes(step)
+                ? "silent"
+                : "manual",
+              driverTimeout:
+                step === "assignDriver"
+                  ? (scenario.input.driverTimeout ?? "2m")
+                  : undefined,
+            });
             break;
           }
 
           clearScheduledResume("reschedule");
           const delayMs = scripted?.delayMs ?? 800;
           const scheduledOrderId = orderIdRef.current;
+          const at = performance.now() + delayMs;
           scheduledOrderIdRef.current = scheduledOrderId;
-          setAutoResumeAt(performance.now() + delayMs);
-          console.info("[order-run] auto_resume_scheduled", {
+          setAutoResumeAt(at);
+          setScheduledResume({
+            step,
+            at,
+            body,
+            source: scripted ? "scripted" : "autoAck",
+          });
+          console.info("[order-run] wait_strategy", {
             source,
             scenarioId: scenario.scenarioId,
             orderId: scheduledOrderId,
             step,
+            strategy: scripted ? "scripted" : "autoAck",
             delayMs,
             body,
           });
@@ -268,8 +304,10 @@ export function useOrderRun(
       clearScheduledResume,
       resume,
       scenario.input.autoAck,
+      scenario.input.driverTimeout,
       scenario.scenarioId,
       scenario.scriptedResumes,
+      scenario.silentWaitingSteps,
       source,
     ],
   );
@@ -377,6 +415,7 @@ export function useOrderRun(
     compensations,
     doneStatus,
     autoResumeAt,
+    scheduledResume,
     resumeToast,
     error,
     start,

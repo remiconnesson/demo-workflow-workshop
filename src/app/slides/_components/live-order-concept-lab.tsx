@@ -17,6 +17,8 @@ type DemoPhase =
   | "rolled_back"
   | "error";
 
+type HookStep = "notifyRestaurant" | "assignDriver" | "trackDelivery";
+
 function getDemoPhase(args: {
   running: boolean;
   waitingOn: string | null;
@@ -151,10 +153,30 @@ export function LiveOrderConceptLab({
       : controller.autoResumeAt - clockNow,
   );
 
+  const scriptedWait =
+    controller.scheduledResume?.step === controller.waitingOn &&
+    controller.scheduledResume.source === "scripted";
+  const autoAckWait =
+    controller.scheduledResume?.step === controller.waitingOn &&
+    controller.scheduledResume.source === "autoAck";
+  const silentWait = Boolean(
+    controller.waitingOn &&
+      scenario.silentWaitingSteps?.includes(
+        controller.waitingOn as HookStep,
+      ),
+  );
+  const showManualControls =
+    Boolean(controller.waitingOn) &&
+    !controller.scheduledResume &&
+    !silentWait;
+
   const scenarioChips = [
     `fail:${scenario.input.failAt ?? "none"}`,
     `autoAck:${scenario.input.autoAck ? "on" : "manual"}`,
     `mode:${scenario.input.demoMode ?? "standard"}`,
+    ...(scenario.input.driverTimeout && scenario.input.driverTimeout !== "2m"
+      ? [`driverTimeout:${scenario.input.driverTimeout}`]
+      : []),
   ];
 
   // phase transition logging
@@ -163,19 +185,19 @@ export function LiveOrderConceptLab({
       slide,
       scenarioId: scenario.scenarioId,
       phase,
+      waitingOn: controller.waitingOn,
       runId: controller.runId,
       orderId: controller.orderId,
       eventCount: controller.events.length,
-      countdownLabel,
     });
   }, [
     slide,
     scenario.scenarioId,
     phase,
+    controller.waitingOn,
     controller.runId,
     controller.orderId,
     controller.events.length,
-    countdownLabel,
   ]);
 
   // Listen for slide:run and slide:reset keyboard events
@@ -261,7 +283,12 @@ export function LiveOrderConceptLab({
         <div className="mt-3 text-sm font-semibold uppercase tracking-[0.2em]">
           {phase === "idle" && "Ready"}
           {phase === "running" && "Streaming live"}
-          {phase === "waiting" && `Paused at ${controller.waitingOn}`}
+          {phase === "waiting" &&
+            (scriptedWait
+              ? `Scripted wait at ${controller.waitingOn}`
+              : silentWait
+                ? `Waiting at ${controller.waitingOn}`
+                : `Paused at ${controller.waitingOn}`)}
           {phase === "completed" && "Workflow completed"}
           {phase === "rolled_back" && "Workflow rolled back"}
           {phase === "error" && "Connection issue"}
@@ -271,9 +298,13 @@ export function LiveOrderConceptLab({
           {phase === "running" &&
             `${controller.events.length} events received.`}
           {phase === "waiting" &&
-            (scenario.input.autoAck
-              ? `Auto-resume in ${countdownLabel}`
-              : "Resume from the hook controls below.")}
+            (scriptedWait
+              ? `Scripted response in ${countdownLabel ?? "\u2026"}`
+              : autoAckWait
+                ? `Auto-resume in ${countdownLabel ?? "\u2026"}`
+                : silentWait && controller.waitingOn === "assignDriver"
+                  ? `Waiting for driver response. Timeout armed for ${scenario.input.driverTimeout ?? "2m"}.`
+                  : "Resume from the hook controls below.")}
           {phase === "completed" &&
             `Run ${controller.runId ?? "\u2014"} finished successfully.`}
           {phase === "rolled_back" &&
@@ -320,7 +351,7 @@ export function LiveOrderConceptLab({
       </div>
 
       {/* manual hook controls */}
-      {controller.waitingOn && !scenario.input.autoAck ? (
+      {showManualControls ? (
         <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-5">
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
             Waiting on {controller.waitingOn}
