@@ -1,98 +1,94 @@
-# Workflow SDK GA — Durability Ladder
+# Workflow SDK GA — The Failure Tour
 
-The presentation script. Every slide teaches one thing. Each slide's workflow survives everything the previous slide's workflow survived, plus one new failure. By the end, the same order has survived a crash, a week-long wait, a human saying no, a double-charge attempt, a fatal error, and an AI agent's tool-call loop.
+**The central conceit:** We show the audience a full, working food-order demo they've seen a hundred times before. Then we spend ten minutes hitting that exact demo with every production nightmare we can think of. For each one: the presenter asks *"what do you do now?"*, the naive approach visibly flails, and the Workflow SDK version just works. At the end, we put the accumulated naive horror next to the original six-await workflow and let the audience gasp.
 
-**Goal:** a script another presenter could read cold and deliver. Each slide has: headline, what's on screen, presenter words (deliverable verbatim), click cue, and lab config.
+**Why this shape:** Every middle slide has the same rhythm — failure → *"what now?"* → naive flails → workflow handles → continue. That repetition is the teaching mechanism. By the fourth slide the audience is predicting the beat. By the eighth they're laughing at it.
+
+**The reveal slide is the whole point.** Everything in Act 2 exists to make the naive side of slide 13 look like a ten-file, thousand-line disaster next to a single 15-line workflow function. The ratio is the message.
 
 ---
 
 ## Defaults I'm locking in (veto any of these)
 
-1. **Behavior-forward with a persistent code strip.** The lab is the star on every slide. A narrow code strip sits along the bottom showing the *one function* we're teaching, with the new lines highlighted. Audience sees the feeling and the API together without splitting focus.
-2. **Simulated crash button, real replay.** Slide 4 and Slide 6 use an in-lab "💥" button that tears down the runtime and reconstructs state from the real event log inside one process. Honest semantics, stage-safe. We'll rehearse a real `kill -9` as a backup but not rely on it.
-3. **`DurableAgent` closer is in.** Cheaper than I first said — `workbench/example/workflows/100_durable_agent_e2e.ts` gives us a working pattern to adapt. Slide 17 uses a new `pickRestaurant` agent with two tools. Includes a recorded-fallback mode so a cold LLM doesn't kill the closer.
-4. **Glossary slides retire from the main flow.** They stay in the repo as `/glossary/*` reference cards reachable from the debug drawer, not in the nav. Not in the narrative.
+1. **Naive flavor (a): realistic workarounds.** Each failure slide shows the naive approach a senior engineer would *actually* write — a persistent orders table, an idempotency keys table, a restaurant-webhook endpoint, a compensation coordinator, a sleep scheduler, a pubsub layer. Not straw-men. Each slide adds to the previous slide's naive code, so the naive codebase visibly accumulates across Act 2. By slide 12 the naive side is ten files of glue. Slide 13 shows all of it next to `placeOrder.ts`.
+2. **The demo is always visible.** A compressed six-step timeline strip sits along the top of every slide in Acts 2 and 3 with a marker showing *which moment in the demo* the current failure is happening. The demo is the persistent object the audience grounds themselves in.
+3. **Simulated crash button, real replay.** Slide 4 uses an in-lab 💥 button that tears down the runtime and reconstructs state from the real event log. Honest semantics, stage-safe.
+4. **DurableAgent closer is in.** Slide 14 ("one more thing") uses a new `pickRestaurant` agent adapted from `workbench/example/workflows/100_durable_agent_e2e.ts`. Recorded-fallback mode available for cold-LLM stage safety.
+5. **Glossary slides retire from the main flow.** Stay in the repo as reference cards, off-nav.
 
-If you want any of those flipped, tell me before I start implementing.
+If you want any of those flipped, say so before Phase 1 starts.
 
 ---
 
 ## The arc
 
-| # | Route | Beat | New thing it teaches |
+| # | Route | Act | Beat |
 |---|---|---|---|
-| 1 | `title` | Cold open | — |
-| 2 | `the-order` | Here's what we're building | The base workflow |
-| 3 | `naive` | The usual way | Six awaits, no durability |
-| 4 | `the-crash` | **Pain** | What happens when it dies |
-| 5 | `two-directives` | The fix | `"use workflow"` / `"use step"` |
-| 6 | `crash-survived` | **Payoff #1** | Same crash, survives |
-| 7 | `replay` | Why | Event log replay |
-| 8 | `sleep` | Wait cheap | `await sleep()` |
-| 9 | `hooks` | Wait for a human | `createHook()` |
-| 10 | `timeout-race` | Wait, but not forever | `Promise.race(hook, sleep)` |
-| 11 | `idempotency` | Never charge twice | `stepId` dedup |
-| 12 | `errors` | Two kinds of failure | `FatalError` / `RetryableError` |
-| 13 | `saga` | **Payoff #2** | Compensation unwind |
-| 14 | `parallel` | Fan out | `Promise.all` is durable |
-| 15 | `streaming` | Watch it live | `getWritable()` |
-| 16 | `wakeup` | Interrupt from outside | `Run.wakeUp()` (GA-new) |
-| 17 | `durable-agent` | **Payoff #3** | `DurableAgent` — the kicker |
-| 18 | `close` | Ship it | CTA |
+| 1 | `title` | I | Cold open |
+| 2 | `the-demo` | I | Full happy-path demo |
+| 3 | `the-setup` | I | "This code is one bad day from disaster" |
+| 4 | `failure-crash` | II | Server dies mid-order |
+| 5 | `failure-retry` | II | Payment network blips |
+| 6 | `failure-slow-restaurant` | II | Restaurant takes 10 minutes |
+| 7 | `failure-ghost-restaurant` | II | Restaurant never replies |
+| 8 | `failure-prep-window` | II | Need to delay 20 minutes |
+| 9 | `failure-driver-refuses` | II | Fatal error mid-flow |
+| 10 | `failure-admin-cancel` | II | Support needs to kill a sleeping order |
+| 11 | `failure-live-updates` | II | Customer wants real-time status |
+| 12 | `failure-fan-out` | II | Three notifications, one fails |
+| 13 | `the-reveal` | III | Naive horror vs. six awaits + two directives |
+| 14 | `one-more-thing` | IV | DurableAgent picks the restaurant |
+| 15 | `close` | V | Ship it |
 
 ---
 
-## The slides
+## Act 1 — "This works."
 
 ### 1. `title` — Cold open
 
 **Headline:** Workflow SDK
-**Sub:** Durable workflows for the rest of us. Tonight.
+**Sub:** GA · tonight
 
-**On screen:** Workflow mark centered. Title. "GA — April 11, 2026". Nothing else.
+**On screen:** Workflow mark centered. Title. Date. Nothing else.
 
 **Presenter words:**
-> "Tonight we're shipping the Workflow SDK to general availability. In the next fifteen minutes I'm going to take one ordinary food-delivery order and break it in every way I can think of. Every single time, it's going to come back to life. Let's go."
+> "Tonight we're shipping the Workflow SDK to general availability. I'm going to do something a little weird with the next fifteen minutes. I'm going to show you an app you've already seen — a food delivery order — and then I'm going to spend ten minutes breaking it in every way I can think of. For each break, I'm going to ask you one question: *what do you do now?* And then I'm going to show you what the Workflow SDK does. Let's go."
 
-**Click cue:** advance → `the-order`.
+**Click cue:** → `the-demo`.
 
 ---
 
-### 2. `the-order` — Here's what we're building
+### 2. `the-demo` — Full happy path
 
 **Headline:** Triangle Donuts #4271
-**Sub:** One order, end to end
+**Sub:** The order, end to end
 
-**On screen:** LiveOrderConceptLab running the happy path. Phone mockup on the left (customer view), 6-step timeline on the right. Auto-run, all six steps go green. No SDK talk on screen.
+**On screen:** LiveOrderConceptLab running the full happy path. Phone mockup on the left showing the customer's view. Six-step timeline on the right: validate → charge → notify → assign → track → receipt. All six go green. Customer sees "Order delivered". Elapsed: ~6s compressed.
 
-**Lab config:**
-```ts
-scenario: { autoAck: true }
-showTimeline: true
-showCompensations: false
-```
+**Lab config:** `{ scenario: { autoAck: true }, showTimeline: true, showCompensations: false }`
 
 **Presenter words:**
-> "This is the workflow we're talking about tonight. A customer taps order on their phone. Server-side, six things happen: we validate the cart, charge the card, send the order to the restaurant, assign a driver, track delivery, send the receipt. Six steps. This happens millions of times a day on apps you use. Watch it run."
+> "Here's the workflow we're talking about. Customer taps order. Server validates the cart, charges the card, notifies the restaurant, assigns a driver, tracks delivery, sends a receipt. Six steps. It happens millions of times a day on apps you use. Watch it run."
 
-*[lab auto-completes, ~6s]*
+*[lab runs, all green]*
 
-> "Clean. Easy. This is what the happy path looks like. Now let me show you what everybody writes the first time."
+> "Clean. Simple. Everybody in this room has written a version of this. It works. And I want you to remember what it feels like when it works — because for the next ten minutes, it's not going to."
 
-**Click cue:** advance → `naive`.
+**Click cue:** → `the-setup`.
 
-**Delta from current deck:** Current `demo` slide is already this. Keep.
+**Delta from current deck:** Current `demo` slide is this. Keep, tighten copy.
 
 ---
 
-### 3. `naive` — The usual way
+### 3. `the-setup` — "What if..."
 
-**Headline:** Six awaits, zero durability
-**Sub:** This is what we all write first
+**Headline:** One bad day
+**Sub:** Watch this.
 
-**On screen:** Full-width code block of the naive async function. Six sequential awaits. No SDK. Syntax highlighted, `text-2xl` mono, ≤15 lines.
+**On screen:** The six-step timeline from slide 2, now rendered smaller at the top of the slide (this is the persistent demo strip that will live on every Act 2 slide going forward). Below it, the naive `placeOrder.ts` code — six awaits, ~15 lines, clean. To the right, the empty Act 2 frame: a rotating list of failure names flashing through and then landing on "server dies mid-order".
 
 ```ts
+// placeOrder.ts — the version we'll break
 async function placeOrder(input: OrderInput) {
   const order = await validateOrder(input)
   const payment = await chargePayment(order)
@@ -105,383 +101,571 @@ async function placeOrder(input: OrderInput) {
 ```
 
 **Presenter words:**
-> "This is what almost every team writes first. Six awaits in a row. It works. It works perfectly — until it doesn't. And when it doesn't work, it fails in a way that ruins your weekend. Let me show you what I mean."
+> "This is the code that just ran. Six awaits. Fifteen lines. No framework, no SDK, nothing fancy. It works every single time the happy path is happy. Raise your hand if you've ever shipped code that looked like this. Yeah. Everybody. So — what if the happy path isn't happy?"
 
-**Click cue:** advance → `the-crash`.
+**Click cue:** → `failure-crash`.
 
-**Delta from current deck:** Current `naive` exists, uses NaiveLab. Keep the lab but simplify to a static code block + a small running indicator. No dense feed.
-
----
-
-### 4. `the-crash` — Pain established
-
-**Headline:** It's 2am
-**Sub:** The process dies mid-order
-
-**On screen:** Same naive code on the left. On the right, a big red **💥 CRASH** button, and a phone mockup showing the customer's order in progress. Status pill reads "Processing...".
-
-**Presenter words:**
-> "Here's our naive workflow running live. Customer has tapped order. Card is being charged. The restaurant hasn't been notified yet. And watch what happens when the server process dies right now."
-
-*[clicks 💥]*
-
-> "Payment went out. Restaurant never heard a thing. No driver. No delivery. No receipt. The customer is charged for donuts they will never receive. When they call support tomorrow, there is nothing in the database that says this order existed. This is the 2am pager. Every team that runs at scale has a version of this scar."
-
-**Click cue:** advance → `two-directives`.
-
-**Lab state after click:** phone shows "Something went wrong", timeline frozen mid-step, a faint "Payment captured — nowhere to recover to" toast. No resumption.
-
-**Delta from current deck:** NEW slide. Current deck goes naive → directives. We need the pain beat before the fix lands.
+**Delta from current deck:** NEW slide. Replaces `naive` and `workflow-code` as the contract slide.
 
 ---
 
-### 5. `two-directives` — The fix (setup)
+## Act 2 — "What do we do now?"
 
-**Headline:** Two lines
-**Sub:** That's the entire migration
+**Every slide in this act has the same layout:**
+- **Top strip (persistent):** the six-step demo timeline, with a glowing marker on the step where the current failure is happening.
+- **Left panel:** the lab showing the demo trying to run, hitting the failure, and being rescued by the Workflow version.
+- **Right panel:** two stacked code boxes — *Naive* on top (accumulating across slides, visibly growing), *Workflow* below (stays ~15 lines, plus one new primitive each slide highlighted). A small file-tree badge above the naive box shows how many files it's now spread across.
 
-**On screen:** Same naive code, but with two additions highlighted:
+**Every slide follows the same presenter rhythm:**
+1. "Here's what happens." (lab runs, failure hits)
+2. "What do you do now?" (beat — 1 second of silence)
+3. "You'd end up writing something like this." (naive code flails, the file tree grows)
+4. "Or..." (workflow code pulses with the one new primitive)
+5. "One line. Done." (lab continues and finishes)
+
+The file-tree badge on the naive panel starts at `1 file` on slide 4 and ends at `10 files` on slide 12.
+
+---
+
+### 4. `failure-crash` — Server dies mid-order
+
+**Headline:** It's 2am. The server just died.
+**Marker on demo strip:** between `charge` and `notify`
+
+**The failure:** Presenter clicks Run. The lab runs validate → charge → starts notify. Presenter clicks 💥. Screen dims. Toast: "Process terminated".
+
+**"What do you do now?"** beat.
+
+**Naive response (1 file → 2 files):** The naive panel shows the team's first attempt — a persistent `orders` table with a `status` column, updated before and after every step. Plus a new `recovery-worker.ts` that runs on startup and looks for orders stuck in `charging`, `notifying`, `assigning`. The punchline: the worker doesn't actually know if the interrupted step *succeeded on the external side* or not. A red `// ???` comment sits where the recovery logic should be.
 
 ```ts
-"use workflow"
+// orders-table.ts
+await db.orders.update({ id, status: 'charging' })
+const payment = await stripe.charge(...)
+await db.orders.update({ id, status: 'notifying', paymentId: payment.id })
+// ... four more of these
 
-async function placeOrder(input: OrderInput) {
-  const order = await validateOrder(input)
-  // ...
+// recovery-worker.ts
+const stuck = await db.orders.findMany({
+  status: { in: ['charging', 'notifying', 'assigning', ...] }
+})
+for (const order of stuck) {
+  // we don't know if the external call succeeded
+  // ???
 }
-
-// in each step file:
-"use step"
 ```
 
-The diff is dramatic because it's so small. Highlight `"use workflow"` at the top of the orchestrator and `"use step"` at the top of each step file. Don't change anything else yet.
+File tree badge: `2 files · 80 lines`
+
+**Workflow response:** Code panel shows the original 15-line function plus the two directives highlighted. Presenter clicks Run again on the Workflow version. Same crash mid-notify. 💥. Screen dims. Auto-restart. Timeline reappears with validate+charge already green (replayed from log), notify resumes, finishes. Customer gets their donuts.
 
 **Presenter words:**
-> "We're going to fix everything you just saw with two lines. Not a framework. Not a rewrite. Not a new programming model. Two string directives. One says *this function is a workflow — make it durable*. The other says *this function is a step — checkpoint it*. That's it. Everything else is the async/await code you already write. Now watch what those two lines buy us."
+> "Server dies between charge and notify. Customer has been charged. Restaurant has not been told. What do you do now?"
 
-**Click cue:** advance → `crash-survived`.
+*[beat]*
 
-**Delta from current deck:** Current `directives` slide exists and does this well. Keep, tighten copy.
+> "Your first move is a persistent orders table. You update it before and after every step. Then a recovery worker that runs on startup and finds the orphans. Here's the thing — the recovery worker doesn't actually know if the interrupted step *made it out*. Did Stripe get the charge? Did the restaurant get the push? You're writing reconciliation code now. You are building a distributed systems project because your food delivery app had a bad afternoon."
+
+*[beat]*
+
+> "Or. You take those same six awaits and you add two directives. `use workflow` at the top of the orchestrator. `use step` on each step. Now watch."
+
+*[clicks Run, clicks 💥 mid-notify, screen dims, restarts]*
+
+> "Same crash. Same moment. Process is dead. Comes back. The runtime replays the event log. Validate — already done, cached. Charge — already done, cached. Notify was in-flight, runs fresh. Finishes. Customer gets their donuts. I didn't write a recovery worker. I didn't write an orders table. I wrote two strings."
+
+**Click cue:** → `failure-retry`.
+
+**Lab implementation note:** Needs a new `crash-and-resume` scenario in LiveOrderConceptLab that simulates a process teardown and rebuilds state from the event log visually.
+
+**Delta from current deck:** NEW. Load-bearing slide.
 
 ---
 
-### 6. `crash-survived` — Payoff #1 (load-bearing slide)
+### 5. `failure-retry` — Payment network blips
 
-**Headline:** Kill it again
-**Sub:** It comes back
+**Headline:** The charge ran twice.
+**Marker:** `charge`
 
-**On screen:** Same layout as Slide 4. Same code (now with directives). Same 💥 button. Same phone. Same timeline.
+**The failure:** The lab runs. Charge step has a simulated network blip on the first attempt — auto-retry fires. Naive panel shows the retry calling Stripe twice. A red `$47.50 × 2` pill appears on the naive side.
 
-**Interaction:**
-1. Presenter clicks **Run**. Timeline starts. Validate → Charge → Notify → pauses mid-Assign.
-2. Presenter clicks **💥 CRASH**. Screen goes momentarily dim. Toast: "Process terminated — event log persisted".
-3. Auto-restart after 1.2s. Toast: "Runtime reconstructing from event log...".
-4. Timeline reappears with first three steps already green (replayed from log). Fourth step resumes *from where it left off*. Finishes the remaining steps. Phone shows "Order delivered".
+**"What do you do now?"** beat.
 
-**Presenter words:**
-> "Same order. Same code, plus two directives. I'm going to start it running. [clicks run] Validated. Charged. Restaurant notified. Driver being assigned — and I'm going to kill the process right now."
+**Naive (2 files → 3 files):** Add an `idempotency-keys` table. Before every external call, look up whether we've already made it. After every call, record the result. Now every step has three database round-trips wrapping one API call. And you have to generate a stable key per retry attempt — which means you need to know how many times you've retried, which means more state.
 
-*[clicks 💥, screen dims]*
-
-> "The process is dead. It is not executing anything. The workflow runtime persisted every completed step to an event log. Watch what happens when the process comes back."
-
-*[auto-restart, timeline fills in]*
-
-> "Validate, charge, notify — those three already happened. The runtime replayed their cached results instantly. Assign-driver was in-flight when we died, so it runs fresh. The rest of the workflow continues. Payment was not charged twice. The restaurant got exactly one ticket. The customer gets their donuts. This is the whole pitch."
-
-**This is the slide that makes the deck work.** Everything before exists to make this land. Everything after is a variation on this same guarantee.
-
-**Click cue:** advance → `replay`.
-
-**Lab implementation note:** Needs a new `crash-and-resume` scenario in `LiveOrderConceptLab` that:
-- Runs the real workflow
-- Exposes a "simulate crash" control that unmounts and reconstructs the run from its event log
-- Shows the replay visually (ghosted nodes filling back in)
-
-**Delta from current deck:** NEW slide. Current deck goes directives → workflow-code → replay. We replace workflow-code with this, and demote replay to a pure explainer (next slide).
-
----
-
-### 7. `replay` — How it survived (the explainer)
-
-**Headline:** The event log
-**Sub:** Why the crash didn't lose anything
-
-**On screen:** Simple diagram. On the left, the six-step timeline. On the right, an event log (a compact, static representation — this is not a log console, it's a diagram). Arrows showing: step completes → event appended → process dies → process restarts → runtime reads events → replays deterministically → skips completed → runs next.
-
-**Presenter words:**
-> "Quick aside on how that worked. Every time a step finishes, the runtime writes an event to an append-only log. When the process comes back, the runtime replays those events in order. Your workflow function runs again from the top — but every step that already finished just returns its cached result instantly. The function is deterministic so it reaches the same point in the code, and then picks up the work. You write normal async code. The runtime handles the bookkeeping. That's it, that's the model."
-
-**Click cue:** advance → `sleep`.
-
-**Delta from current deck:** Current `replay` slide has a good visual. Keep the visual, simplify the copy to match this script.
-
----
-
-### 8. `sleep` — Wait cheap
-
-**Headline:** Wait for days, pay for nothing
-**Sub:** `await sleep('20m')`
-
-**On screen:** Code strip shows one modified line of the orchestrator:
 ```ts
-await sleep('20m')  // wait for the restaurant prep window
-```
-Lab timeline shows a 20-minute pause visualized as a compressed "sleeping" state between Charge and Notify. A subtle moon/pause icon. Elapsed timer ticks up in "workflow time" vs "wall time".
-
-**Presenter words:**
-> "Sometimes you don't want to go fast. In this order, I want to delay notifying the restaurant until their prep window opens. Normally that's a cron job, a queue, a scheduled task, a whole ops story. In a workflow, it's one line. `await sleep`, twenty minutes. The function suspends. You are not paying for a process to sit there waiting. When the timer fires, the workflow wakes up and continues. And if the server crashes during the sleep? It still wakes up on the other side."
-
-**Click cue:** advance → `hooks`.
-
-**Delta from current deck:** Current `sleep` is good. Keep, tighten.
-
----
-
-### 9. `hooks` — Wait for a human
-
-**Headline:** Pause. Wait. Resume.
-**Sub:** `createHook()`
-
-**On screen:** Lab runs to the "notify restaurant" step and pauses. Phone mockup pivots to the *restaurant's* view: "New order — Accept / Reject". Large buttons. The customer-side phone stays visible showing "Waiting for restaurant...".
-
-**Lab config:**
-```ts
-scenario: { autoAck: false, scriptedResumes: [] }
-highlightSteps: ['notifyRestaurant']
+// idempotency-keys.ts
+async function idempotentCharge(orderId, amount) {
+  const key = `charge:${orderId}:${attemptNumber}` // where does attemptNumber come from?
+  const existing = await db.idempotency.findUnique({ key })
+  if (existing) return existing.result
+  const result = await stripe.charge({ amount, idempotencyKey: key })
+  await db.idempotency.create({ key, result })
+  return result
+}
 ```
 
-**Presenter words:**
-> "Sometimes you're not waiting on a timer — you're waiting on a human. The restaurant has to accept the order before we dispatch a driver. I create a hook. The hook generates a token. I hand that token to the restaurant's dashboard. The workflow suspends on the hook. Could be five seconds. Could be five hours. The server is free to do other work."
+File tree badge: `3 files · 140 lines`
 
-*[clicks ✅ Accept on the restaurant's phone]*
-
-> "Restaurant accepts. Workflow resumes. Driver gets dispatched. Nothing was polling. Nothing was holding a connection."
-
-**Click cue:** advance → `timeout-race`.
-
-**Delta from current deck:** Current deck has `hooks`, `tokens`, and `approval-gate` as three separate slides. Fold tokens into hooks (token is just a sentence here) and save approval for the next slide. Net: -1 slide.
-
----
-
-### 10. `timeout-race` — Wait, but not forever
-
-**Headline:** What if they don't answer?
-**Sub:** `Promise.race(hook, sleep)`
-
-**On screen:** Code strip:
-```ts
-const accepted = await Promise.race([
-  restaurantHook,
-  sleep('2m').then(() => 'timeout'),
-])
-if (accepted === 'timeout') return routeToBackup(order)
-```
-Lab runs the scenario twice, fast: once the restaurant accepts in time (happy path), once the timeout wins (route to backup shown on screen). Use the existing `timeoutRace` scenario with 2s driver timeout compressed for stage.
-
-**Presenter words:**
-> "What if the restaurant doesn't answer? I race the hook against a sleep. Whichever one finishes first wins. If they accept in time, great — we continue. If they don't, the sleep resolves, and I route the order to a backup restaurant. This is just `Promise.race`. It's not a new API, it's not a state machine library. It's the JavaScript you already know, running durably."
-
-**Click cue:** advance → `idempotency`.
-
-**Delta from current deck:** Current deck has both `approval-gate` and `timeout-race`. Keep timeout-race, delete approval-gate (folded here). Net: -1.
-
----
-
-### 11. `idempotency` — Never charge twice
-
-**Headline:** Retries happen. Double charges don't.
-**Sub:** `getStepMetadata().stepId`
-
-**On screen:** Small code strip in the charge step:
+**Workflow:** One highlighted line inside `chargePayment`:
 ```ts
 await stripe.charges.create(
   { amount: order.total, source: order.token },
   { idempotencyKey: getStepMetadata().stepId },
 )
 ```
-Lab visual: a simulated Stripe retry. First call flakes (network blip), step retries, same `stepId` sent, Stripe returns the first charge's result. A single `$47.50` on the customer's card. A subtle "retry #2 — deduplicated" pill.
+Lab re-runs with the same retry. Second call dedupes. One charge.
 
 **Presenter words:**
-> "Retries are automatic in the Workflow SDK, which means the same step can run more than once. Which means — if you're not careful — you can charge someone twice. The runtime hands every step a stable ID that doesn't change across retries. Pass it to Stripe as the idempotency key. Now the second call just returns the first charge. One line, one real-world problem solved."
+> "Retries happen. Networks flake. The SDK retries steps for you — which means the same step can run twice. Which means if you're not careful, you charge your customer twice. What do you do now?"
 
-**Click cue:** advance → `errors`.
+*[beat]*
 
-**Delta from current deck:** Current `idempotency` is good. Keep.
+> "You build an idempotency keys table. You wrap every external call. You have to generate a stable key for retries, which means you need to track how many times you've retried, which means another column. It's a second database for your first database."
+
+*[beat]*
+
+> "Or. The SDK hands every step a stable ID. Same ID across retries. You pass it to Stripe as the idempotency key. One line. Stripe does the deduplication. You do nothing."
+
+**Click cue:** → `failure-slow-restaurant`.
+
+**Delta from current deck:** Current `idempotency` slide covers this but as pure API walkthrough. Reframe as "what do you do now".
 
 ---
 
-### 12. `errors` — Two kinds of failure
+### 6. `failure-slow-restaurant` — Hooks
 
-**Headline:** Retry it, or give up
-**Sub:** `RetryableError` vs `FatalError`
+**Headline:** The restaurant takes ten minutes to accept.
+**Marker:** `notify`
 
-**On screen:** Side-by-side:
-- **Left (Retryable):** tiny code `throw new RetryableError('stripe 503', { retryAfter: '30s' })`. A small timeline showing retry attempts with exponential backoff.
-- **Right (Fatal):** tiny code `throw new FatalError('driver refused')`. A red X and the phrase "triggers compensation →" leading into the next slide.
+**The failure:** Lab runs to notify-restaurant. Status pill: "Waiting for restaurant". A realtime counter ticks up. 3s. 5s. 8s. Presenter: "imagine this is ten minutes."
 
-**Presenter words:**
-> "Not every error should be retried. A 503 from Stripe — retryable, back off and try again. 'The only available driver just refused the job' — that's fatal, stop trying. The SDK gives you two error classes. Retryable errors retry with exponential backoff. Fatal errors stop the workflow and start unwinding. Which brings us to the coolest thing in the SDK."
+**"What do you do now?"** beat.
 
-**Click cue:** advance → `saga`.
+**Naive (3 files → 5 files):** The place-order endpoint can't hold a connection for ten minutes. So we return 202 Accepted, spawn a background job, add a `restaurant-webhook.ts` endpoint for the restaurant's ack, and a `pipeline-resume-worker.ts` that picks up after the webhook lands and continues the remaining steps. The place-order flow is now three endpoints and two workers for one logical thing.
 
-**Delta from current deck:** Current deck has `errors`, `errors-retry`, `errors-fatal` as three slides. Collapse all three into this one. Net: -2.
+File tree badge: `5 files · 280 lines`
 
----
-
-### 13. `saga` — Payoff #2
-
-**Headline:** Fail forward, unwind backward
-**Sub:** Compensations run in reverse
-
-**On screen:** Lab runs the order. Payment succeeds, restaurant accepts, driver gets assigned — then the driver throws a `FatalError` ("refused"). Watch compensations fire in reverse: release driver → cancel restaurant order → refund payment. Each compensation pill fades in in fuchsia (per the design system). Phone shows "Order cancelled — refund issued".
-
-**Lab config:** `scenario: { failAt: 'assignDriver' }`, `showCompensations: true`.
-
-**Presenter words:**
-> "Watch this. Same order. Payment, restaurant, driver — and the driver refuses the job. Fatal error. What happens now?"
-
-*[compensations fade in, right to left]*
-
-> "The SDK walks back through every step that succeeded and runs the compensation function you registered on it. Driver released. Restaurant told the order is cancelled. Payment refunded to the customer's card. In that order — reverse order of what happened. The customer is made whole, automatically. This is the saga pattern. In other frameworks it is a nightmare of state machines and event buses. Here it is a decorator on each step that says *and if we have to undo this, do this*."
-
-**Click cue:** advance → `parallel`.
-
-**Delta from current deck:** Current deck has `saga` and `compensation-timeline` as two slides. Fold into one. Net: -1.
-
----
-
-### 14. `parallel` — Fan out
-
-**Headline:** Three things at once
-**Sub:** `Promise.all` — and it's still durable
-
-**On screen:** Diagram showing the `sendReceipt` step replaced with:
+**Workflow:** Highlighted:
 ```ts
-await Promise.all([
+const accepted = await createHook<'accepted' | 'rejected'>('restaurant')
+```
+Lab pauses at notify. Restaurant's phone mockup shows Accept/Reject. Presenter clicks Accept. Lab continues.
+
+**Presenter words:**
+> "Restaurant takes ten minutes to accept this order. What do you do now?"
+
+*[beat]*
+
+> "You can't hold an HTTP request open for ten minutes, that's insane. So you return 202 Accepted to the customer. You spawn a background job. You build a webhook endpoint for the restaurant's ack. You build another worker to resume the pipeline when the ack lands. Three endpoints and two workers for one logical order. Your place-order code is now scattered across a codebase."
+
+*[beat]*
+
+> "Or. `createHook`. One line. The workflow suspends. The hook gives you a token. You hand the token to the restaurant's dashboard. When they tap accept, the workflow resumes from exactly where it left off. There is no webhook endpoint to write. There is no pipeline resume worker. There is the same function, suspended."
+
+*[clicks Accept]*
+
+**Click cue:** → `failure-ghost-restaurant`.
+
+**Delta from current deck:** Consolidates `hooks` + `tokens` into one reframed slide.
+
+---
+
+### 7. `failure-ghost-restaurant` — Timeout race
+
+**Headline:** The restaurant never answers.
+**Marker:** `notify`
+
+**The failure:** Same setup as slide 6, but no Accept. Counter ticks. "What do you do, wait forever?"
+
+**"What do you do now?"** beat.
+
+**Naive (5 files → 6 files):** Add a `timeout-scanner.ts` scheduled job. Runs every minute. Finds orders stuck in `awaiting_restaurant` for more than 2 minutes. Moves them to `timeout`. Triggers a reroute worker. Which reroute worker? You write that too.
+
+File tree badge: `6 files · 360 lines`
+
+**Workflow:** Highlighted:
+```ts
+const accepted = await Promise.race([
+  createHook('restaurant'),
+  sleep('2m').then(() => 'timeout' as const),
+])
+if (accepted === 'timeout') return routeToBackup(order)
+```
+Lab runs with a compressed 2s timeout. Restaurant ghosts. Sleep wins the race. Backup routing fires.
+
+**Presenter words:**
+> "Restaurant never answers. What do you do now?"
+
+*[beat]*
+
+> "A scheduled job. Runs every minute. Scans for orders stuck in awaiting-restaurant. Flips them to timeout. Triggers a reroute worker — which, surprise, you also have to build. Your order is now being managed by four different processes and none of them are your place-order function."
+
+*[beat]*
+
+> "Or. `Promise.race` the hook against a sleep. Whichever finishes first wins. If they accept in time, great. If they don't, the sleep resolves, you route to a backup. It's just JavaScript — the JavaScript you already know, running durably."
+
+**Click cue:** → `failure-prep-window`.
+
+**Delta from current deck:** Consolidates `approval-gate` + `timeout-race`.
+
+---
+
+### 8. `failure-prep-window` — Durable sleep
+
+**Headline:** Wait twenty minutes. Don't pay for it.
+**Marker:** between `charge` and `notify`
+
+**The failure:** Not a failure, exactly — a requirement. "I don't want to notify the restaurant immediately. I want to wait until their prep window opens, twenty minutes from now."
+
+**"What do you do now?"** beat.
+
+**Naive (6 files → 7 files):** `sleep-scheduler.ts`. A table of `{ at, do, payload }`. A worker polling it. Plus you have to serialize where you were in the pipeline *into the payload* so you can resume. Plus handle the case where the payload is stale because the pipeline was cancelled. Plus handle what if the scheduler worker dies.
+
+File tree badge: `7 files · 430 lines`
+
+**Workflow:** Highlighted:
+```ts
+await sleep('20m')
+```
+Lab visualization: timeline shows a compressed 20-minute pause between charge and notify. Wall-clock vs workflow-clock indicator. Process can be killed during the sleep; it still wakes up.
+
+**Presenter words:**
+> "Now imagine I don't want to notify the restaurant right away. I want to wait twenty minutes — until their prep window opens. What do you do now?"
+
+*[beat]*
+
+> "A scheduler table. A polling worker. You have to serialize the rest of the pipeline into the scheduled job's payload so you can pick up where you left off. Now your place-order logic is *encoded into a database row*. You are rebuilding `setTimeout` on top of SQL."
+
+*[beat]*
+
+> "Or. `await sleep`, twenty minutes. The function suspends. You pay for nothing. When the timer fires, it wakes up and continues. If the server dies during the sleep? It still wakes up. That's the SDK guarantee."
+
+**Click cue:** → `failure-driver-refuses`.
+
+**Delta from current deck:** Current `sleep` slide covers this as API walkthrough. Reframe as "what now".
+
+---
+
+### 9. `failure-driver-refuses` — Saga compensations
+
+**Headline:** The only driver refused the job.
+**Marker:** `assign`
+
+**The failure:** Lab runs past payment, restaurant accepts, driver gets assigned, driver throws a `FatalError('refused')`. Screen pivots: the previous three steps need to be undone.
+
+**"What do you do now?"** beat.
+
+**Naive (7 files → 8 files):** `compensation-coordinator.ts`. When a fatal error fires, read the orders table, figure out which steps completed, run the reverse operations in the right order. Getting the order right is its own bug. Handling the case where a compensation itself fails is another. You now have a mini-Temporal.
+
+```ts
+// compensation-coordinator.ts
+async function compensate(orderId) {
+  const state = await db.orders.findUnique({ id: orderId })
+  // must unwind in reverse — get this wrong and you'll refund
+  // before you cancel, which leaks money
+  if (state.driverId) await releaseDriver(state.driverId)
+  if (state.restaurantAccepted) await cancelRestaurantOrder(state.restaurantId)
+  if (state.paymentId) await refundPayment(state.paymentId)
+  // and if any of those throw? good luck
+}
+```
+
+File tree badge: `8 files · 540 lines`
+
+**Workflow:** Highlighted — the `compensate` option on each step definition:
+```ts
+export const assignDriver = step({
+  async run(order) { ... },
+  async compensate({ driverId }) { await releaseDriver(driverId) },
+})
+```
+Lab shows the fatal error, then compensations cascading in reverse (fuchsia pills, per the design system): releaseDriver → cancelRestaurantOrder → refundPayment. Phone: "Order cancelled — refund issued".
+
+**Presenter words:**
+> "The only available driver just refused the job. It's fatal. You're out of drivers. The order has to die. But the restaurant is prepping food, the customer has been charged, and we promised a driver to someone a second ago. What do you do now?"
+
+*[beat]*
+
+> "A compensation coordinator. You read the orders table to figure out how far you got. You run the reverse operations in reverse order — and if you get the order wrong, you refund the payment before you cancel the restaurant, and now you owe the restaurant money. And what if one of the compensations fails? You now need a compensation-compensation. You are building Temporal on a Tuesday."
+
+*[beat]*
+
+> "Or. You declare a compensation on each step. When a fatal error fires, the SDK walks back through every step that succeeded and runs its compensation in reverse order. Driver released. Restaurant cancelled. Payment refunded. In that order. Automatically."
+
+**Click cue:** → `failure-admin-cancel`.
+
+**Delta from current deck:** Consolidates `errors` + `errors-retry` + `errors-fatal` + `saga` + `compensation-timeline`. Net: -4 slides.
+
+---
+
+### 10. `failure-admin-cancel` — `Run.wakeUp()`
+
+**Headline:** Support needs to cancel a sleeping order.
+**Marker:** between `charge` and `notify` (still inside the 20-minute sleep from slide 8)
+
+**The failure:** Customer calls support. "I want to cancel order #4271." It's in the middle of the 20-minute sleep from slide 8. Support taps cancel. Naive side: how do you interrupt a workflow that's literally suspended on a timer in a database row?
+
+**"What do you do now?"** beat.
+
+**Naive (8 files → 9 files):** Admin dashboard has to know about the sleep-scheduler row. Delete it directly from the table. *Then* manually trigger the compensation coordinator from slide 9. Two systems, coupled, with no transaction across them. If the coordinator fails after the row is deleted, you've orphaned the compensation.
+
+File tree badge: `9 files · 620 lines`
+
+**Workflow:** Highlighted:
+```ts
+// admin dashboard
+await run.wakeUp({ reason: 'admin-cancelled' })
+
+// inside placeOrder, after the sleep:
+if (context.wakeUpReason === 'admin-cancelled') {
+  throw new FatalError('cancelled by support')
+}
+```
+Lab shows the sleeping order, admin cancel button on a small dashboard card, click, sleep interrupts, fatal fires, compensations unwind.
+
+**Presenter words:**
+> "Customer calls support. They want to cancel order #4271 — the one that's still sleeping for nineteen more minutes waiting for its prep window. Support taps cancel. What do you do now?"
+
+*[beat]*
+
+> "Your admin dashboard has to know about the sleep-scheduler table. Delete the row. Then manually kick off the compensation coordinator. Hope nothing fails in between those two operations, because they're not in a transaction and there's no way to make them one."
+
+*[beat]*
+
+> "Or. `Run.wakeUp` — shipped tonight for GA. Any workflow that's sleeping or waiting on a hook can be woken up from the outside with a reason. Your workflow code sees the reason and decides what to do — in this case, throw a fatal, let the saga unwind. One API call from the admin dashboard. One branch in the workflow."
+
+**Click cue:** → `failure-live-updates`.
+
+**Delta from current deck:** NEW slide. `Run.wakeUp` is not covered anywhere in current deck.
+
+---
+
+### 11. `failure-live-updates` — Streaming
+
+**Headline:** The customer is staring at a spinner.
+**Marker:** spans entire timeline
+
+**The failure:** Customer's phone mockup shows a spinner that never updates. "Where is my order? I've been watching this spinner for two minutes."
+
+**"What do you do now?"** beat.
+
+**Naive (9 files → 10 files):** Pubsub service. Each step publishes a status event. WebSocket server. Client subscribes by order ID on connect. Handle reconnects. Handle backpressure. Handle the case where the pubsub delivers out of order.
+
+File tree badge: `10 files · 740 lines`
+
+**Workflow:** Highlighted, inside each step:
+```ts
+getWritable().write({ step: 'notify', status: 'waiting' })
+```
+Lab shows the customer's phone updating in real time as each step lands: "Payment confirmed" → "Restaurant preparing" → "Driver assigned" → "Arriving". No console, no dev chrome — just the customer's phone screen.
+
+**Presenter words:**
+> "Customer is staring at a spinner. They want to know what's happening. What do you do now?"
+
+*[beat]*
+
+> "Pubsub. WebSocket server. Client subscribes by order ID. Handle reconnects. Handle ordering. Handle backpressure. Congratulations, you now maintain a realtime infrastructure project in addition to your food delivery app."
+
+*[beat]*
+
+> "Or. `getWritable`. Steps write to a stream. The client subscribes. Every update shows up on the customer's phone in real time. The workflow itself is running on a server pool that doesn't care about HTTP connections. Your backend and your UI stay in sync without you building a second system."
+
+**Click cue:** → `failure-fan-out`.
+
+**Delta from current deck:** Current `streaming` slide exists. Reframe as "what now" and strip any console-like UI.
+
+---
+
+### 12. `failure-fan-out` — Durable parallel
+
+**Headline:** Three notifications. One fails.
+**Marker:** `receipt`
+
+**The failure:** At the receipt step, we want to send the customer an email, push a notification, and update loyalty points — all at once. On naive `Promise.all`, if one fails the others are in indeterminate state.
+
+**"What do you do now?"** beat.
+
+**Naive (still 10 files, but the last file bloats):** A notification coordinator that tracks per-channel state per order. Retry each channel independently. Idempotency per channel. Partial-success tracking. This one file alone is bigger than `placeOrder.ts`.
+
+File tree badge: `10 files · 890 lines`
+
+**Workflow:** Highlighted:
+```ts
+await Promise.allSettled([
   emailReceipt(order),
   pushNotification(order),
   updateLoyaltyPoints(order),
 ])
 ```
-Three parallel lanes, each checkpointing independently. A dim note: "one fails → others still finish (use `allSettled`)".
+Each is a step. Each checkpoints independently. Each retries independently. Each replays independently on a crash.
 
 **Presenter words:**
-> "When you do need to go fast, parallel is free. `Promise.all` on three steps — they run concurrently, each one checkpoints independently, each one replays independently on a restart. Use `Promise.allSettled` if you want partial success. It's just JavaScript. That's the whole theme tonight — it's just JavaScript, that happens to be durable."
+> "Last one. At the end of the order, I want to send the customer an email, push them a notification, and update their loyalty points. Three things, parallel. Except email is down. What do you do now?"
 
-**Click cue:** advance → `streaming`.
+*[beat]*
 
-**Delta from current deck:** Current deck has `parallel` and `fan-out` as two slides. Fold into one. Net: -1.
+> "A notification coordinator. Per-channel state. Per-channel retries. Per-channel idempotency. Partial-success tracking. You're writing this file and it's bigger than your entire `placeOrder` function. For notifications."
+
+*[beat]*
+
+> "Or. `Promise.allSettled` on three steps. Each one is durable independently. Each one retries independently. If email is down, the other two finish and email retries later. It's just JavaScript. That's the whole theme tonight. It's just JavaScript, that happens to be durable."
+
+**Click cue:** → `the-reveal`.
+
+**Delta from current deck:** Consolidates `parallel` + `fan-out`.
 
 ---
 
-### 15. `streaming` — Watch it live
+## Act 3 — The reveal
 
-**Headline:** The customer watches it happen
-**Sub:** `getWritable()`
+### 13. `the-reveal` — Naive horror vs. six awaits
 
-**On screen:** Customer's phone on the left, timeline on the right. As each step lands on the server, a matching status update appears on the phone's screen in real time. "Payment confirmed" → "Restaurant preparing" → "Driver on the way" → "Arrived". The stream is ambient — no console, just the phone showing the user-visible updates.
+**Headline:** On the left, what you'd actually write. On the right, what we wrote.
+**Sub:** Same product. Same guarantees. Same happy path.
+
+**On screen, split in half:**
+
+**Left panel (the naive horror):**
+- A file tree: `10 files · 890 lines`
+  ```
+  orders-table.ts
+  recovery-worker.ts
+  idempotency-keys.ts
+  restaurant-webhook.ts
+  pipeline-resume-worker.ts
+  timeout-scanner.ts
+  sleep-scheduler.ts
+  compensation-coordinator.ts
+  admin-cancel-bridge.ts
+  notification-coordinator.ts
+  ```
+- Next to it, the actual code rendered so small it's intentionally unreadable — a wall of glue that the audience can see is a disaster without being able to parse it. Syntax-highlighted red/amber. This is what they watched accumulate slide by slide.
+
+**Right panel (the Workflow version):**
+- A file tree: `1 file · 15 lines`
+  ```
+  placeOrder.ts
+  ```
+- The full workflow function, rendered large:
+  ```ts
+  "use workflow"
+
+  async function placeOrder(input: OrderInput) {
+    const order = await validateOrder(input)
+    const payment = await chargePayment(order)
+    const accepted = await notifyRestaurant(order)
+    const driver = await assignDriver(order)
+    const delivery = await trackDelivery(order, driver)
+    await sendReceipt(order, payment)
+    return { ok: true }
+  }
+  ```
+  With small annotations pointing at each await saying what Act 2 slide it survived: *"slide 4: crash-safe"*, *"slide 5: idempotent"*, *"slide 6: hookable"*, etc.
+
+**Between them:** an oversized `vs` or simply a `1 vs 10` ratio in huge type.
 
 **Presenter words:**
-> "Your customer doesn't want to stare at a spinner. Each step can write to a stream. The client subscribes. Every status update shows up on the customer's phone in real time — even though the workflow itself is running on a server pool that doesn't care about HTTP connections. Your backend and your UI stay in sync without you building a pubsub system."
+> "Ten files. Almost nine hundred lines. A reconciliation worker, a scheduler, a coordinator, a bridge, a resume worker. A dashboard that has to know about the scheduler's internal database. Nine different places where your business logic can be wrong."
 
-**Click cue:** advance → `wakeup`.
+*[beat]*
 
-**Delta from current deck:** Current `streaming` slide exists. Keep, but strip any event-feed/log UI per the "no developer consoles" rule. Show the stream through the customer's phone, not a console.
+> "Or. One file. Fifteen lines. The same fifteen lines we started the night with. Two directives. Every single failure mode we just walked through — the crash, the double-charge, the slow restaurant, the ghost restaurant, the prep window, the driver refusal, the admin cancel, the live updates, the parallel send — survives out of the box. Because that's what the SDK does. It takes the code you'd write anyway, and it makes it durable."
+
+*[beat]*
+
+> "One more thing."
+
+**Click cue:** → `one-more-thing`.
+
+**Delta from current deck:** NEW. This slide is the whole reason the deck exists in this shape.
 
 ---
 
-### 16. `wakeup` — Interrupt from outside
+## Act 4 — One more thing
 
-**Headline:** Admin cancel
-**Sub:** `Run.wakeUp()` — new in GA
+### 14. `one-more-thing` — DurableAgent
 
-**On screen:** Lab shows an order mid-sleep (from Slide 8's 20-minute wait). On the right, a small "Admin dashboard" card with a single "Cancel this order" button. Presenter clicks it. The sleeping workflow wakes up with a cancellation reason, the orchestrator sees it, and compensations unwind. Phone shows "Cancelled by support".
+**Headline:** An AI picks the restaurant.
+**Sub:** Every guarantee above — for agents.
+
+**On screen:** The same six-step demo strip, but with a new zeroth step inserted at the front: `choose`. The customer's phone shows a text input. Pre-filled text: *"something spicy, under $15, gluten-free"*. Below the phone, a streaming panel shows the agent's reasoning and tool calls as they happen: `searchRestaurants(...)`, `checkMenuItems(...)`, `substituteItem(...)`, final pick. Then the regular place-order pipeline from slide 2 takes over and runs to completion.
+
+Optional stage move: presenter clicks 💥 mid-agent-loop. The agent resumes.
 
 **Presenter words:**
-> "One more. A workflow that's sleeping or waiting on a hook can be woken up *from the outside*. Admin dashboard, another workflow, a cron job, whatever. `Run.wakeUp()` with a reason. Your workflow code sees the reason and decides what to do — in this case, throw a fatal and let the saga unwind. This shipped tonight for GA. It turns every long-running workflow into something you can interrupt and cancel cleanly."
+> "Same order. Except the customer doesn't know what they want. They just type 'something spicy under fifteen bucks, gluten-free'. An LLM picks the restaurant. It calls real step functions as tools — search restaurants, check the menu, suggest substitutions. Every tool call is a durable step. The agent loop itself is a workflow."
 
-**Click cue:** advance → `durable-agent`.
+*[agent runs, tool calls stream, restaurant picked, pipeline continues]*
 
-**Delta from current deck:** NEW slide. Nothing like this in current deck. Needs a new lab scenario with an admin-cancel button and a 20-minute sleep compressed to ~4s for stage.
+> "And one last time. Watch this."
+
+*[clicks 💥 mid-tool-call]*
+
+> "The agent was mid-reasoning. Process dies. Comes back. Picks up with all the tool results it already had. Every single failure mode we walked through tonight — crash recovery, retries, compensations, hooks, streaming — works on an AI agent out of the box. This is `DurableAgent`. It ships in the SDK tonight."
+
+**Click cue:** → `close`.
+
+**Lab implementation:** New lab variant using `DurableAgent` from `@workflow/ai`. Adapt from `workbench/example/workflows/100_durable_agent_e2e.ts` and `workbench/nextjs-turbopack/components/chat-client.tsx`. Recorded-fallback mode required — pre-recorded tool calls and streamed tokens at realistic speed, triggered by env var if the live LLM call fails or exceeds a stage-safe timeout.
+
+**Delta from current deck:** NEW.
 
 ---
 
-### 17. `durable-agent` — Payoff #3, the kicker
+## Act 5 — Close
 
-**Headline:** An AI picks the restaurant
-**Sub:** `DurableAgent` — everything above, for agents
+### 15. `close` — Ship it
 
-**On screen:** Customer types (or we pre-fill) *"something spicy, under $15, gluten-free"*. A `DurableAgent` takes over the top of the workflow: it calls a `searchRestaurants` step, a `checkMenuItems` step, maybe a `substituteItem` step, and picks a restaurant. Tool calls and reasoning stream to the customer's phone as they happen. Then the regular place-order pipeline takes over from slide 2. If we have time, click 💥 one more time during the agent loop and show *the agent itself* resuming from the event log.
-
-**Presenter words:**
-> "One more. Same order. Except the customer doesn't know what they want — they just type 'something spicy under fifteen bucks, gluten-free'. An LLM agent picks the restaurant. It calls real step functions as tools. Search restaurants. Check the menu. Suggest substitutions. Every tool call is a durable step. The agent loop itself is a workflow. And — one last time — watch this."
-
-*[clicks 💥 during tool call]*
-
-> "The agent was mid-reasoning. Process dies. Comes back. It resumes where it was, with all the tool results it already had. Every single thing we talked about tonight — crash recovery, retries, compensations, hooks, streaming — it all works on an AI agent out of the box. This is `DurableAgent`. It's in the SDK. Tonight."
-
-**Click cue:** advance → `close`.
-
-**Lab implementation:** New lab variant using `DurableAgent` from `@workflow/ai`. Pattern-match `workbench/example/workflows/100_durable_agent_e2e.ts` and `workbench/nextjs-turbopack/components/chat-client.tsx`. Needs a recorded-fallback mode in case the LLM call fails or is slow on stage — pre-recorded tool calls and tokens replayed at realistic speed, toggled by an env var.
-
-**Delta from current deck:** NEW slide. Biggest single piece of new implementation work. The rest of the deck should hold up even if this slide gets cut for time — but the deck is much stronger with it.
-
----
-
-### 18. `close` — Ship it tonight
-
-**Headline:** Ship it tonight
+**Headline:** Ship it tonight.
 **Sub:** `npm i workflow` · workflow-sdk.dev
 
-**On screen:** Recap pills across the top — *durable · sleep · hooks · saga · streaming · idempotent · agents*. The Workflow mark. The install command. The URL. Nothing else.
+**On screen:** Recap pills across the top — *durable · idempotent · hooks · timeouts · sleep · saga · streaming · parallel · wake-up · agents*. The Workflow mark, large. The install command. The URL. Nothing else.
 
 **Presenter words:**
-> "One workflow. Seventeen slides. Every failure we could throw at it — crash, timeout, fatal, retry, double-charge, an AI agent mid-thought — and it survived all of them. Two directives. One new API to learn. It's GA tonight. Go build something."
+> "One workflow. Ten failure modes. Every one of them — a crash, a retry, a slow restaurant, a ghost restaurant, a twenty-minute wait, a driver refusal, an admin cancel, live updates, parallel fan-out, an AI agent mid-thought. Fifteen lines. Two directives. It's GA tonight. Go build something."
 
 **Click cue:** end.
 
-**Delta from current deck:** Current `close` is good. Retouch copy to match this narrative.
+**Delta from current deck:** Keep, retouch copy.
 
 ---
 
 ## Implementation punch list
 
-This is what I'd build in order, grouped so each commit leaves the deck runnable.
+Ordered so each commit leaves the deck runnable.
 
-**Phase 1 — Infrastructure (new capabilities the script needs)**
-1. Add a **persistent code strip** shell to the slide layout so every slide can opt in. Takes one file + a slide-layout tweak.
-2. Add a **`crash-and-resume` scenario** to `LiveOrderConceptLab`: simulate a process death, reconstruct from the real event log, replay visually. This unlocks slides 4 and 6 — the whole load-bearing beam.
-3. Add a **`wakeup` scenario** (sleeping workflow + external `Run.wakeUp()` call from an admin card).
+**Phase 1 — Core infrastructure**
+1. **Persistent demo-strip layout.** A slide layout wrapper that renders the six-step timeline at the top of every Act 2 slide with a configurable step marker. One file plus a layout tweak.
+2. **Accumulating-naive-panel component.** A right-rail component that takes a slide number and renders the cumulative naive code + file tree badge. The naive content for slides 4-12 lives in one data file, indexed by slide. This is what gives us the visual accumulation.
+3. **`crash-and-resume` lab scenario.** The 💥 button + event-log replay visualization. Unlocks slide 4 (load-bearing) and the callback in slide 14.
+4. **`wakeup` lab scenario.** Sleeping workflow + external admin-cancel card that calls `Run.wakeUp()`.
 
-**Phase 2 — Script-driven slide edits (existing slides get rewritten to match the script)**
-4. Rewrite copy on: `title`, `demo` → `the-order`, `naive`, `directives` → `two-directives`, `replay`, `sleep`, `hooks` (absorb tokens), `timeout-race`, `idempotency`, `saga` (absorb compensation-timeline), `parallel` (absorb fan-out), `streaming` (strip any console-like UI), `close`.
-5. Merge errors trio into one `errors` slide.
-6. Delete retired routes: `tokens`, `approval-gate`, `compensation-timeline`, `fan-out`, `process-manager`, `serialization`, `errors-retry`, `errors-fatal`, `workflow-code`.
-7. Move glossary routes out of nav; leave files accessible from debug drawer.
+**Phase 2 — Act 1 + Act 2 rewrites**
+5. `title`, `the-demo`, `the-setup` — mostly copy edits on existing `title` and `demo` slides, plus one net-new `the-setup` slide.
+6. `failure-crash`, `failure-retry`, `failure-slow-restaurant`, `failure-ghost-restaurant`, `failure-prep-window`, `failure-driver-refuses`, `failure-admin-cancel`, `failure-live-updates`, `failure-fan-out` — nine Act 2 slides, all following the same layout template. Most reuse existing lab scenarios with new copy + new naive panel content. Two are new (`failure-crash`, `failure-admin-cancel`).
 
-**Phase 3 — New slides**
-8. Build `the-crash` slide (naive code + crash button + no recovery).
-9. Build `crash-survived` slide (directives code + crash button + real resume). Depends on Phase 1 item 2.
-10. Build `wakeup` slide. Depends on Phase 1 item 3.
+**Phase 3 — The reveal**
+7. `the-reveal` slide — the side-by-side with the accumulated naive horror on the left and the 15-line workflow on the right. Technically straightforward once Phase 1 item 2 exists (we reuse the same naive-panel data, just rendered as a wall). The annotations on the workflow side reference slide numbers so the audience can mentally map the guarantees.
 
 **Phase 4 — The kicker**
-11. Build `durable-agent` slide + lab variant. New workflow file modeled on `workbench/example/workflows/100_durable_agent_e2e.ts`. Recorded-fallback mode. Pre-stage smoke test.
+8. `one-more-thing` slide + `DurableAgent` lab variant. New workflow file adapted from `workbench/example/workflows/100_durable_agent_e2e.ts`. Recorded-fallback mode. Pre-stage smoke test.
 
-**Phase 5 — Polish**
-12. Update `src/app/page.tsx` nav order to match the 18-slide arc.
-13. Full dry-run of the deck end-to-end, timing each slide's click cue.
-14. Stage a real `kill -9` rehearsal as the backup path for slides 4/6 in case we want to do it for real.
+**Phase 5 — Cleanup and polish**
+9. Delete retired routes: `tokens`, `approval-gate`, `compensation-timeline`, `fan-out`, `process-manager`, `serialization`, `errors`, `errors-retry`, `errors-fatal`, `workflow-code`, `parallel`, `hooks` (if standalone), `saga` (if standalone), `idempotency` (if standalone). Any slide whose beat got folded into a `failure-*` slide goes away.
+10. Update `src/app/page.tsx` nav to the 15-slide arc.
+11. Move glossary routes out of nav.
+12. Full dry-run end-to-end, timing each click cue.
+13. Rehearse a real `kill -9` as a backup path for slide 4.
 
-Conservative estimate: Phases 1-2 fit in one focused session. Phase 3 one more. Phase 4 is the big one (~half a day). Phase 5 is rehearsal.
+**Phase 1 is the gating work.** Items 1, 2, and 3 unlock everything else. I'd build those first in that order and get you to eyeball them before I touch any slide copy.
 
 ---
 
-## Open questions for you before I start Phase 1
+## Open questions before Phase 1
 
-1. **Sign-off on the defaults.** Any of the four at the top need flipping?
-2. **Script voice.** I wrote the presenter words in a particular register — casual, stage-comic, first-person. If you or whoever's presenting wants a different voice (more corporate, more technical, fewer contractions), tell me now and I'll rewrite in place before building.
-3. **The crash beat is everything.** Slide 6 is the load-bearing beam. If you want to rehearse it before we commit to the whole deck shape, I can build Phase 1 item 2 (the `crash-and-resume` scenario) first and nothing else, so you can see it working before I touch the rest.
-4. **Agent closer fallback.** For slide 17's recorded-fallback mode — is there a real LLM we can wire in for the live version (OpenAI, Anthropic, Vercel AI Gateway), or should I assume recorded-only for now and we add live later?
+1. **Sign-off on the five defaults at the top.** Anything to flip?
+2. **Presenter voice.** The script above is casual, first-person, stage-comic (contractions, short sentences, the occasional aside). If whoever presents wants it more corporate, more technical, or less punchy, tell me now and I'll rewrite in place before building.
+3. **How honest are the naive snippets?** I drafted them to be realistic — this is how a competent team would handle these problems *without* a workflow SDK. But we could make them uglier (funnier, less fair) or more polished (more defensible, less gasp-inducing). Where on that slider do you want me?
+4. **Agent closer.** For slide 14's live mode — can we wire a real LLM (AI Gateway, OpenAI, Anthropic) for the presentation, or should I build recorded-fallback as the *primary* path and treat live as aspirational?
 
-Answer those and I'll go.
+Answer those and I start on Phase 1.
