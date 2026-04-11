@@ -177,6 +177,38 @@ export const slideScenarios = {
       demoMode: "chargePaymentUnhandledOnce" as const,
     },
   },
+  failureCrash: {
+    scenarioId: "failure-crash",
+    title: "Server dies mid-order",
+    subtitle: "Press 💥 during the run — the runtime replays from the event log.",
+    autoStart: false,
+    input: { ...BASE_INPUT, failAt: null, autoAck: true },
+  },
+  // NOTE: real Run.wakeUp() plumbing (new workflow variant + server action)
+  // lands in Phase 3 when slide 10 is built. For now this reuses the
+  // existing timeout-race path so the slide has a stable scenario surface
+  // to consume while infrastructure catches up.
+  failureAdminCancel: {
+    scenarioId: "failure-admin-cancel",
+    title: "Support cancels a sleeping order",
+    subtitle:
+      "External wake-up interrupts the suspension and the saga unwinds.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: false,
+      driverTimeout: "2s",
+    },
+    scriptedResumes: [
+      {
+        step: "notifyRestaurant" as const,
+        delayMs: 300,
+        body: { kind: "restaurant-accept" as const, accepted: true },
+      },
+    ],
+    silentWaitingSteps: ["assignDriver"],
+  },
   timeoutRace: {
     scenarioId: "timeout-race",
     title: "Driver timeout wins the race",

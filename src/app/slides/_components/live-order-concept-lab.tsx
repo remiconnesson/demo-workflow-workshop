@@ -73,6 +73,7 @@ export function LiveOrderConceptLab({
   showTimeline = true,
   showCompensations = true,
   highlightSteps,
+  allowCrash = false,
 }: {
   slide: string;
   scenario: OrderRunScenario;
@@ -82,6 +83,8 @@ export function LiveOrderConceptLab({
   showCompensations?: boolean;
   /** Only show these steps in the timeline (dim others). */
   highlightSteps?: string[];
+  /** Show a 💥 crash button that tears down UI state and replays from the event log. */
+  allowCrash?: boolean;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
 
@@ -215,7 +218,7 @@ export function LiveOrderConceptLab({
   };
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
+    <div className="relative rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
@@ -232,6 +235,19 @@ export function LiveOrderConceptLab({
           >
             Run
           </button>
+          {allowCrash ? (
+            <button
+              onClick={() => void controller.crash()}
+              disabled={
+                controller.crashPhase !== "live" ||
+                !controller.orderId ||
+                controller.doneStatus !== null
+              }
+              className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-300 hover:border-red-400 hover:text-red-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              💥 Crash
+            </button>
+          ) : null}
           <button
             onClick={() => controller.reset()}
             className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:border-white/30 hover:text-white transition-colors"
@@ -240,6 +256,31 @@ export function LiveOrderConceptLab({
           </button>
         </div>
       </div>
+
+      {/* crash overlay — dims the lab during crash/replay */}
+      {allowCrash ? (
+        <div
+          className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl transition-all duration-500 ${
+            controller.crashPhase === "crashed"
+              ? "bg-black/70 opacity-100"
+              : controller.crashPhase === "replaying"
+                ? "bg-black/40 opacity-100"
+                : "bg-transparent opacity-0"
+          }`}
+        >
+          {controller.crashMessage ? (
+            <div
+              className={`rounded-full border px-6 py-3 font-mono text-lg uppercase tracking-[0.2em] transition-colors duration-500 ${
+                controller.crashPhase === "crashed"
+                  ? "border-red-400/60 bg-black/80 text-red-300"
+                  : "border-sky-400/60 bg-black/80 text-sky-300"
+              }`}
+            >
+              {controller.crashMessage}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* progress bar — fills based on completed steps */}
       {(() => {
@@ -257,46 +298,46 @@ export function LiveOrderConceptLab({
           phase === "running" ? "bg-sky-400" :
           "bg-white/20";
         return (
-          <div className="relative mt-4 h-1.5">
+          <div className="relative mt-4 h-6">
             {/* track */}
-            <div className="absolute inset-0 rounded-full bg-white/5" />
+            <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-white/5" />
             {/* fill */}
             <div
-              className={`absolute inset-y-0 left-0 rounded-full transition-all duration-700 ease-out ${barColor}`}
+              className={`absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full transition-all duration-700 ease-out ${barColor}`}
               style={{ width: `${pct}%` }}
             />
-            {/* dots at each step position */}
-            {ORDER_STEPS.map((step, i) => {
-              const st = controller.stepState[step.id] ?? "pending";
-              const finished = st === "success" || st === "failed" || st === "skipped";
-              const dotColor =
-                finished ? barColor :
-                st === "running" ? "bg-sky-400 animate-pulse" :
-                st === "waiting" ? "bg-amber-400 animate-pulse" :
-                "bg-zinc-700";
-              // Position each dot evenly: first at 0%, last at 100%
-              const left = total > 1 ? (i / (total - 1)) * 100 : 0;
-              return (
-                <div
-                  key={step.id}
-                  className={`absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-zinc-950 transition-colors duration-500 ${dotColor}`}
-                  style={{ left: `${left}%` }}
-                />
-              );
-            })}
+            <div className="absolute inset-0 grid grid-cols-6 gap-4">
+              {ORDER_STEPS.map((step) => {
+                const st = controller.stepState[step.id] ?? "pending";
+                const finished =
+                  st === "success" || st === "failed" || st === "skipped";
+                const dotColor =
+                  finished ? barColor :
+                  st === "running" ? "bg-sky-400 animate-pulse" :
+                  st === "waiting" ? "bg-amber-400 animate-pulse" :
+                  "bg-zinc-700";
+                return (
+                  <div key={step.id} className="flex items-center justify-center">
+                    <div
+                      className={`h-3 w-3 rounded-full border-2 border-zinc-950 transition-colors duration-500 ${dotColor}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </div>
         );
       })()}
 
       {/* step timeline with ambient glow */}
       {showTimeline && (
-      <div className="mt-8 flex flex-wrap gap-4">
+      <div className="mt-8 grid grid-cols-6 gap-4">
         {ORDER_STEPS.map((step) => {
           const state = controller.stepState[step.id] ?? "pending";
           const dimmed = highlightSteps && !highlightSteps.includes(step.id);
           return (
-            <div key={step.id} className={`min-w-[130px] flex-1 transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
-              <div className="relative inline-flex">
+            <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
+              <div className="relative inline-flex justify-center">
                 {/* Glow layer — always in DOM, visibility via bg color */}
                 <div className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${GLOW_STYLE[state]}`} />
                 {/* Node */}
