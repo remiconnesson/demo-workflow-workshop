@@ -18,7 +18,7 @@ export function DemoStrip({ marker, label }: DemoStripProps) {
           The demo
         </div>
         {label ? (
-          <div className="font-mono text-sm text-amber-300/80">{label}</div>
+          <div className="font-mono text-base text-amber-300/80">{label}</div>
         ) : null}
       </div>
 

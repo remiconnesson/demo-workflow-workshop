@@ -33,6 +33,12 @@ export type OrderInput = {
   autoAck?: boolean; // automatically resume hooks after a short delay
   demoMode?: DemoMode;
   driverTimeout?: string; // e.g. "1s", "2m" — defaults to "2m"
+  /**
+   * Optional race: wrap the restaurant-accept hook in a Promise.race
+   * against a sleep of this duration. If the sleep wins, a FatalError
+   * fires and compensation unwinds. Drives the `ghostRestaurant` scenario.
+   */
+  restaurantTimeout?: string;
 };
 
 export type OrderEvent =
@@ -99,6 +105,18 @@ export async function placeOrderWorkflow(
       });
     }
 
+    // 2b. Prep-window sleep (demo mode only — visible pause between
+    //     chargePayment and notifyRestaurant for the failure-prep-window
+    //     slide. Real 20 minutes compressed to a few seconds for stage.)
+    if (input.demoMode === "prepWindowSleep") {
+      await emit({
+        type: "log",
+        message: "Waiting for bakery prep window (20m compressed to ~3s)",
+      });
+      await sleep("3s");
+      await emit({ type: "log", message: "Prep window open" });
+    }
+
     // 3. Notify restaurant + wait for acceptance hook
     await notifyRestaurant(input, failAt === "notifyRestaurant");
     compensations.push({
@@ -120,7 +138,40 @@ export async function placeOrderWorkflow(
       token: hookTokens.restaurantAccept(orderId),
       label: "Waiting for restaurant to accept",
     });
-    const restaurantResult = await restaurantHook;
+
+    // Optional race: if `restaurantTimeout` is set, wrap the hook in a
+    // Promise.race against a sleep. Drives the `ghostRestaurant` scenario
+    // where the restaurant never answers and the order routes elsewhere.
+    let restaurantResult: { accepted: boolean; reason?: string };
+    if (input.restaurantTimeout) {
+      const raced = await Promise.race([
+        restaurantHook.then((r) => ({ kind: "resolved" as const, r })),
+        sleep(input.restaurantTimeout as "2m").then(() => ({
+          kind: "timeout" as const,
+        })),
+      ]);
+      if (raced.kind === "timeout") {
+        const timeoutLabel = input.restaurantTimeout;
+        await emit({ type: "log", message: "Restaurant did not accept in time" });
+        await emit({
+          type: "step_failed",
+          step: "notifyRestaurant",
+          label: "Notify restaurant",
+          error: `Restaurant never answered (timed out after ${timeoutLabel})`,
+        });
+        console.info("[workflow] restaurant_timeout", {
+          orderId,
+          restaurantTimeout: timeoutLabel,
+        });
+        throw new FatalError(
+          `Restaurant acceptance timed out for order ${orderId}`,
+        );
+      }
+      restaurantResult = raced.r;
+    } else {
+      restaurantResult = await restaurantHook;
+    }
+
     await emit({
       type: "hook_resolved",
       step: "notifyRestaurant",
@@ -131,6 +182,49 @@ export async function placeOrderWorkflow(
       throw new FatalError(
         `Restaurant rejected order ${orderId}${restaurantResult.reason ? `: ${restaurantResult.reason}` : ""}`,
       );
+    }
+
+    // 3c. Admin-cancel window (demo mode only — the failure-admin-cancel
+    //     slide demonstrates Run.wakeUp() by opening a short sleep that
+    //     support can interrupt from the admin dashboard. External code
+    //     resumes the admin-cancel hook AND calls run.wakeUp() so the
+    //     sleep returns immediately and the workflow reads the cancel
+    //     signal via Promise.race.)
+    if (input.demoMode === "adminSleepBeforeDriver") {
+      const adminCancelHook = createHook<{
+        cancelled: boolean;
+        reason?: string;
+      }>({
+        token: hookTokens.adminCancel(orderId),
+      });
+      // Emit a log rather than waiting_for_hook so the client doesn't
+      // try to auto-resume this via the standard restaurant/driver
+      // path — the admin-cancel hook is resumed out-of-band by the
+      // /api/orders/[orderId]/admin-cancel route.
+      await emit({
+        type: "log",
+        message: "Admin cancel window open — sleeping 6s before dispatch",
+      });
+      const adminResult = await Promise.race([
+        adminCancelHook.then((r) => ({
+          kind: "cancelled" as const,
+          reason: r.reason,
+        })),
+        sleep("6s").then(() => ({ kind: "slept" as const })),
+      ]);
+      if (adminResult.kind === "cancelled") {
+        await emit({
+          type: "log",
+          message: `Admin cancel signal received: ${adminResult.reason ?? "support"}`,
+        });
+        throw new FatalError(
+          `Admin cancel: ${adminResult.reason ?? "support intervened"}`,
+        );
+      }
+      await emit({
+        type: "log",
+        message: "Support cancel window closed, continuing to dispatch",
+      });
     }
 
     // 3b. Replay probe (demo mode only — injects a retry before assignDriver)
@@ -428,10 +522,8 @@ async function notifyRestaurant(
       throw new FatalError(`notifyRestaurant failed for ${input.orderId}`);
     }
     await writer.write({
-      type: "step_succeeded",
-      step: "notifyRestaurant",
-      label: "Notify restaurant",
-      detail: "Ticket sent to kitchen",
+      type: "log",
+      message: "Restaurant ticket sent to kitchen; awaiting acceptance",
     });
   } finally {
     writer.releaseLock();
@@ -462,10 +554,8 @@ async function assignDriver(
     }
     const driverId = `drv_${Math.floor(Math.random() * 9000 + 1000)}`;
     await writer.write({
-      type: "step_succeeded",
-      step: "assignDriver",
-      label: "Assign driver",
-      detail: `Dispatched ${driverId}`,
+      type: "log",
+      message: `Dispatched ${driverId}; awaiting acceptance`,
     });
     return driverId;
   } finally {
@@ -495,6 +585,35 @@ async function sendReceipt(
         error: "Email provider error",
       });
       throw new FatalError(`sendReceipt failed for ${input.orderId}`);
+    }
+    // Fan-out demo mode: emit per-channel log events that visualize a
+    // Promise.allSettled of three notification channels, with one
+    // channel failing and retrying under durability guarantees.
+    if (input.demoMode === "fanOutSendReceipt") {
+      await writer.write({
+        type: "log",
+        message: "fan-out → email dispatched (channel 1 of 3)",
+      });
+      await delay(180);
+      await writer.write({
+        type: "log",
+        message: "fan-out → push dispatched (channel 2 of 3)",
+      });
+      await delay(180);
+      await writer.write({
+        type: "log",
+        message: "fan-out → loyalty dispatched (channel 3 of 3)",
+      });
+      await delay(220);
+      await writer.write({
+        type: "log",
+        message: "fan-out → email 5xx, queued for retry; push + loyalty ok",
+      });
+      await delay(220);
+      await writer.write({
+        type: "log",
+        message: "fan-out → 3 of 3 eventually delivered",
+      });
     }
     await writer.write({
       type: "step_succeeded",

@@ -27,7 +27,10 @@ export type CompensationAction =
 export type DemoMode =
   | "standard"
   | "chargePaymentUnhandledOnce"
-  | "replayProbeBeforeAssignDriver";
+  | "replayProbeBeforeAssignDriver"
+  | "prepWindowSleep"
+  | "fanOutSendReceipt"
+  | "adminSleepBeforeDriver";
 
 export const ORDER_STEPS = [
   {
@@ -88,6 +91,7 @@ export const hookTokens = {
   restaurantAccept: (orderId: string) => `order:${orderId}:restaurant-accept`,
   driverAccept: (orderId: string) => `order:${orderId}:driver-accept`,
   delivered: (orderId: string) => `order:${orderId}:delivered`,
+  adminCancel: (orderId: string) => `order:${orderId}:admin-cancel`,
 } as const;
 
 export const RESUME_KIND_BY_STEP = {

@@ -406,3 +406,10 @@ export function getNaiveAccumulation(slide: string): NaiveAccumulationEntry | nu
 export function getFullNaiveCatalog(): NaiveFile[] {
   return NAIVE_ACCUMULATION["failure-fan-out"]?.allFiles ?? [];
 }
+
+export function getFocusCode(slide: string): string {
+  const entry = NAIVE_ACCUMULATION[slide];
+  if (!entry) return "";
+  const file = entry.allFiles.find((f) => f.name === entry.focusFile);
+  return file?.code ?? "";
+}

@@ -8,15 +8,17 @@
 
 ---
 
-## Defaults I'm locking in (veto any of these)
+## Locked decisions
 
-1. **Naive flavor (a): realistic workarounds.** Each failure slide shows the naive approach a senior engineer would *actually* write — a persistent orders table, an idempotency keys table, a restaurant-webhook endpoint, a compensation coordinator, a sleep scheduler, a pubsub layer. Not straw-men. Each slide adds to the previous slide's naive code, so the naive codebase visibly accumulates across Act 2. By slide 12 the naive side is ten files of glue. Slide 13 shows all of it next to `placeOrder.ts`.
-2. **The demo is always visible.** A compressed six-step timeline strip sits along the top of every slide in Acts 2 and 3 with a marker showing *which moment in the demo* the current failure is happening. The demo is the persistent object the audience grounds themselves in.
-3. **Simulated crash button, real replay.** Slide 4 uses an in-lab 💥 button that tears down the runtime and reconstructs state from the real event log. Honest semantics, stage-safe.
-4. **DurableAgent closer is in.** Slide 14 ("one more thing") uses a new `pickRestaurant` agent adapted from `workbench/example/workflows/100_durable_agent_e2e.ts`. Recorded-fallback mode available for cold-LLM stage safety.
-5. **Glossary slides retire from the main flow.** Stay in the repo as reference cards, off-nav.
+These are decided, not defaults.
 
-If you want any of those flipped, say so before Phase 1 starts.
+1. **Naive flavor: realistic workarounds.** Each failure slide shows the naive approach a senior engineer would *actually* write. Not straw-men. The naive code accumulates across Act 2 from ~2 files on slide 4 to ~10 files / ~890 lines on slide 12. Slide 13 puts all of it next to `placeOrder.ts`.
+2. **The demo is always visible.** A compressed six-step timeline strip sits along the top of every Act 2/3 slide with a marker showing *which moment in the demo* the current failure lands on.
+3. **Simulated crash button, real replay.** Slide 4 uses an in-lab 💥 button that tears down derived UI state and reconstructs it from the client-side event buffer. Honest semantics (the event log IS the source of truth), stage-safe (no real process death).
+4. **DurableAgent closer is in.** Slide 14 uses a new `pickRestaurant` agent adapted from `workbench/example/workflows/100_durable_agent_e2e.ts`.
+5. **Glossary slides retire from the main flow.** Files stay on disk as reference cards, removed from nav.
+6. **Presenter voice: casual / stage-comic.** First-person, contractions, short sentences, the occasional aside. The "what do you do now?" beat only has rhythm in this voice. If the actual presenter wants a different register, one rewrite pass before showtime.
+7. **DurableAgent live mode: recorded is primary, live is opt-in.** Slide 14 plays pre-recorded tool calls at controlled pacing by default. Flip `NEXT_PUBLIC_AGENT_LIVE=1` in the green room during final rehearsal if the live LLM path is clean. Recorded-fallback triggers automatically if the live call misses a 4s first-token timeout.
 
 ---
 

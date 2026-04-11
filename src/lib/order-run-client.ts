@@ -61,6 +61,7 @@ export type OrderRunController = {
   reset: (reason?: string) => void;
   resume: (body: ResumeBody) => Promise<void>;
   crash: () => Promise<void>;
+  adminCancel: (reason?: string) => Promise<void>;
 };
 
 function makeOrderId(source: string, scenarioId: string): string {
@@ -161,6 +162,31 @@ export function useOrderRun(
       );
       if (!response.ok) {
         throw new Error(`resume failed: ${response.status}`);
+      }
+    },
+    [scenario.scenarioId, source],
+  );
+
+  const adminCancel = useCallback(
+    async (reason?: string) => {
+      const currentOrderId = orderIdRef.current;
+      if (!currentOrderId) return;
+      console.info("[order-run] admin_cancel_requested", {
+        source,
+        scenarioId: scenario.scenarioId,
+        orderId: currentOrderId,
+        reason,
+      });
+      const response = await fetch(
+        `/api/orders/${currentOrderId}/admin-cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: reason ?? "support" }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`admin-cancel failed: ${response.status}`);
       }
     },
     [scenario.scenarioId, source],
@@ -568,5 +594,6 @@ export function useOrderRun(
     reset,
     resume,
     crash,
+    adminCancel,
   };
 }

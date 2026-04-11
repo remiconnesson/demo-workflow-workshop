@@ -184,30 +184,61 @@ export const slideScenarios = {
     autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },
-  // NOTE: real Run.wakeUp() plumbing (new workflow variant + server action)
-  // lands in Phase 3 when slide 10 is built. For now this reuses the
-  // existing timeout-race path so the slide has a stable scenario surface
-  // to consume while infrastructure catches up.
-  failureAdminCancel: {
-    scenarioId: "failure-admin-cancel",
-    title: "Support cancels a sleeping order",
+  ghostRestaurant: {
+    scenarioId: "ghost-restaurant",
+    title: "Restaurant never answers",
     subtitle:
-      "External wake-up interrupts the suspension and the saga unwinds.",
+      "Real Promise.race: the restaurant hook races against a sleep and the sleep wins.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
       autoAck: false,
-      driverTimeout: "2s",
+      restaurantTimeout: "2s",
     },
-    scriptedResumes: [
-      {
-        step: "notifyRestaurant" as const,
-        delayMs: 300,
-        body: { kind: "restaurant-accept" as const, accepted: true },
-      },
-    ],
-    silentWaitingSteps: ["assignDriver"],
+    // No scripted restaurant resume — the hook never resolves, the sleep
+    // wins the race, the workflow routes to a fatal + compensations.
+    silentWaitingSteps: ["notifyRestaurant"],
+  },
+  failurePrepWindow: {
+    scenarioId: "failure-prep-window",
+    title: "Waiting for the bakery prep window",
+    subtitle:
+      "await sleep(20m) compressed to ~3s. Visible pause between charge and notify.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "prepWindowSleep" as const,
+    },
+  },
+  failureFanOut: {
+    scenarioId: "failure-fan-out",
+    title: "Three notifications, one fails",
+    subtitle:
+      "Promise.allSettled over email/push/loyalty. Email flakes, the other two finish.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "fanOutSendReceipt" as const,
+    },
+  },
+  failureAdminCancel: {
+    scenarioId: "failure-admin-cancel",
+    title: "Support cancels a sleeping order",
+    subtitle:
+      "Run.wakeUp() interrupts the sleep, the admin-cancel hook fires, compensation unwinds.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "adminSleepBeforeDriver" as const,
+    },
+    silentWaitingSteps: ["notifyRestaurant"],
   },
   timeoutRace: {
     scenarioId: "timeout-race",
