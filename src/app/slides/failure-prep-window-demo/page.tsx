@@ -5,8 +5,8 @@ export default function FailurePrepWindowDemoSlide() {
   return (
     <DemoSlideLayout
       slide="failure-prep-window"
-      eyebrow="08a · The wait — watch it sleep"
-      headline="Wait twenty minutes. Don't pay for it."
+      eyebrow="08a · The bakery needs 20 minutes before the kitchen starts"
+      headline="Sleep the workflow. Zero compute."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="20 min sleep"
       scenario={slideScenarios.failurePrepWindow}
