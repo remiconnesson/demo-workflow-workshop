@@ -6,10 +6,11 @@ export default function FailurePrepWindowDemoSlide() {
     <DemoSlideLayout
       slide="failure-prep-window"
       eyebrow="08a · The bakery needs 20 minutes before the kitchen starts"
-      headline="Sleep the workflow. Zero compute."
+      headline="Nothing happens for twenty minutes. Something has to remember."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="20 min sleep"
       scenario={slideScenarios.failurePrepWindow}
+      showSleepCost
     />
   );
 }

@@ -18,6 +18,7 @@ import {
   type OrderRunScenario,
   type ResumeBody,
 } from "@/lib/order-run-client";
+import { SleepCostComparison } from "./sleep-cost-comparison";
 
 type DemoPhase =
   | "idle"
@@ -75,6 +76,7 @@ export function LiveOrderConceptLab({
   highlightSteps,
   allowCrash = false,
   allowAdminCancel = false,
+  showSleepCost = false,
 }: {
   slide: string;
   scenario: OrderRunScenario;
@@ -88,6 +90,8 @@ export function LiveOrderConceptLab({
   allowCrash?: boolean;
   /** Show an Admin cancel button that fires Run.wakeUp() via the admin-cancel route. */
   allowAdminCancel?: boolean;
+  /** Show the split cost comparison (naive polling vs SDK sleep) during durable sleep. */
+  showSleepCost?: boolean;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
 
@@ -344,6 +348,14 @@ export function LiveOrderConceptLab({
           </div>
         );
       })()}
+
+      {/* sleep cost comparison — split counter during durable sleep */}
+      {showSleepCost && (
+        <SleepCostComparison
+          stepState={controller.stepState}
+          running={controller.running}
+        />
+      )}
 
       {/* step timeline with ambient glow */}
       {showTimeline && (
