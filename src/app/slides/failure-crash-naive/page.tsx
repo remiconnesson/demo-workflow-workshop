@@ -5,7 +5,7 @@ export default function FailureCrashNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-crash"
-      eyebrow="04a · The crash — what you'd write"
+      eyebrow="04b · The crash — what you'd write"
       headline="It's 2am. The server just died."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="crash here"

@@ -5,7 +5,7 @@ export default function FailureDriverRefusesNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-driver-refuses"
-      eyebrow="09a · The refusal — what you'd write"
+      eyebrow="09b · The refusal — what you'd write"
       headline="The only driver refused the job."
       marker="assignDriver"
       markerLabel="fatal → unwind"

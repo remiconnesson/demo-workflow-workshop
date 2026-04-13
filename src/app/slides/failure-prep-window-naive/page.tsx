@@ -5,7 +5,7 @@ export default function FailurePrepWindowNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-prep-window"
-      eyebrow="08a · The wait — what you'd write"
+      eyebrow="08b · The wait — what you'd write"
       headline="Wait twenty minutes. Don't pay for it."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="20 min sleep"

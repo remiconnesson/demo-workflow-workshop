@@ -1,9 +1,15 @@
-import { FailureSlideLayout } from "../_components/failure-slide-layout";
-import { slideScenarios } from "../_lib/slide-scenarios";
+import { FixSlideLayout } from "../_components/fix-slide-layout";
 
-const WORKFLOW_FIX = {
-  caption: "Steps write to a stream. Client subscribes. No pubsub infrastructure.",
-  code: `async function chargePayment(order) {
+export default function FailureLiveUpdatesFixSlide() {
+  return (
+    <FixSlideLayout
+      eyebrow="11c · Live updates — the fix"
+      headline="The customer is staring at a spinner."
+      marker="span"
+      markerLabel="streamed end-to-end"
+      workflowFix={{
+        caption: "Steps write to a stream. Client subscribes. No pubsub infrastructure.",
+        code: `async function chargePayment(order) {
   "use step"
   const w = getWritable().getWriter()
   await w.write({
@@ -16,18 +22,7 @@ const WORKFLOW_FIX = {
   w.releaseLock()
   return result
 }`,
-};
-
-export default function FailureLiveUpdatesFixSlide() {
-  return (
-    <FailureSlideLayout
-      slide="failure-live-updates"
-      eyebrow="11b · Live updates — the fix"
-      headline="The customer is staring at a spinner."
-      marker="span"
-      markerLabel="streamed end-to-end"
-      scenario={slideScenarios.streaming}
-      workflowFix={WORKFLOW_FIX}
+      }}
     />
   );
 }

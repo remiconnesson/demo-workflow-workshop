@@ -5,7 +5,7 @@ export default function FailureGhostRestaurantNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-ghost-restaurant"
-      eyebrow="07a · The ghost — what you'd write"
+      eyebrow="07b · The ghost — what you'd write"
       headline="The restaurant never answers."
       marker="notifyRestaurant"
       markerLabel="timeout wins the race"

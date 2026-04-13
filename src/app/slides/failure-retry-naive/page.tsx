@@ -5,7 +5,7 @@ export default function FailureRetryNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-retry"
-      eyebrow="05a · The retry — what you'd write"
+      eyebrow="05b · The retry — what you'd write"
       headline="The charge ran twice."
       marker="chargePayment"
       markerLabel="payment flaked"

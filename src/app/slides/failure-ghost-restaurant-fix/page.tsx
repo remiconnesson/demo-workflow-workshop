@@ -1,9 +1,15 @@
-import { FailureSlideLayout } from "../_components/failure-slide-layout";
-import { slideScenarios } from "../_lib/slide-scenarios";
+import { FixSlideLayout } from "../_components/fix-slide-layout";
 
-const WORKFLOW_FIX = {
-  caption: "Race the hook against a sleep. Whichever resolves first wins.",
-  code: `const hook = createHook<{ accepted: boolean }>({
+export default function FailureGhostRestaurantFixSlide() {
+  return (
+    <FixSlideLayout
+      eyebrow="07c · The ghost — the fix"
+      headline="The restaurant never answers."
+      marker="notifyRestaurant"
+      markerLabel="timeout wins the race"
+      workflowFix={{
+        caption: "Race the hook against a sleep. Whichever resolves first wins.",
+        code: `const hook = createHook<{ accepted: boolean }>({
   token: \`order:\${orderId}:restaurant\`,
 })
 
@@ -15,18 +21,7 @@ const result = await Promise.race([
 if (result === "timeout") {
   throw new FatalError("Timed out")
 }`,
-};
-
-export default function FailureGhostRestaurantFixSlide() {
-  return (
-    <FailureSlideLayout
-      slide="failure-ghost-restaurant"
-      eyebrow="07b · The ghost — the fix"
-      headline="The restaurant never answers."
-      marker="notifyRestaurant"
-      markerLabel="timeout wins the race"
-      scenario={slideScenarios.ghostRestaurant}
-      workflowFix={WORKFLOW_FIX}
+      }}
     />
   );
 }

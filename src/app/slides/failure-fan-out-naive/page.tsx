@@ -5,7 +5,7 @@ export default function FailureFanOutNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-fan-out"
-      eyebrow="12a · The fan-out — what you'd write"
+      eyebrow="12b · The fan-out — what you'd write"
       headline="Three notifications. One fails."
       marker="sendReceipt"
       markerLabel="parallel, still durable"

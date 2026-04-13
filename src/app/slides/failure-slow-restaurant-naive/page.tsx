@@ -5,7 +5,7 @@ export default function FailureSlowRestaurantNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-slow-restaurant"
-      eyebrow="06a · The slow restaurant — what you'd write"
+      eyebrow="06b · The slow restaurant — what you'd write"
       headline="The restaurant takes ten minutes to accept."
       marker="notifyRestaurant"
       markerLabel="suspended on a hook"

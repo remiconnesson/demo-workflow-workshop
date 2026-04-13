@@ -6,11 +6,13 @@ export type SlideInfo = {
 };
 
 /**
- * The 24-slide failure-tour arc. Every failure concept is split
- * into two slides: a "naive" slide showing the mess you'd write
- * without the SDK, then a "fix" slide showing the Workflow SDK
- * solution + running lab. The two-slide rhythm makes the
- * comparison visible at projector scale.
+ * The 42-slide failure-tour arc (workshop version, ~1 hour).
+ * Every failure concept is four slides:
+ *   (a) demo — the lab runs, the failure happens visually
+ *   (b) naive — the mess you'd write without the SDK
+ *   (c) fix — the Workflow SDK solution (code hero, full width)
+ *   (d) pattern — the SDK vocabulary + cookbook/docs URL
+ * The four-slide rhythm: see it break → see the pain → see the fix → learn the name.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act 1 · "This works." ─────────────────────────────────
@@ -18,327 +20,280 @@ export const SLIDES: SlideInfo[] = [
     slug: "title",
     title: "Cold Open",
     number: 1,
-    notes: [
-      "SAY: \"Tonight we're shipping the Workflow SDK to general availability. I'm going to show you an app you've already seen — a food delivery order — and then spend ten minutes breaking it in every way I can think of. For each break, I'll ask one question: what do you do now? Let's go.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    notes: "SAY: \"Tonight we're shipping the Workflow SDK to general availability. I'm going to show you an app you've already seen — a food delivery order — and then spend the next hour breaking it in every way I can think of. For each break, I'll ask one question: what do you do now? Let's go.\"",
   },
   {
     slug: "the-demo",
     title: "The Order",
     number: 2,
-    notes: [
-      "PRESS r to run. Let all six steps go green.",
-      "",
-      "SAY: \"Six steps. Validate, charge, notify, assign, track, receipt. Millions of times a day. Remember this feeling when it works — for the next ten minutes, it's not going to.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    notes: "PRESS r to run. Let all six steps go green.\n\nSAY: \"Six steps. Validate, charge, notify, assign, track, receipt. Millions of times a day. Remember this feeling when it works — for the next hour, it's not going to.\"",
   },
   {
     slug: "the-setup",
     title: "One Bad Day",
     number: 3,
-    notes: [
-      "POINT at the code: \"Six awaits. Fifteen lines. No framework.\"",
-      "POINT at the red list: \"For each one of these, I'm going to ask — what do you do now?\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    notes: "POINT at the code: \"Six awaits. Fifteen lines. No framework.\"\nPOINT at the red list: \"For each one of these, I'm going to ask — what do you do now?\"",
   },
 
   // ─── Act 2 · "What do we do now?" ──────────────────────────
-  // Each concept is two slides: naive (the pain) → fix (the SDK).
+  // Each concept is four slides: demo → naive → fix → pattern.
 
-  // --- Crash ---
+  // --- 04: Crash ---
+  {
+    slug: "failure-crash-demo",
+    title: "The Crash · Demo",
+    number: 4,
+    notes: "PRESS r. Let the run start. CLICK 💥 Crash mid-flight.\n\nSAY: \"Server dies between charge and notify. Customer has been charged. Restaurant has not been told. What do you do now?\"",
+  },
   {
     slug: "failure-crash-naive",
     title: "The Crash · Naive",
-    number: 4,
-    notes: [
-      "SAY: \"Server dies between charge and notify. Customer has been charged. Restaurant has not been told. What do you do now?\"",
-      "",
-      "POINT at the code: \"Persistent orders table. A recovery worker that finds orphans on boot. But — does the recovery worker know if the interrupted call actually made it out? No. You're writing reconciliation code now. You are building a distributed systems project.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 5,
+    notes: "POINT at the code: \"Persistent orders table. A recovery worker that finds orphans on boot. But does the recovery worker know if the interrupted call actually made it out? No. You're writing reconciliation code now.\"",
   },
   {
     slug: "failure-crash-fix",
     title: "The Crash · Fix",
-    number: 5,
-    notes: [
-      "SAY: \"Or. Two directives. Watch.\"",
-      "",
-      "PRESS r to start the run. Let it reach ~chargePayment.",
-      "CLICK 💥 Crash. Wait for the dim + 'process terminated' toast.",
-      "WATCH the replay fill in + live events continue.",
-      "",
-      "SAY: \"Same crash. Same moment. Process came back. The runtime replayed from the event log. Customer gets their donuts. I didn't write a recovery worker. I wrote two strings.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 6,
+    notes: "SAY: \"Or. Two directives. Same six awaits. The runtime replays from the event log. I didn't write a recovery worker. I wrote two strings.\"",
+  },
+  {
+    slug: "failure-crash-pattern",
+    title: "The Crash · Pattern",
+    number: 7,
+    notes: "SAY: \"This is the Workflows and Steps pattern. 'use workflow' on the orchestrator, 'use step' on each unit of work. The runtime handles the event log.\"\n\nPOINT at the URL.",
   },
 
-  // --- Retry ---
+  // --- 05: Retry ---
+  {
+    slug: "failure-retry-demo",
+    title: "The Retry · Demo",
+    number: 8,
+    notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
+  },
   {
     slug: "failure-retry-naive",
     title: "The Retry · Naive",
-    number: 6,
-    notes: [
-      "SAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
-      "",
-      "POINT at the code: \"An idempotency keys table. Another column on orders for attempt number. A second database for your first database.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 9,
+    notes: "POINT at the code: \"An idempotency keys table. Another column on orders for attempt number. A second database for your first database.\"",
   },
   {
     slug: "failure-retry-fix",
     title: "The Retry · Fix",
-    number: 7,
-    notes: [
-      "PRESS r to run the idempotency scenario. Watch the retry with the same stepId.",
-      "",
-      "SAY: \"The SDK hands every step a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 10,
+    notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
+  },
+  {
+    slug: "failure-retry-pattern",
+    title: "The Retry · Pattern",
+    number: 11,
+    notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
   },
 
-  // --- Slow restaurant ---
+  // --- 06: Slow restaurant ---
+  {
+    slug: "failure-slow-restaurant-demo",
+    title: "Slow Restaurant · Demo",
+    number: 12,
+    notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
+  },
   {
     slug: "failure-slow-restaurant-naive",
     title: "Slow Restaurant · Naive",
-    number: 8,
-    notes: [
-      "SAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
-      "",
-      "POINT at the code: \"202 Accepted. Background job. A webhook endpoint. A pipeline-resume worker. Three endpoints and two workers for one logical order.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 13,
+    notes: "POINT at the code: \"202 Accepted. Background job. A webhook endpoint. A pipeline-resume worker. Three endpoints and two workers for one logical order.\"",
   },
   {
     slug: "failure-slow-restaurant-fix",
     title: "Slow Restaurant · Fix",
-    number: 9,
-    notes: [
-      "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.",
-      "",
-      "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. Workflow resumes. No webhook endpoint.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 14,
+    notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. Workflow resumes. No webhook endpoint.\"",
+  },
+  {
+    slug: "failure-slow-restaurant-pattern",
+    title: "Slow Restaurant · Pattern",
+    number: 15,
+    notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
   },
 
-  // --- Ghost restaurant ---
+  // --- 07: Ghost restaurant ---
+  {
+    slug: "failure-ghost-restaurant-demo",
+    title: "The Ghost · Demo",
+    number: 16,
+    notes: "PRESS r. The restaurant hook races against sleep('2s'). Sleep wins. FatalError. Compensations fire.\n\nSAY: \"Restaurant never answers. What do you do now?\"",
+  },
   {
     slug: "failure-ghost-restaurant-naive",
     title: "The Ghost · Naive",
-    number: 10,
-    notes: [
-      "SAY: \"Restaurant never answers. What do you do now?\"",
-      "",
-      "POINT at the code: \"A timeout scanner. Runs every ten seconds. Scans for stuck orders. Flips them to timeout. Kicks a reroute worker you also have to build.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 17,
+    notes: "POINT at the code: \"A timeout scanner. Runs every ten seconds. Scans for stuck orders. Flips them to timeout. Kicks a reroute worker you also have to build.\"",
   },
   {
     slug: "failure-ghost-restaurant-fix",
     title: "The Ghost · Fix",
-    number: 11,
-    notes: [
-      "PRESS r. The restaurant hook races against sleep('2s'). Sleep wins. FatalError. Compensations fire.",
-      "",
-      "SAY: \"Promise.race a hook against a sleep. Whichever lands first wins. It's just JavaScript running durably.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 18,
+    notes: "SAY: \"Promise.race a hook against a sleep. Whichever lands first wins. It's just JavaScript running durably.\"",
+  },
+  {
+    slug: "failure-ghost-restaurant-pattern",
+    title: "The Ghost · Pattern",
+    number: 19,
+    notes: "SAY: \"This is Conditional Routing. Race any combination of hooks, sleeps, or promises. The first to resolve wins.\"\n\nPOINT at the URL.",
   },
 
-  // --- Prep window ---
+  // --- 08: Prep window ---
+  {
+    slug: "failure-prep-window-demo",
+    title: "The Wait · Demo",
+    number: 20,
+    notes: "PRESS r. Watch the visible 3s pause (compressed from 20m) between charge and notify.\n\nSAY: \"I want to wait twenty minutes for the bakery's prep window. What do you do now?\"",
+  },
   {
     slug: "failure-prep-window-naive",
     title: "The Wait · Naive",
-    number: 12,
-    notes: [
-      "SAY: \"I want to wait twenty minutes for the bakery's prep window. What do you do now?\"",
-      "",
-      "POINT at the code: \"Scheduler table. Polling worker. You serialize the pipeline into a database row. You are rebuilding setTimeout on top of SQL.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 21,
+    notes: "POINT at the code: \"Scheduler table. Polling worker. You serialize the pipeline into a database row. You are rebuilding setTimeout on top of SQL.\"",
   },
   {
     slug: "failure-prep-window-fix",
     title: "The Wait · Fix",
-    number: 13,
-    notes: [
-      "PRESS r. Watch the visible 3s pause (compressed from 20m) between charge and notify.",
-      "",
-      "SAY: \"await sleep, twenty minutes. Function suspends. Pay for nothing. Server crashes during the sleep? Still wakes up.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 22,
+    notes: "SAY: \"await sleep, twenty minutes. Function suspends. Pay for nothing. Server crashes during the sleep? Still wakes up.\"",
+  },
+  {
+    slug: "failure-prep-window-pattern",
+    title: "The Wait · Pattern",
+    number: 23,
+    notes: "SAY: \"This is the Scheduling pattern. await sleep with any duration. The workflow suspends with zero compute cost and wakes up on time.\"\n\nPOINT at the URL.",
   },
 
-  // --- Driver refuses ---
+  // --- 09: Driver refuses ---
+  {
+    slug: "failure-driver-refuses-demo",
+    title: "The Refusal · Demo",
+    number: 24,
+    notes: "PRESS r. Restaurant accepts, driver declines. Watch fuchsia compensation pills fire in reverse.\n\nSAY: \"Only driver refused the job. Fatal. You need to undo everything. What do you do now?\"",
+  },
   {
     slug: "failure-driver-refuses-naive",
     title: "The Refusal · Naive",
-    number: 14,
-    notes: [
-      "SAY: \"Only driver refused the job. Fatal. You need to undo the restaurant and the charge. What do you do now?\"",
-      "",
-      "POINT at the code: \"Compensation coordinator. Reads the orders table. Runs reverse operations. Get the order wrong — you refund before you cancel and now you owe the restaurant.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 25,
+    notes: "POINT at the code: \"Compensation coordinator. Reads the orders table. Runs reverse operations. Get the order wrong — you refund before you cancel and now you owe the restaurant.\"",
   },
   {
     slug: "failure-driver-refuses-fix",
     title: "The Refusal · Fix",
-    number: 15,
-    notes: [
-      "PRESS r. Restaurant accepts, driver declines. Watch fuchsia compensation pills fire in reverse.",
-      "",
-      "SAY: \"Declare a compensation on each step. SDK walks back through every success in reverse. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 26,
+    notes: "SAY: \"Push an undo for each step. FatalError pops them in reverse. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
+  },
+  {
+    slug: "failure-driver-refuses-pattern",
+    title: "The Refusal · Pattern",
+    number: 27,
+    notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, FatalError triggers the reverse walk. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
 
-  // --- Admin cancel ---
+  // --- 10: Admin cancel ---
+  {
+    slug: "failure-admin-cancel-demo",
+    title: "Admin Cancel · Demo",
+    number: 28,
+    notes: "PRESS r. Wait for the admin sleep window. CLICK the amber 'Admin cancel' button.\n\nSAY: \"Customer calls support. Wants to cancel the order sitting in a prep-window sleep. What do you do now?\"",
+  },
   {
     slug: "failure-admin-cancel-naive",
     title: "Admin Cancel · Naive",
-    number: 16,
-    notes: [
-      "SAY: \"Customer calls support. Wants to cancel the order sitting in a prep-window sleep. What do you do now?\"",
-      "",
-      "POINT at the code: \"Admin dashboard has to know about the sleep-scheduler table. Delete the row. Manually kick the compensation coordinator. Two systems, not in a transaction.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 29,
+    notes: "POINT at the code: \"Admin dashboard has to know about the sleep-scheduler table. Delete the row. Manually kick the compensation coordinator. Two systems, not in a transaction.\"",
   },
   {
     slug: "failure-admin-cancel-fix",
     title: "Admin Cancel · Fix",
-    number: 17,
-    notes: [
-      "PRESS r. Wait for the admin sleep window. CLICK the amber 'Admin cancel' button.",
-      "",
-      "The /api/orders/[orderId]/admin-cancel route resumes the hook AND calls getRun(runId).wakeUp(). FatalError fires, compensations unwind.",
-      "",
-      "SAY: \"Run.wakeUp — shipped tonight. Any sleeping workflow can be interrupted from outside.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 30,
+    notes: "SAY: \"Run.wakeUp — shipped tonight. Any sleeping workflow can be interrupted from outside. One API call from the admin dashboard.\"",
+  },
+  {
+    slug: "failure-admin-cancel-pattern",
+    title: "Admin Cancel · Pattern",
+    number: 31,
+    notes: "SAY: \"This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Combine it with a hook for the cancel signal.\"\n\nPOINT at the URL.",
   },
 
-  // --- Live updates ---
+  // --- 11: Live updates ---
+  {
+    slug: "failure-live-updates-demo",
+    title: "Live Updates · Demo",
+    number: 32,
+    notes: "PRESS r. Watch the lab events stream in. Each step lands in real time.\n\nSAY: \"Customer is staring at a spinner. What do you do now?\"",
+  },
   {
     slug: "failure-live-updates-naive",
     title: "Live Updates · Naive",
-    number: 18,
-    notes: [
-      "SAY: \"Customer is staring at a spinner. What do you do now?\"",
-      "",
-      "POINT at the code: \"Pubsub service. WebSocket server. Redis for pub and a second Redis for sub. Handle reconnects, backpressure, ordering. Congratulations, you maintain a realtime infrastructure project.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 33,
+    notes: "POINT at the code: \"Pubsub service. WebSocket server. Redis for pub and a second Redis for sub. Handle reconnects, backpressure, ordering.\"",
   },
   {
     slug: "failure-live-updates-fix",
     title: "Live Updates · Fix",
-    number: 19,
-    notes: [
-      "PRESS r. Watch the lab events stream in. Each step lands in real time.",
-      "",
-      "SAY: \"getWritable. Steps write to a stream. Client subscribes. Backend and UI stay in sync without a second system.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 34,
+    notes: "SAY: \"getWritable. Steps write to a stream. Client subscribes. Backend and UI stay in sync without a second system.\"",
+  },
+  {
+    slug: "failure-live-updates-pattern",
+    title: "Live Updates · Pattern",
+    number: 35,
+    notes: "SAY: \"This is Streaming. getWritable() gives any step a writable stream. Plain HTTP, NDJSON, no WebSockets.\"\n\nPOINT at the URL.",
   },
 
-  // --- Fan-out ---
+  // --- 12: Fan-out ---
+  {
+    slug: "failure-fan-out-demo",
+    title: "The Fan-out · Demo",
+    number: 36,
+    notes: "LAST CONCEPT GROUP.\n\nPRESS r. Watch the fan-out log events.\n\nSAY: \"Three notifications. Email, push, loyalty. Email is down. What do you do now?\"",
+  },
   {
     slug: "failure-fan-out-naive",
     title: "The Fan-out · Naive",
-    number: 20,
-    notes: [
-      "LAST FAILURE PAIR. After the fix slide, the reveal lands.",
-      "",
-      "SAY: \"Three notifications. Email, push, loyalty. Email is down. What do you do now?\"",
-      "",
-      "POINT at the code: \"Per-channel state. Per-channel retries. Per-channel idempotency. This one file is bigger than your entire placeOrder function.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 37,
+    notes: "POINT at the code: \"Per-channel state. Per-channel retries. Per-channel idempotency. This one file is bigger than your entire placeOrder function.\"",
   },
   {
     slug: "failure-fan-out-fix",
     title: "The Fan-out · Fix",
-    number: 21,
-    notes: [
-      "PRESS r. Watch the fan-out log events in the debug drawer.",
-      "",
-      "SAY: \"Promise.allSettled on three steps. Each durable independently. Email retries later. The other two finish now. It's just JavaScript, that happens to be durable.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 38,
+    notes: "SAY: \"Promise.allSettled on three steps. Each durable independently. Email retries later. The other two finish now. It's just JavaScript, that happens to be durable.\"",
+  },
+  {
+    slug: "failure-fan-out-pattern",
+    title: "The Fan-out · Pattern",
+    number: 39,
+    notes: "SAY: \"This is Fan-Out and Parallel Delivery. Promise.all and allSettled just work — each branch is a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
   },
 
   // ─── Act 3 · The Reveal ────────────────────────────────────
   {
     slug: "the-reveal",
     title: "The Reveal",
-    number: 22,
-    notes: [
-      "THIS IS THE WHOLE POINT. Take your time.",
-      "",
-      "SAY: \"Ten files. Almost nine hundred lines. A reconciliation worker, a scheduler, a coordinator, a bridge, a resume worker. Nine places to be wrong.\"",
-      "",
-      "PAUSE. Let the audience read the file list.",
-      "",
-      "POINT right: \"Or. One file. Fifteen lines. Same fifteen lines. Two directives. Every failure mode from tonight — handled.\"",
-      "",
-      "SAY: \"One more thing.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 40,
+    notes: "THIS IS THE WHOLE POINT. Take your time.\n\nSAY: \"Ten files. Almost nine hundred lines. A reconciliation worker, a scheduler, a coordinator, a bridge, a resume worker. Nine places to be wrong.\"\n\nPAUSE. Let the audience read the file list.\n\nPOINT right: \"Or. One file. Fifteen lines. Same fifteen lines. Two directives. Every failure mode from tonight — handled.\"\n\nSAY: \"One more thing.\"",
   },
 
   // ─── Act 4 · One More Thing ────────────────────────────────
   {
     slug: "one-more-thing",
     title: "DurableAgent",
-    number: 23,
-    notes: [
-      "PRESS 'Run' inside the mock to play the scripted agent reasoning.",
-      "",
-      "SAY: \"Same order. Except the customer just types 'something spicy under fifteen bucks, gluten-free'. An LLM picks the restaurant. Tool calls are durable steps. The agent loop is a workflow. Every guarantee from tonight works on an AI agent out of the box. This is DurableAgent. It ships tonight.\"",
-      "",
-      "TRANSITION: Press →.",
-    ].join("\n"),
+    number: 41,
+    notes: "PRESS 'Run' inside the mock to play the scripted agent reasoning.\n\nSAY: \"Same order. Customer types 'something spicy under fifteen bucks, gluten-free'. An LLM picks the restaurant. Tool calls are durable steps. The agent loop is a workflow. Every guarantee from tonight works on an AI agent out of the box. This is DurableAgent. It ships tonight.\"",
   },
 
   // ─── Act 5 · Close ─────────────────────────────────────────
   {
     slug: "close",
     title: "Ship It",
-    number: 24,
-    notes: [
-      "SAY: \"One workflow. Ten failure modes. Fifteen lines. Two directives. It's GA tonight. Go build something.\"",
-      "",
-      "PAUSE for applause.",
-      "",
-      "Press d to return to demo for a victory lap.",
-    ].join("\n"),
+    number: 42,
+    notes: "SAY: \"One workflow. Nine failure modes. Fifteen lines. Two directives. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
   },
 ];
 
