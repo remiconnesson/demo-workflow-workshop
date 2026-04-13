@@ -1,16 +1,16 @@
-import { TriangleMark } from "../_components/triangle-mark";
+import { WorkflowMark } from "../_components/workflow-mark";
 
 export default function TitleSlide() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-10 px-20">
-      <TriangleMark size={80} className="text-white" />
+      <WorkflowMark size={80} className="text-white" />
 
       <h1 className="text-8xl font-semibold tracking-tight text-center">
-        Vercel Workflow SDK
+        Workflow SDK
       </h1>
 
       <p className="text-3xl text-zinc-400 text-center max-w-3xl">
-        Durable, resumable workflows for Next.js
+        Durable workflows for the rest of us. Tonight.
       </p>
 
       <div className="mt-16 flex items-center gap-8">

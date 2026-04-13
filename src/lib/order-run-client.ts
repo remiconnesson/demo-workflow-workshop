@@ -39,6 +39,8 @@ export type OrderRunScenario = {
   silentWaitingSteps?: HookStep[];
 };
 
+export type CrashPhase = "live" | "crashed" | "replaying";
+
 export type OrderRunController = {
   running: boolean;
   orderId: string | null;
@@ -53,9 +55,13 @@ export type OrderRunController = {
   scheduledResume: ScheduledResume | null;
   resumeToast: string | null;
   error: string | null;
+  crashPhase: CrashPhase;
+  crashMessage: string | null;
   start: () => Promise<void>;
   reset: (reason?: string) => void;
   resume: (body: ResumeBody) => Promise<void>;
+  crash: () => Promise<void>;
+  adminCancel: (reason?: string) => Promise<void>;
 };
 
 function makeOrderId(source: string, scenarioId: string): string {
@@ -98,16 +104,25 @@ export function useOrderRun(
     useState<ScheduledResume | null>(null);
   const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [crashPhase, setCrashPhase] = useState<CrashPhase>("live");
+  const [crashMessage, setCrashMessage] = useState<string | null>(null);
 
   const orderIdRef = useRef<string | null>(null);
   const waitingOnRef = useRef<OrderStepId | null>(null);
   const streamAbortRef = useRef<AbortController | null>(null);
   const scheduledOrderIdRef = useRef<string | null>(null);
   const autoResumeTimeoutRef = useRef<number | null>(null);
+  const eventsRef = useRef<OrderEvent[]>([]);
+  const crashPhaseRef = useRef<CrashPhase>("live");
+  const replayTimeoutsRef = useRef<number[]>([]);
 
   useEffect(() => {
     waitingOnRef.current = waitingOn;
   }, [waitingOn]);
+
+  useEffect(() => {
+    crashPhaseRef.current = crashPhase;
+  }, [crashPhase]);
 
   const clearScheduledResume = useCallback(
     (reason: string) => {
@@ -152,15 +167,45 @@ export function useOrderRun(
     [scenario.scenarioId, source],
   );
 
+  const adminCancel = useCallback(
+    async (reason?: string) => {
+      const currentOrderId = orderIdRef.current;
+      if (!currentOrderId) return;
+      console.info("[order-run] admin_cancel_requested", {
+        source,
+        scenarioId: scenario.scenarioId,
+        orderId: currentOrderId,
+        reason,
+      });
+      const response = await fetch(
+        `/api/orders/${currentOrderId}/admin-cancel`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: reason ?? "support" }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(`admin-cancel failed: ${response.status}`);
+      }
+    },
+    [scenario.scenarioId, source],
+  );
+
   const reset = useCallback(
     (reason = "reset") => {
       streamAbortRef.current?.abort();
       streamAbortRef.current = null;
       clearScheduledResume(reason);
+      for (const t of replayTimeoutsRef.current) {
+        window.clearTimeout(t);
+      }
+      replayTimeoutsRef.current = [];
       setRunning(false);
       setOrderId(null);
       setRunId(null);
       setEvents([]);
+      eventsRef.current = [];
       setStepState({});
       setWaitingOn(null);
       setWaitStrategy(null);
@@ -168,6 +213,9 @@ export function useOrderRun(
       setDoneStatus(null);
       setResumeToast(null);
       setError(null);
+      setCrashPhase("live");
+      crashPhaseRef.current = "live";
+      setCrashMessage(null);
       orderIdRef.current = null;
       console.info("[order-run] reset", {
         source,
@@ -178,9 +226,8 @@ export function useOrderRun(
     [clearScheduledResume, scenario.scenarioId, source],
   );
 
-  const applyEvent = useCallback(
+  const applyDerivedState = useCallback(
     (event: OrderEvent) => {
-      setEvents((current) => [...current, event]);
       switch (event.type) {
         case "step_running":
           setStepState((current) => ({
@@ -350,6 +397,90 @@ export function useOrderRun(
     ],
   );
 
+  const applyEvent = useCallback(
+    (event: OrderEvent) => {
+      setEvents((current) => {
+        const next = [...current, event];
+        eventsRef.current = next;
+        return next;
+      });
+      // During crash/replay, new live events are buffered but not applied
+      // to derived state. The replay loop re-applies from eventsRef at
+      // its own pace; live events that land in the meantime will get
+      // picked up once the phase returns to "live".
+      if (crashPhaseRef.current === "live") {
+        applyDerivedState(event);
+      }
+    },
+    [applyDerivedState],
+  );
+
+  const crash = useCallback(async () => {
+    if (crashPhaseRef.current !== "live") return;
+    if (!orderIdRef.current) return;
+    console.info("[order-run] crash_simulated", {
+      source,
+      scenarioId: scenario.scenarioId,
+      orderId: orderIdRef.current,
+      bufferedEvents: eventsRef.current.length,
+    });
+
+    // Stop any pending auto-resume timers — a "dead" process can't
+    // schedule things. The real workflow on the server keeps running.
+    clearScheduledResume("crash_simulated");
+
+    // Wipe derived UI state. The event buffer stays — that's the log
+    // we'll replay from in a moment.
+    setCrashPhase("crashed");
+    crashPhaseRef.current = "crashed";
+    setCrashMessage("process terminated");
+    setStepState({});
+    setWaitingOn(null);
+    setWaitStrategy(null);
+    setCompensations([]);
+    setResumeToast(null);
+    setDoneStatus(null);
+
+    // Pause for the audience, then begin the replay.
+    await new Promise<void>((resolve) => {
+      const t = window.setTimeout(resolve, 700);
+      replayTimeoutsRef.current.push(t);
+    });
+
+    setCrashPhase("replaying");
+    crashPhaseRef.current = "replaying";
+    setCrashMessage("runtime reconstructing from event log");
+
+    const snapshot = [...eventsRef.current];
+    const REPLAY_STEP_MS = 55;
+    for (let i = 0; i < snapshot.length; i += 1) {
+      await new Promise<void>((resolve) => {
+        const t = window.setTimeout(resolve, REPLAY_STEP_MS);
+        replayTimeoutsRef.current.push(t);
+      });
+      applyDerivedState(snapshot[i]);
+    }
+
+    // Any live events that arrived during the crash/replay window
+    // were appended to the buffer but skipped derived state. Apply
+    // anything we missed now.
+    const tail = eventsRef.current.slice(snapshot.length);
+    for (const event of tail) {
+      applyDerivedState(event);
+    }
+
+    setCrashPhase("live");
+    crashPhaseRef.current = "live";
+    setCrashMessage(null);
+    console.info("[order-run] crash_replay_complete", {
+      source,
+      scenarioId: scenario.scenarioId,
+      orderId: orderIdRef.current,
+      replayed: snapshot.length,
+      tail: tail.length,
+    });
+  }, [applyDerivedState, clearScheduledResume, scenario.scenarioId, source]);
+
   const start = useCallback(async () => {
     reset("restart");
     setRunning(true);
@@ -457,8 +588,12 @@ export function useOrderRun(
     scheduledResume,
     resumeToast,
     error,
+    crashPhase,
+    crashMessage,
     start,
     reset,
     resume,
+    crash,
+    adminCancel,
   };
 }

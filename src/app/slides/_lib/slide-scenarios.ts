@@ -177,6 +177,69 @@ export const slideScenarios = {
       demoMode: "chargePaymentUnhandledOnce" as const,
     },
   },
+  failureCrash: {
+    scenarioId: "failure-crash",
+    title: "Server dies mid-order",
+    subtitle: "Press 💥 during the run — the runtime replays from the event log.",
+    autoStart: false,
+    input: { ...BASE_INPUT, failAt: null, autoAck: true },
+  },
+  ghostRestaurant: {
+    scenarioId: "ghost-restaurant",
+    title: "Restaurant never answers",
+    subtitle:
+      "Real Promise.race: the restaurant hook races against a sleep and the sleep wins.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: false,
+      restaurantTimeout: "2s",
+    },
+    // No scripted restaurant resume — the hook never resolves, the sleep
+    // wins the race, the workflow routes to a fatal + compensations.
+    silentWaitingSteps: ["notifyRestaurant"],
+  },
+  failurePrepWindow: {
+    scenarioId: "failure-prep-window",
+    title: "Waiting for the bakery prep window",
+    subtitle:
+      "await sleep(20m) compressed to ~3s. Visible pause between charge and notify.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "prepWindowSleep" as const,
+    },
+  },
+  failureFanOut: {
+    scenarioId: "failure-fan-out",
+    title: "Three notifications, one fails",
+    subtitle:
+      "Promise.allSettled over email/push/loyalty. Email flakes, the other two finish.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "fanOutSendReceipt" as const,
+    },
+  },
+  failureAdminCancel: {
+    scenarioId: "failure-admin-cancel",
+    title: "Support cancels a sleeping order",
+    subtitle:
+      "Run.wakeUp() interrupts the sleep, the admin-cancel hook fires, compensation unwinds.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "adminSleepBeforeDriver" as const,
+    },
+    silentWaitingSteps: ["notifyRestaurant"],
+  },
   timeoutRace: {
     scenarioId: "timeout-race",
     title: "Driver timeout wins the race",

@@ -22,7 +22,7 @@ const REAL_WORLD = [
 ];
 
 const TRIANGLE_DONUTS = [
-  { route: "/v15", name: "Vercel Canonical", blurb: "Black & white, platform-native" },
+  { route: "/v15", name: "Workflow Canonical", blurb: "Black & white, platform-native" },
   { route: "/v16", name: "Triangle Arcade", blurb: "80s neon, Asteroids wave" },
   { route: "/v17", name: "Blueprint", blurb: "Engineering schematic" },
   { route: "/v18", name: "Kawaii Bakery", blurb: "Tokyo pastels, mascots" },
@@ -32,13 +32,13 @@ const TRIANGLE_DONUTS = [
 ];
 
 const PROJECTOR = [
-  { route: "/v22", name: "Vercel Canonical XL", blurb: "v15 at 2x — platform, giant type" },
-  { route: "/v23", name: "Vercel Keynote", blurb: "Steve Jobs stage slides" },
-  { route: "/v24", name: "Vercel Terminal XL", blurb: "Huge mono, CLI aesthetic" },
-  { route: "/v25", name: "Vercel Gradient Hero", blurb: "Aurora conic, marketing hero" },
-  { route: "/v26", name: "Vercel Editorial", blurb: "Big-type poster, inverted" },
-  { route: "/v27", name: "Vercel Dashboard XL", blurb: "Product-real, zoomed 150%" },
-  { route: "/v28", name: "Vercel Triangle Grid", blurb: "Triangles all the way down" },
+  { route: "/v22", name: "Workflow Canonical XL", blurb: "v15 at 2x — platform, giant type" },
+  { route: "/v23", name: "Workflow Keynote", blurb: "Steve Jobs stage slides" },
+  { route: "/v24", name: "Workflow Terminal XL", blurb: "Huge mono, CLI aesthetic" },
+  { route: "/v25", name: "Workflow Gradient Hero", blurb: "Aurora conic, marketing hero" },
+  { route: "/v26", name: "Workflow Editorial", blurb: "Big-type poster, inverted" },
+  { route: "/v27", name: "Workflow Dashboard XL", blurb: "Product-real, zoomed 150%" },
+  { route: "/v28", name: "Workflow Symbol Grid", blurb: "Symbols all the way down" },
 ];
 
 export default function Home() {
@@ -55,7 +55,7 @@ export default function Home() {
                 Presentation build
               </div>
               <div className="mt-1 text-lg font-semibold">
-                ▲ Back to the Triangle Donuts presentation
+                ⟐ Back to the Triangle Donuts presentation
               </div>
               <div className="text-xs text-zinc-400">
                 Hosted at the root — clean phone, product-real dashboard, projector-sized.
@@ -146,7 +146,7 @@ export default function Home() {
 
         <nav className="mb-10 rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-zinc-500">
-            Projector-sized Vercel variations
+            Projector-sized Workflow variations
           </h2>
           <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {PROJECTOR.map((v) => (
