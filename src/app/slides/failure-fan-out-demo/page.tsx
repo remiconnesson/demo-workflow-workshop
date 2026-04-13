@@ -6,7 +6,7 @@ export default function FailureFanOutDemoSlide() {
     <DemoSlideLayout
       slide="failure-fan-out"
       eyebrow="12a · The fan-out — watch it scatter"
-      headline="Three notifications. One fails."
+      headline="Fan out three. Get back two. Now what?"
       marker="sendReceipt"
       markerLabel="parallel, still durable"
       scenario={slideScenarios.failureFanOut}

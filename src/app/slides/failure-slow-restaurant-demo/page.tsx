@@ -6,7 +6,7 @@ export default function FailureSlowRestaurantDemoSlide() {
     <DemoSlideLayout
       slide="failure-slow-restaurant"
       eyebrow="06a · The slow restaurant — watch it wait"
-      headline="The restaurant takes ten minutes to accept."
+      headline="Ten minutes of silence. Your server is still running."
       marker="notifyRestaurant"
       markerLabel="suspended on a hook"
       scenario={slideScenarios.hooks}

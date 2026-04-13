@@ -6,7 +6,7 @@ export default function FailureCrashDemoSlide() {
     <DemoSlideLayout
       slide="failure-crash"
       eyebrow="04a · The crash — watch it break"
-      headline="It's 2am. The server just died."
+      headline="The money moved. The order didn't."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="crash here"
       scenario={slideScenarios.failureCrash}

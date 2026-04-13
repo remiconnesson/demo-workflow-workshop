@@ -6,7 +6,7 @@ export default function FailureGhostRestaurantDemoSlide() {
     <DemoSlideLayout
       slide="failure-ghost-restaurant"
       eyebrow="07a · The ghost — watch it timeout"
-      headline="The restaurant never answers."
+      headline="You charged them. No one's cooking."
       marker="notifyRestaurant"
       markerLabel="timeout wins the race"
       scenario={slideScenarios.ghostRestaurant}

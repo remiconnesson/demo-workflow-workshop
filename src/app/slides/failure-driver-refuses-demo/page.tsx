@@ -6,7 +6,7 @@ export default function FailureDriverRefusesDemoSlide() {
     <DemoSlideLayout
       slide="failure-driver-refuses"
       eyebrow="09a · The refusal — watch it unwind"
-      headline="The only driver refused the job."
+      headline="Charged the card. Started cooking. No one's coming."
       marker="assignDriver"
       markerLabel="fatal → unwind"
       scenario={slideScenarios.saga}

@@ -6,7 +6,7 @@ export default function FailureAdminCancelDemoSlide() {
     <DemoSlideLayout
       slide="failure-admin-cancel"
       eyebrow="10a · Admin cancel — watch it interrupt"
-      headline="Support needs to cancel a sleeping order."
+      headline="The workflow is asleep. The customer is not."
       marker={["notifyRestaurant", "assignDriver"]}
       markerLabel="interrupt from outside"
       scenario={slideScenarios.failureAdminCancel}

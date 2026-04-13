@@ -6,7 +6,7 @@ export default function FailureRetryDemoSlide() {
     <DemoSlideLayout
       slide="failure-retry"
       eyebrow="05a · The retry — watch it break"
-      headline="The charge ran twice."
+      headline="Your customer just got charged twice."
       marker="chargePayment"
       markerLabel="payment flaked"
       scenario={slideScenarios.idempotency}
