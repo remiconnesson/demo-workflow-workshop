@@ -95,7 +95,7 @@ async function WorkflowFixPanel({ fix }: { fix: WorkflowFix }) {
         </div>
       </div>
       <div className="overflow-hidden rounded-2xl border border-white/5 bg-black/60 px-8 py-8">
-        <CodeBlock code={fix.code} lang="ts" textClass="text-2xl" />
+        <CodeBlock code={fix.code} lang="ts" textClass="text-3xl" />
       </div>
     </div>
   );

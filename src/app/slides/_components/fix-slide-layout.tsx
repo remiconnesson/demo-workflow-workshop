@@ -1,5 +1,5 @@
 import type { OrderStepId } from "@/lib/order-contract";
-import { CodeBlock } from "./code-block";
+import { CodeSlideCard } from "./code-slide-card";
 import { DemoStrip } from "./demo-strip";
 
 export type WorkflowFix = {
@@ -16,9 +16,9 @@ type FixSlideLayoutProps = {
 
 /**
  * The "workflow code" slide — third beat per concept in Act 2.
- * Full-width SDK code as the hero. No lab — that was the
- * previous slide. Big emerald-accent card with the caption
- * and Shiki-highlighted code at projector scale.
+ * Full-width SDK code as the hero. Shares CodeSlideCard with the
+ * naive slide so typography/spacing stay identical; only the accent
+ * border differs.
  */
 export async function FixSlideLayout({
   eyebrow,
@@ -35,9 +35,7 @@ export async function FixSlideLayout({
         {headline}
       </h2>
 
-      <div className="min-h-0 flex-1 overflow-hidden rounded-2xl border border-emerald-400/30 bg-black/60 p-6">
-        <CodeBlock code={workflowFix.code} lang="ts" textClass="text-3xl" />
-      </div>
+      <CodeSlideCard code={workflowFix.code} tone="fix" />
     </div>
   );
 }

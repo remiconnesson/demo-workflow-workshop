@@ -3,6 +3,7 @@ import {
   RetryableError,
   createHook,
   getStepMetadata,
+  getWorkflowMetadata,
   getWritable,
   sleep,
 } from "workflow";
@@ -12,6 +13,7 @@ import {
   type FailStep,
   hookTokens,
 } from "@/lib/order-contract";
+import { consumeCrashFlag } from "@/lib/crash-flags";
 
 export type { CompensationAction, DemoMode, FailStep } from "@/lib/order-contract";
 export { hookTokens } from "@/lib/order-contract";
@@ -85,51 +87,15 @@ export async function placeOrderWorkflow(
   const demoMode = input.demoMode;
   const e = (event: OrderEvent) => emit(event, demoMode);
 
-  // Optional crash-inject hook. When demoMode === "crashInjectable" we open
-  // a durable hook that can be resumed at any point during the run. Between
-  // major step sections we race this hook against a tiny sleep — if the
-  // hook has already been resumed, we call simulateCrash() which is a step
-  // that throws RetryableError on its first attempt. The Workflow runtime
-  // records this as step_retrying → step_completed, which is what shows up
-  // in `npx workflow inspect` as the visible "the process crashed and the
-  // runtime replayed from the event log" moment.
-  const crashHook =
-    input.demoMode === "crashInjectable"
-      ? createHook<{ crashed: true }>({
-          token: hookTokens.crashInject(orderId),
-        })
-      : null;
-
-  // Latch so we only crash once per run (the hook resumes permanently).
-  let crashTriggered = false;
-
-  // Race the raw hook (not a `.then()` wrapper) against a sleep sentinel.
-  // Wrapping the hook in `.then()` broke the workflow runtime's ability
-  // to replay the hook-wins branch — observed as sleep winning every race
-  // in run wrun_01KP6ZD3E9QT4T5PG0TK4F5ZME even after hook_received fired.
-  const SLEEP_SENTINEL = Symbol("crash-checkpoint-sleep");
-
-  async function crashCheckpoint(label: string): Promise<void> {
-    if (!crashHook || crashTriggered) return;
-    const raced = await Promise.race([
-      crashHook,
-      sleep("200ms").then(() => SLEEP_SENTINEL),
-    ]);
-    if (raced === SLEEP_SENTINEL) return;
-    crashTriggered = true;
-    await e({
-      type: "log",
-      message: `CRASH_INJECTED :: checkpoint=${label} — runtime will record step_retrying then replay from event log`,
-    });
-    await simulateCrash(label);
-  }
+  // Crash-inject: the /api/orders/[orderId]/crash route sets a flag in
+  // the shared crash-flags map. Each step reads + clears the flag at
+  // the start of attempt 1. Whichever step runs next after the user
+  // clicks crashes its own stepId with RetryableError → step_retrying
+  // shows up in `npx workflow inspect` on that exact step.
 
   try {
-    // 1. Validate order
     await validateOrder(input, failAt === "validateOrder");
-    await crashCheckpoint("chargePayment");
 
-    // 2. Charge payment
     const paymentId = await chargePayment(
       input,
       failAt === "chargePayment",
@@ -151,7 +117,6 @@ export async function placeOrderWorkflow(
       await naiveCrash();
     }
 
-    await crashCheckpoint("notifyRestaurant");
 
     // 2b. Prep-window sleep (demo mode only — visible pause between
     //     chargePayment and notifyRestaurant for the failure-prep-window
@@ -275,12 +240,9 @@ export async function placeOrderWorkflow(
       });
     }
 
-    await crashCheckpoint("assignDriver");
-
     // 3b. Replay probe (demo mode only — injects a retry before assignDriver)
     await replayProbe(input);
 
-    // 4. Assign driver + wait for acceptance (with timeout)
     const driverId = await assignDriver(input, failAt === "assignDriver");
     {
       const driverToRelease = driverId;
@@ -335,9 +297,8 @@ export async function placeOrderWorkflow(
       throw new FatalError(`Driver declined order ${orderId}`);
     }
 
-    await crashCheckpoint("trackDelivery");
-
-    // 5. Track delivery (wait for delivered hook)
+    // 5. Track delivery (wait for delivered hook) — not crash-armable
+    //    because trackDelivery is inline orchestration, not a step.
     await e({
       type: "step_running",
       step: "trackDelivery",
@@ -369,9 +330,6 @@ export async function placeOrderWorkflow(
       detail: delivered.photo ? "Photo received" : "Delivered",
     });
 
-    await crashCheckpoint("sendReceipt");
-
-    // 6. Send receipt
     await sendReceipt(input, paymentId, failAt === "sendReceipt");
 
     await e({
@@ -536,6 +494,7 @@ async function validateOrder(
   shouldFail: boolean,
 ): Promise<void> {
   "use step";
+  const { attempt, stepId } = getStepMetadata();
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     await writeEvent(writer, {
@@ -543,6 +502,28 @@ async function validateOrder(
       step: "validateOrder",
       label: "Validate order",
     }, input.demoMode);
+    if (
+      attempt === 1 &&
+      consumeCrashFlag(input.orderId, {
+        runId: getWorkflowMetadata().workflowRunId,
+        step: "validateOrder",
+      })
+    ) {
+      await writer.write({
+        type: "step_failed",
+        step: "validateOrder",
+        label: "Validate order",
+        error: "💥 CRASH — process died, runtime will retry",
+      });
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: validateOrder attempt 1 throwing RetryableError (stepId=${stepId})`,
+      });
+      throw new RetryableError(
+        "💥 CRASH :: simulated process crash mid-validateOrder",
+        { retryAfter: "500ms" },
+      );
+    }
     await delay(400);
     if (shouldFail || input.items.length === 0) {
       await writeEvent(writer, {
@@ -578,6 +559,28 @@ async function chargePayment(
       step: "chargePayment",
       label: "Charge payment",
     }, input.demoMode);
+    if (
+      attempt === 1 &&
+      consumeCrashFlag(input.orderId, {
+        runId: getWorkflowMetadata().workflowRunId,
+        step: "chargePayment",
+      })
+    ) {
+      await writer.write({
+        type: "step_failed",
+        step: "chargePayment",
+        label: "Charge payment",
+        error: "💥 CRASH — process died, runtime will retry",
+      });
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: chargePayment attempt 1 throwing RetryableError (stepId=${stepId})`,
+      });
+      throw new RetryableError(
+        "💥 CRASH :: simulated process crash mid-chargePayment",
+        { retryAfter: "500ms" },
+      );
+    }
     await writeEvent(writer, {
       type: "log",
       message: `chargePayment stepId=${stepId} attempt=${attempt}`,
@@ -666,6 +669,7 @@ async function notifyRestaurant(
   shouldFail: boolean,
 ): Promise<void> {
   "use step";
+  const { attempt, stepId } = getStepMetadata();
   let writer = getWritable<OrderEvent>().getWriter();
   let released = false;
   try {
@@ -674,6 +678,29 @@ async function notifyRestaurant(
       step: "notifyRestaurant",
       label: "Notify restaurant",
     }, input.demoMode);
+    if (
+      attempt === 1 &&
+      consumeCrashFlag(input.orderId, {
+        runId: getWorkflowMetadata().workflowRunId,
+        step: "notifyRestaurant",
+      })
+    ) {
+      await writer.write({
+        type: "step_failed",
+        step: "notifyRestaurant",
+        label: "Notify restaurant",
+        error: "💥 CRASH — process died, runtime will retry",
+      });
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: notifyRestaurant attempt 1 throwing RetryableError (stepId=${stepId})`,
+      });
+      console.info("[workflow] crash_injected_notify", { stepId, attempt });
+      throw new RetryableError(
+        "💥 CRASH :: simulated process crash mid-notifyRestaurant",
+        { retryAfter: "500ms" },
+      );
+    }
     if (input.demoMode === "naivePoll") {
       writer.releaseLock();
       released = true;
@@ -715,6 +742,7 @@ async function assignDriver(
   shouldFail: boolean,
 ): Promise<string> {
   "use step";
+  const { attempt, stepId } = getStepMetadata();
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     await writeEvent(writer, {
@@ -722,6 +750,28 @@ async function assignDriver(
       step: "assignDriver",
       label: "Assign driver",
     }, input.demoMode);
+    if (
+      attempt === 1 &&
+      consumeCrashFlag(input.orderId, {
+        runId: getWorkflowMetadata().workflowRunId,
+        step: "assignDriver",
+      })
+    ) {
+      await writer.write({
+        type: "step_failed",
+        step: "assignDriver",
+        label: "Assign driver",
+        error: "💥 CRASH — process died, runtime will retry",
+      });
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: assignDriver attempt 1 throwing RetryableError (stepId=${stepId})`,
+      });
+      throw new RetryableError(
+        "💥 CRASH :: simulated process crash mid-assignDriver",
+        { retryAfter: "500ms" },
+      );
+    }
     await delay(500);
     if (shouldFail) {
       await writeEvent(writer, {
@@ -749,6 +799,7 @@ async function sendReceipt(
   shouldFail: boolean,
 ): Promise<void> {
   "use step";
+  const { attempt, stepId } = getStepMetadata();
   let writer = getWritable<OrderEvent>().getWriter();
   let released = false;
   try {
@@ -757,6 +808,28 @@ async function sendReceipt(
       step: "sendReceipt",
       label: "Send receipt",
     }, input.demoMode);
+    if (
+      attempt === 1 &&
+      consumeCrashFlag(input.orderId, {
+        runId: getWorkflowMetadata().workflowRunId,
+        step: "sendReceipt",
+      })
+    ) {
+      await writer.write({
+        type: "step_failed",
+        step: "sendReceipt",
+        label: "Send receipt",
+        error: "💥 CRASH — process died, runtime will retry",
+      });
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: sendReceipt attempt 1 throwing RetryableError (stepId=${stepId})`,
+      });
+      throw new RetryableError(
+        "💥 CRASH :: simulated process crash mid-sendReceipt",
+        { retryAfter: "500ms" },
+      );
+    }
     await delay(300);
     if (shouldFail) {
       await writeEvent(writer, {

@@ -8,7 +8,8 @@ export default function FailureCrashDemoSlide() {
       slide="failure-crash"
       eyebrow="04a · The crash — watch it break"
       {...failureGroups["failure-crash"]}
-      scenario={slideScenarios.naiveCrash}
+      scenario={slideScenarios.failureCrash}
+      allowCrash
     />
   );
 }

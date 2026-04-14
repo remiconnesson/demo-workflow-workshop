@@ -500,60 +500,12 @@ export function useOrderRun(
       }
     }
 
-    // Stop any pending auto-resume timers — a "dead" process can't
-    // schedule things. The real workflow on the server keeps running.
-    clearScheduledResume("crash_simulated");
-
-    // Wipe derived UI state. The event buffer stays — that's the log
-    // we'll replay from in a moment.
-    setCrashPhase("crashed");
-    crashPhaseRef.current = "crashed";
-    setCrashMessage("process terminated");
-    setStepState({});
-    setWaitingOn(null);
-    setWaitStrategy(null);
-    setCompensations([]);
-    setResumeToast(null);
-    setDoneStatus(null);
-
-    // Pause for the audience, then begin the replay.
-    await new Promise<void>((resolve) => {
-      const t = window.setTimeout(resolve, 700);
-      replayTimeoutsRef.current.push(t);
-    });
-
-    setCrashPhase("replaying");
-    crashPhaseRef.current = "replaying";
-    setCrashMessage("runtime reconstructing from event log");
-
-    const snapshot = [...eventsRef.current];
-    const REPLAY_STEP_MS = 55;
-    for (let i = 0; i < snapshot.length; i += 1) {
-      await new Promise<void>((resolve) => {
-        const t = window.setTimeout(resolve, REPLAY_STEP_MS);
-        replayTimeoutsRef.current.push(t);
-      });
-      applyDerivedState(snapshot[i]);
-    }
-
-    // Any live events that arrived during the crash/replay window
-    // were appended to the buffer but skipped derived state. Apply
-    // anything we missed now.
-    const tail = eventsRef.current.slice(snapshot.length);
-    for (const event of tail) {
-      applyDerivedState(event);
-    }
-
-    setCrashPhase("live");
-    crashPhaseRef.current = "live";
-    setCrashMessage(null);
-    console.info("[order-run] crash_replay_complete", {
-      source,
-      scenarioId: scenario.scenarioId,
-      orderId: orderIdRef.current,
-      replayed: snapshot.length,
-      tail: tail.length,
-    });
+    // The crash now arms a real flag the next step reads (see
+    // /api/orders/[orderId]/crash). The step throws RetryableError,
+    // the runtime records step_retrying, and the resulting
+    // step_failed → step_running → step_succeeded events flow
+    // through the live stream — we don't fake a wipe-and-replay
+    // anymore, the real workflow event log drives the UI.
   }, [
     applyDerivedState,
     clearScheduledResume,
