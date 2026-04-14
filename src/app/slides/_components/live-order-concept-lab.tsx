@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ORDER_STEPS, type SlideStepState, type CompensationAction } from "@/lib/order-contract";
 import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import type { OrderStepId } from "@/lib/order-contract";
@@ -94,6 +94,10 @@ export function LiveOrderConceptLab({
   showSleepCost?: boolean;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
+  const [displayedPill, setDisplayedPill] = useState<{
+    stepId: OrderStepId;
+    state: "running" | "waiting";
+  } | null>(null);
 
   const phase = getDemoPhase({
     running: controller.running,
@@ -111,6 +115,25 @@ export function LiveOrderConceptLab({
     const st = controller.stepState[s.id];
     return st === "running" || st === "waiting";
   });
+
+  const isResetState = ORDER_STEPS.every((step) => {
+    const st = controller.stepState[step.id];
+    return st === undefined || st === "pending";
+  });
+
+  useEffect(() => {
+    if (!activeStep) {
+      if (phase === "idle" && isResetState) {
+        setDisplayedPill(null);
+      }
+      return;
+    }
+
+    const state = controller.stepState[activeStep.id];
+    if (state === "running" || state === "waiting") {
+      setDisplayedPill({ stepId: activeStep.id, state });
+    }
+  }, [activeStep, controller.stepState, isResetState, phase]);
 
   // phase transition logging (signature-guarded to avoid noise)
   const lastPhaseSignatureRef = useRef("");
@@ -395,7 +418,7 @@ export function LiveOrderConceptLab({
       </div>
       )}
 
-      {/* status pill — fixed size, content swaps via opacity only */}
+      {/* status pill — fixed size, content swaps instantly without cross-fade */}
       <div className="mt-6 flex justify-center">
         <div className={`relative h-[52px] min-w-[420px] rounded-full border transition-colors duration-500 ${
           phase === "idle" ? "border-transparent" :
@@ -408,15 +431,21 @@ export function LiveOrderConceptLab({
         }`}>
           {/* Each label is absolutely positioned so swapping never shifts layout */}
           {ORDER_STEPS.map((step) => {
-            const st = controller.stepState[step.id] ?? "pending";
-            const isRunning = st === "running";
-            const isWaiting = st === "waiting";
+            const isDisplayed =
+              displayedPill?.stepId === step.id &&
+              phase !== "completed" &&
+              phase !== "rolled_back" &&
+              phase !== "error";
+            const isWaiting = isDisplayed && displayedPill.state === "waiting";
             return (
               <span
                 key={step.id}
-                className={`absolute inset-0 flex items-center justify-center whitespace-nowrap font-mono text-2xl transition-opacity duration-500 ${
-                  isRunning ? "opacity-100 text-sky-300" :
-                  isWaiting ? "opacity-100 text-amber-300" :
+                className={`absolute inset-0 flex items-center justify-center whitespace-nowrap font-mono text-2xl ${
+                  isDisplayed
+                    ? isWaiting
+                      ? "opacity-100 text-amber-300"
+                      : "opacity-100 text-sky-300"
+                    :
                   "opacity-0"
                 }`}
               >
@@ -424,13 +453,13 @@ export function LiveOrderConceptLab({
               </span>
             );
           })}
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-emerald-300 transition-opacity duration-500 ${phase === "completed" ? "opacity-100" : "opacity-0"}`}>
+          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-emerald-300 ${phase === "completed" ? "opacity-100" : "opacity-0"}`}>
             Complete
           </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-fuchsia-300 transition-opacity duration-500 ${phase === "rolled_back" ? "opacity-100" : "opacity-0"}`}>
+          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-fuchsia-300 ${phase === "rolled_back" ? "opacity-100" : "opacity-0"}`}>
             Rolled back
           </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-red-300 transition-opacity duration-500 ${phase === "error" ? "opacity-100" : "opacity-0"}`}>
+          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-red-300 ${phase === "error" ? "opacity-100" : "opacity-0"}`}>
             Error
           </span>
         </div>

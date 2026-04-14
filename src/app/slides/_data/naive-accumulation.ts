@@ -16,15 +16,13 @@ const FILE_ORDERS_TABLE: NaiveFile = {
   name: "orders-table.ts",
   lines: 42,
   addedOnSlide: "failure-crash",
-  code: `// One row per order, updated before and after every step.
-// If the process dies between an update and the next step,
-// the "recovery worker" has to guess what actually happened.
-export async function transitionOrderStatus(
+  code: `export async function transitionOrderStatus(
   id: string,
   from: OrderStatus,
   to: OrderStatus,
   fields?: Partial<OrderRow>,
 ) {
+  // one row per order, updated before and after every step
   await db.orders.update({
     where: { id, status: from },
     data: { status: to, updatedAt: new Date(), ...fields },
@@ -33,6 +31,7 @@ export async function transitionOrderStatus(
 
 await transitionOrderStatus(id, "new", "charging");
 const payment = await stripe.charges.create({ amount })
+// if we die here, the recovery worker has to guess what actually happened
 await transitionOrderStatus(id, "charging", "notifying", { paymentId: payment.id })
 await sendToRestaurant(id)
 await transitionOrderStatus(id, "notifying", "assigning")
@@ -43,18 +42,16 @@ const FILE_RECOVERY_WORKER: NaiveFile = {
   name: "recovery-worker.ts",
   lines: 38,
   addedOnSlide: "failure-crash",
-  code: `// Runs on boot. Finds orphans. Doesn't actually know whether
-// the interrupted external call landed or not.
-const STUCK_STATES = ["charging", "notifying", "assigning", "tracking"] as const
+  code: `const STUCK_STATES = ["charging", "notifying", "assigning", "tracking"] as const
 
+// runs on boot, finds orphans
 setInterval(async () => {
   const stuck = await db.orders.findMany({
     where: { status: { in: STUCK_STATES } },
   })
   for (const order of stuck) {
-    // we don't know if stripe/kitchen/dispatch actually got the call
-    // we need to query each external system and reconcile
-    // ???
+    // we don't know if stripe/kitchen/dispatch actually got the call —
+    // query each external system and reconcile. good luck.
     await reconcile(order)
   }
 }, 5_000)`,
@@ -64,14 +61,13 @@ const FILE_IDEMPOTENCY_KEYS: NaiveFile = {
   name: "idempotency-keys.ts",
   lines: 31,
   addedOnSlide: "failure-retry",
-  code: `// Every external call needs a stable key per retry.
-// Which means we need to know which retry we're on.
-// Which means another column on orders. Of course.
-export async function idempotentCharge(orderId: string, amount: number) {
+  code: `export async function idempotentCharge(orderId: string, amount: number) {
+  // need a stable key per retry — so track which attempt we're on
   const attempt = await db.orders
     .findUniqueOrThrow({ where: { id: orderId } })
     .then((o) => o.chargeAttempt + 1)
   const key = \`charge:\${orderId}:\${attempt}\`
+  // second database for your first database
   const existing = await db.idempotencyKeys.findUnique({ where: { key } })
   if (existing) return existing.result as Charge
   const result = await stripe.charges.create({ amount, idempotencyKey: key })
@@ -88,9 +84,7 @@ const FILE_RESTAURANT_WEBHOOK: NaiveFile = {
   name: "restaurant-webhook.ts",
   lines: 54,
   addedOnSlide: "failure-slow-restaurant",
-  code: `// We can't hold an HTTP request open for 10 minutes, so
-// place-order returns 202, the pipeline splits, and the
-// restaurant answers back through a webhook endpoint.
+  code: `// place-order returned 202 — the restaurant answers back here
 export async function POST(req: Request) {
   const sig = req.headers.get("x-restaurant-signature")
   if (!verifySig(sig, await req.text())) return new Response("bad sig", { status: 401 })
@@ -103,6 +97,7 @@ export async function POST(req: Request) {
       restaurantRejectReason: reason ?? null,
     },
   })
+  // hand off to the resume-worker — the pipeline is now in two pieces
   if (accepted) {
     await pipelineQueue.enqueue({ orderId, resumeAt: "assignDriver" })
   } else {
@@ -116,8 +111,7 @@ const FILE_PIPELINE_RESUME_WORKER: NaiveFile = {
   name: "pipeline-resume-worker.ts",
   lines: 62,
   addedOnSlide: "failure-slow-restaurant",
-  code: `// Picks up where the place-order endpoint left off.
-// A second copy of the pipeline, keyed off which step to resume at.
+  code: `// a second copy of the pipeline, keyed off which step to resume at
 pipelineQueue.process(async (job) => {
   const { orderId, resumeAt } = job.data
   const order = await db.orders.findUniqueOrThrow({ where: { id: orderId } })
@@ -128,6 +122,7 @@ pipelineQueue.process(async (job) => {
       await dispatcher.sendOffer(driver.id, order.id)
       return
     }
+    // every downstream step needs its own resume case
     case "trackDelivery": { /* ... */ return }
     case "sendReceipt":   { /* ... */ return }
   }
@@ -138,20 +133,20 @@ const FILE_TIMEOUT_SCANNER: NaiveFile = {
   name: "timeout-scanner.ts",
   lines: 36,
   addedOnSlide: "failure-ghost-restaurant",
-  code: `// A separate scheduled job that scans for orders stuck
-// in each waiting state beyond their deadline, flips them
-// to a timeout state, and kicks a reroute worker.
+  code: `// deadline per waiting state
 const TIMEOUTS = {
   awaiting_restaurant: 2 * 60_000,
   awaiting_driver: 2 * 60_000,
 } as const
 
+// scan every 10s for stuck orders
 setInterval(async () => {
   for (const [status, deadline] of Object.entries(TIMEOUTS)) {
     const stuck = await db.orders.findMany({
       where: { status, updatedAt: { lt: new Date(Date.now() - deadline) } },
     })
     for (const order of stuck) {
+      // flip to timeout state, then kick a reroute worker you also have to build
       await db.orders.update({
         where: { id: order.id },
         data: { status: "timed_out" },
@@ -166,16 +161,15 @@ const FILE_SLEEP_SCHEDULER: NaiveFile = {
   name: "sleep-scheduler.ts",
   lines: 44,
   addedOnSlide: "failure-prep-window",
-  code: `// Rebuilding setTimeout on top of SQL. We store the rest
-// of the pipeline as a payload so the worker can resume
-// where we left off — which means the payload has to know
-// what was going to happen next.
+  code: `// rebuilding setTimeout on top of SQL
 export async function scheduleResume(orderId: string, at: Date, next: ResumeStep, payload: unknown) {
+  // payload has to know what was going to happen next
   await db.sleepQueue.create({
     data: { orderId, at, next, payload: JSON.stringify(payload) },
   })
 }
 
+// poll every second for due wakeups
 setInterval(async () => {
   const due = await db.sleepQueue.findMany({
     where: { at: { lte: new Date() } },
@@ -196,12 +190,10 @@ const FILE_COMPENSATION_COORDINATOR: NaiveFile = {
   name: "compensation-coordinator.ts",
   lines: 72,
   addedOnSlide: "failure-driver-refuses",
-  code: `// When something fatal happens, walk backwards through the
-// order's state and run reverse operations in the right order.
-// Get the order wrong and you refund before you cancel — now
-// you owe the restaurant for food you told them to throw out.
-export async function compensate(orderId: string, reason: string) {
+  code: `export async function compensate(orderId: string, reason: string) {
   const order = await db.orders.findUniqueOrThrow({ where: { id: orderId } })
+  // walk backwards through the order's state — order matters:
+  // refund before cancel and you owe the restaurant for food they threw out
   const ops: (() => Promise<void>)[] = []
 
   if (order.driverId) {
@@ -214,9 +206,9 @@ export async function compensate(orderId: string, reason: string) {
     ops.push(() => stripe.refunds.create({ charge: order.paymentId! }))
   }
 
-  // And now what if one of these throws? Retry? Queue it?
-  // Congratulations, you're building a compensation-compensation.
   for (const op of ops) {
+    // what if a compensation throws? retry? queue it?
+    // congratulations, you're building a compensation-compensation
     try { await op() } catch (err) { await deadLetter.enqueue({ orderId, err }) }
   }
 
@@ -231,20 +223,18 @@ const FILE_ADMIN_CANCEL_BRIDGE: NaiveFile = {
   name: "admin-cancel-bridge.ts",
   lines: 48,
   addedOnSlide: "failure-admin-cancel",
-  code: `// Admin dashboard needs to reach inside the sleep-scheduler's
-// table, delete the row, and then manually kick the compensation
-// coordinator. Two systems. Not in a transaction. Good luck.
-export async function adminCancelOrder(orderId: string, actor: string) {
+  code: `export async function adminCancelOrder(orderId: string, actor: string) {
+  // admin dashboard reaches inside the sleep-scheduler's table and deletes the row
   const sleeping = await db.sleepQueue.findFirst({ where: { orderId } })
   if (sleeping) {
     await db.sleepQueue.delete({ where: { id: sleeping.id } })
   }
+  // and the hook-wait table. two systems, not in a transaction.
   const waitingHook = await db.hookWaits.findFirst({ where: { orderId } })
   if (waitingHook) {
     await db.hookWaits.delete({ where: { id: waitingHook.id } })
   }
-  // If the compensator fails after we've already deleted the sleep row,
-  // we've orphaned the compensation and nothing will re-drive it.
+  // if the compensator fails after the delete, the compensation is orphaned
   await compensate(orderId, \`admin:\${actor}\`)
   await auditLog.create({ data: { orderId, actor, action: "admin_cancel" } })
 }`,
@@ -254,16 +244,16 @@ const FILE_PUBSUB: NaiveFile = {
   name: "pubsub.ts",
   lines: 59,
   addedOnSlide: "failure-live-updates",
-  code: `// A realtime layer the app didn't have yesterday. Every step
-// publishes a status event. Clients subscribe by order ID. Handle
-// reconnects. Handle backpressure. Handle out-of-order delivery.
+  code: `// a realtime layer the app didn't have yesterday
 const pub = new Redis(env.REDIS_URL)
 const subs = new Map<string, Set<WritableStreamDefaultWriter>>()
 
+// every step publishes a status event
 export function publishStatus(orderId: string, status: OrderStatus) {
   return pub.publish(\`orders:\${orderId}\`, JSON.stringify({ status, at: Date.now() }))
 }
 
+// clients subscribe by order id — handle reconnects, backpressure, ordering
 export function subscribe(orderId: string, writer: WritableStreamDefaultWriter) {
   let set = subs.get(orderId)
   if (!set) { set = new Set(); subs.set(orderId, set) }
@@ -271,8 +261,7 @@ export function subscribe(orderId: string, writer: WritableStreamDefaultWriter) 
   return () => set!.delete(writer)
 }
 
-// And another Redis client for the subscribe side, because the
-// pub client can't be both. And a WebSocket server. And a gateway.
+// a second Redis client for the subscribe side — pub can't be both
 const sub = new Redis(env.REDIS_URL)
 sub.psubscribe("orders:*")
 sub.on("pmessage", (_pattern, channel, payload) => {
@@ -287,12 +276,10 @@ const FILE_NOTIFICATION_COORDINATOR: NaiveFile = {
   name: "notification-coordinator.ts",
   lines: 64,
   addedOnSlide: "failure-fan-out",
-  code: `// Per-channel state. Per-channel retries. Per-channel
-// idempotency. Partial-success tracking. This file is bigger
-// than the entire place-order flow it's supporting.
-type ChannelStatus = "pending" | "sent" | "failed"
+  code: `type ChannelStatus = "pending" | "sent" | "failed"
 
 export async function sendAllNotifications(order: Order) {
+  // per-channel state, tracked by hand
   const row = await db.notificationState.upsert({
     where: { orderId: order.id },
     create: {
@@ -311,6 +298,7 @@ export async function sendAllNotifications(order: Order) {
   ])
 }
 
+// per-channel retries, per-channel idempotency, partial-success tracking
 async function trySend(
   channel: "email" | "push" | "loyalty",
   row: NotificationStateRow,
@@ -327,6 +315,7 @@ async function trySend(
     })
     await db.idempotencyKeys.create({ data: { key, result: {} } })
   } catch (err) {
+    // one channel failed — mark it, re-enqueue, hope for the best
     await db.notificationState.update({
       where: { orderId: row.orderId },
       data: { [channel]: "failed" satisfies ChannelStatus },

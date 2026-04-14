@@ -33,10 +33,6 @@ export function PatternSlideLayout({
       <DemoStrip marker={marker} label={markerLabel} />
 
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10">
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">
-          {eyebrow}
-        </div>
-
         <h2 className="text-center text-7xl font-semibold tracking-tight">
           {patternName}
         </h2>

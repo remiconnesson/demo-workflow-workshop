@@ -32,14 +32,9 @@ export async function FixSlideLayout({
     <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
       <DemoStrip marker={marker} label={markerLabel} />
 
-      <div>
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-emerald-300/80">
-          {eyebrow}
-        </div>
-        <h2 className="mt-2 text-[52px] font-semibold leading-tight tracking-tight">
-          {headline}
-        </h2>
-      </div>
+      <h2 className="text-[52px] font-semibold leading-tight tracking-tight">
+        {headline}
+      </h2>
 
       <div className="flex min-h-0 flex-1 flex-col justify-center gap-10 rounded-2xl border border-emerald-400/30 bg-zinc-950 px-14 py-12">
         <div className="font-sans text-3xl leading-snug text-emerald-100/80">

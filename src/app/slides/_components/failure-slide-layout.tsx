@@ -3,7 +3,6 @@ import type { OrderRunScenario } from "@/lib/order-run-client";
 import { CodeBlock } from "./code-block";
 import { DemoStrip } from "./demo-strip";
 import { LiveOrderConceptLab } from "./live-order-concept-lab";
-import { NaiveCostTicker } from "./naive-cost-ticker";
 
 export type WorkflowFix = {
   caption: string;
@@ -55,17 +54,9 @@ export async function FailureSlideLayout({
     <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
       <DemoStrip marker={marker} label={markerLabel} />
 
-      <div className="flex items-end justify-between gap-8">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">
-            {eyebrow}
-          </div>
-          <h2 className="mt-2 text-[52px] font-semibold leading-tight tracking-tight">
-            {headline}
-          </h2>
-        </div>
-        <NaiveCostTicker slide={slide} />
-      </div>
+      <h2 className="text-[52px] font-semibold leading-tight tracking-tight">
+        {headline}
+      </h2>
 
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-6 overflow-hidden">
         <div className="min-h-0">
