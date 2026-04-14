@@ -3,7 +3,7 @@ import { PatternSlideLayout } from "../_components/pattern-slide-layout";
 export default function FailureGhostRestaurantPatternSlide() {
   return (
     <PatternSlideLayout
-      eyebrow="07d · The pattern"
+      eyebrow="07d · The ghost — concept / pattern"
       patternName="Conditional Routing"
       description="Race a hook against a sleep with Promise.race. Route based on whichever resolves first — human response or deadline."
       apiPrimitive="Promise.race([ hook, sleep() ])"

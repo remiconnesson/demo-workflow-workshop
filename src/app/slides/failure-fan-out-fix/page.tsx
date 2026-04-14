@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureFanOutFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="12c · The fan-out — the fix"
+      eyebrow="12c · The fan-out — workflow code"
       headline="Three notifications. One fails."
       marker="sendReceipt"
       markerLabel="parallel, still durable"

@@ -13,7 +13,7 @@ type PatternSlideLayoutProps = {
 };
 
 /**
- * The "pattern" slide — third beat per concept in Act 2.
+ * The "concept / pattern" slide — fourth beat per concept in Act 2.
  * Teaches the SDK vocabulary and gives the audience a breadcrumb
  * to the docs. Clean, one-concept, photo-friendly (audience
  * captures the URL from this slide).

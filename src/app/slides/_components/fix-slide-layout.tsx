@@ -16,7 +16,7 @@ type FixSlideLayoutProps = {
 };
 
 /**
- * The "fix" slide — third beat per concept in Act 2.
+ * The "workflow code" slide — third beat per concept in Act 2.
  * Full-width SDK code as the hero. No lab — that was the
  * previous slide. Big emerald-accent card with the caption
  * and Shiki-highlighted code at projector scale.

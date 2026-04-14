@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureSlowRestaurantFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="06c · The slow restaurant — the fix"
+      eyebrow="06c · The slow restaurant — workflow code"
       headline="The restaurant takes ten minutes to accept."
       marker="notifyRestaurant"
       markerLabel="suspended on a hook"

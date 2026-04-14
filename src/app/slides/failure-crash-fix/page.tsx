@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureCrashFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="04c · The crash — the fix"
+      eyebrow="04c · The crash — workflow code"
       headline="It's 2am. The server just died."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="crash here"

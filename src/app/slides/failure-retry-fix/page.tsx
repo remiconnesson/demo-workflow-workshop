@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureRetryFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="05c · The retry — the fix"
+      eyebrow="05c · The retry — workflow code"
       headline="The charge ran twice."
       marker="chargePayment"
       markerLabel="payment flaked"

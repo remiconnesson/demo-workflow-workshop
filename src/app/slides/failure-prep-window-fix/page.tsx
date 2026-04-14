@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailurePrepWindowFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="08c · The wait — the fix"
+      eyebrow="08c · The wait — workflow code"
       headline="Wait twenty minutes. Don't pay for it."
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="20 min sleep"

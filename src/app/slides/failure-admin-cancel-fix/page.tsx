@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureAdminCancelFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="10c · Admin cancel — the fix"
+      eyebrow="10c · Admin cancel — workflow code"
       headline="Support needs to cancel a sleeping order."
       marker={["notifyRestaurant", "assignDriver"]}
       markerLabel="interrupt from outside"

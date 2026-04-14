@@ -3,7 +3,7 @@ import { FixSlideLayout } from "../_components/fix-slide-layout";
 export default function FailureLiveUpdatesFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="11c · Live updates — the fix"
+      eyebrow="11c · Live updates — workflow code"
       headline="The customer is staring at a spinner."
       marker="span"
       markerLabel="streamed end-to-end"

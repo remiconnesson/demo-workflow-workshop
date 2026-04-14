@@ -10,9 +10,9 @@ export type SlideInfo = {
  * Every failure concept is four slides:
  *   (a) demo — the lab runs, the failure happens visually
  *   (b) naive — the mess you'd write without the SDK
- *   (c) fix — the Workflow SDK solution (code hero, full width)
- *   (d) pattern — the SDK vocabulary + cookbook/docs URL
- * The four-slide rhythm: see it break → see the pain → see the fix → learn the name.
+ *   (c) workflow code — the Workflow SDK solution (code hero, full width)
+ *   (d) concept / pattern — the SDK vocabulary + cookbook/docs URL
+ * The four-slide rhythm: see it break → see the pain → see the workflow code → learn the pattern.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act 1 · "This works." ─────────────────────────────────
@@ -36,7 +36,7 @@ export const SLIDES: SlideInfo[] = [
   },
 
   // ─── Act 2 · "What do we do now?" ──────────────────────────
-  // Each concept is four slides: demo → naive → fix → pattern.
+  // Each concept is four slides: demo → naive → workflow code → concept / pattern.
 
   // --- 04: Crash ---
   {
@@ -53,13 +53,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-crash-fix",
-    title: "The Crash · Fix",
+    title: "The Crash · Workflow Code",
     number: 6,
     notes: "SAY: \"Or. Two directives. Same six awaits. On a real restart, the runtime replays from the event log. I didn't write a recovery worker. I wrote two strings.\"",
   },
   {
     slug: "failure-crash-pattern",
-    title: "The Crash · Pattern",
+    title: "The Crash · Concept / Pattern",
     number: 7,
     notes: "SAY: \"This is the Workflows and Steps pattern. 'use workflow' on the orchestrator, 'use step' on each unit of work. On restart, the runtime recovers from the event log.\"\n\nPOINT at the URL.",
   },
@@ -79,13 +79,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-retry-fix",
-    title: "The Retry · Fix",
+    title: "The Retry · Workflow Code",
     number: 10,
     notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
   },
   {
     slug: "failure-retry-pattern",
-    title: "The Retry · Pattern",
+    title: "The Retry · Concept / Pattern",
     number: 11,
     notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
   },
@@ -105,13 +105,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-slow-restaurant-fix",
-    title: "Slow Restaurant · Fix",
+    title: "Slow Restaurant · Workflow Code",
     number: 14,
     notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
   },
   {
     slug: "failure-slow-restaurant-pattern",
-    title: "Slow Restaurant · Pattern",
+    title: "Slow Restaurant · Concept / Pattern",
     number: 15,
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
   },
@@ -131,13 +131,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-ghost-restaurant-fix",
-    title: "The Ghost · Fix",
+    title: "The Ghost · Workflow Code",
     number: 18,
     notes: "SAY: \"Promise.race a hook against a sleep. Whichever lands first wins. It's just JavaScript running durably.\"",
   },
   {
     slug: "failure-ghost-restaurant-pattern",
-    title: "The Ghost · Pattern",
+    title: "The Ghost · Concept / Pattern",
     number: 19,
     notes: "SAY: \"This is Conditional Routing. Race any combination of hooks, sleeps, or promises. The first to resolve wins.\"\n\nPOINT at the URL.",
   },
@@ -157,13 +157,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-prep-window-fix",
-    title: "The Wait · Fix",
+    title: "The Wait · Workflow Code",
     number: 22,
     notes: "SAY: \"await sleep, twenty minutes. Function suspends. Pay for nothing. Server crashes during the sleep? Still wakes up.\"",
   },
   {
     slug: "failure-prep-window-pattern",
-    title: "The Wait · Pattern",
+    title: "The Wait · Concept / Pattern",
     number: 23,
     notes: "SAY: \"This is the Scheduling pattern. await sleep with any duration. The workflow suspends with zero compute cost and wakes up on time.\"\n\nPOINT at the URL.",
   },
@@ -183,13 +183,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-driver-refuses-fix",
-    title: "The Refusal · Fix",
+    title: "The Refusal · Workflow Code",
     number: 26,
     notes: "SAY: \"Push an undo for each step. FatalError pops them in reverse. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
     slug: "failure-driver-refuses-pattern",
-    title: "The Refusal · Pattern",
+    title: "The Refusal · Concept / Pattern",
     number: 27,
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, FatalError triggers the reverse walk. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
@@ -209,13 +209,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-admin-cancel-fix",
-    title: "Admin Cancel · Fix",
+    title: "Admin Cancel · Workflow Code",
     number: 30,
     notes: "SAY: \"Resume the cancel hook, then call Run.wakeUp. The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
   },
   {
     slug: "failure-admin-cancel-pattern",
-    title: "Admin Cancel · Pattern",
+    title: "Admin Cancel · Concept / Pattern",
     number: 31,
     notes: "SAY: \"This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Pair it with a hook when the workflow needs cancellation data immediately.\"\n\nPOINT at the URL.",
   },
@@ -235,13 +235,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-live-updates-fix",
-    title: "Live Updates · Fix",
+    title: "Live Updates · Workflow Code",
     number: 34,
     notes: "SAY: \"getWritable. Steps write to a stream. Client subscribes. Backend and UI stay in sync without a second system.\"",
   },
   {
     slug: "failure-live-updates-pattern",
-    title: "Live Updates · Pattern",
+    title: "Live Updates · Concept / Pattern",
     number: 35,
     notes: "SAY: \"This is Streaming. Steps write structured updates with getWritable(). In this demo, the client reads that stream over plain HTTP, without a separate WebSocket or pubsub system.\"\n\nPOINT at the URL.",
   },
@@ -261,13 +261,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "failure-fan-out-fix",
-    title: "The Fan-out · Fix",
+    title: "The Fan-out · Workflow Code",
     number: 38,
     notes: "SAY: \"Promise.allSettled on three steps. Each durable independently. Email retries later. The other two finish now. It's just JavaScript, that happens to be durable.\"",
   },
   {
     slug: "failure-fan-out-pattern",
-    title: "The Fan-out · Pattern",
+    title: "The Fan-out · Concept / Pattern",
     number: 39,
     notes: "SAY: \"This is Fan-Out and Parallel Delivery. Promise.all and allSettled just work — each branch is a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
   },
