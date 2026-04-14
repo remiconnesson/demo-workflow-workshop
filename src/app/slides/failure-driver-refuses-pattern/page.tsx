@@ -5,7 +5,7 @@ export default function FailureDriverRefusesPatternSlide() {
     <PatternSlideLayout
       eyebrow="09d · The pattern"
       patternName="Transactions & Rollbacks"
-      description="Push an undo for each step. When a FatalError fires, the runtime pops them in reverse — last in, first out. The saga pattern, built into your workflow."
+      description="Push an undo for each step. When a FatalError fires, your workflow catches it and unwinds the stack in reverse order. A durable saga pattern you implement with workflow primitives."
       apiPrimitive="FatalError  ·  compensations[]"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/saga"

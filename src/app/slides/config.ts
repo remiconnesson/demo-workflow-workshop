@@ -243,7 +243,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-live-updates-pattern",
     title: "Live Updates · Pattern",
     number: 35,
-    notes: "SAY: \"This is Streaming. getWritable() gives any step a writable stream. Plain HTTP, NDJSON, no WebSockets.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is Streaming. getWritable() gives any step a writable stream. The client reads it over plain HTTP, without a separate WebSocket or pubsub system.\"\n\nPOINT at the URL.",
   },
 
   // --- 12: Fan-out ---

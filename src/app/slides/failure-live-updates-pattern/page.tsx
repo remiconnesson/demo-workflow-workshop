@@ -5,7 +5,7 @@ export default function FailureLiveUpdatesPatternSlide() {
     <PatternSlideLayout
       eyebrow="11d · The pattern"
       patternName="Streaming"
-      description="Steps write progress, status, or data to a stream in real time. Clients subscribe over HTTP — no WebSocket server, no pubsub infrastructure."
+      description="Steps write progress, status, or data to a stream in real time. Clients can read that stream over HTTP without a separate WebSocket or pubsub system."
       apiPrimitive="getWritable()"
       docSection="Foundations"
       docUrl="useworkflow.dev/docs/foundations/streaming"

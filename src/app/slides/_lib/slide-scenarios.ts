@@ -111,7 +111,7 @@ export const slideScenarios = {
   streaming: {
     scenarioId: "streaming-happy-path",
     title: "Event stream",
-    subtitle: "Raw workflow events over NDJSON.",
+    subtitle: "Workflow events streamed to the demo over HTTP.",
     autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },
