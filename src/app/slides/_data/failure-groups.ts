@@ -19,47 +19,47 @@ export type FailureGroup = {
 
 export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
   "failure-crash": {
-    headline: "The money moved. The order didn't.",
+    headline: "Unexpected Failures Happen Anywhere",
     marker: ["chargePayment", "notifyRestaurant"],
     markerLabel: "crash here",
   },
   "failure-retry": {
-    headline: "Your customer just got charged twice.",
+    headline: "Accidentally Charging Twice",
     marker: "chargePayment",
     markerLabel: "payment flaked",
   },
   "failure-slow-restaurant": {
-    headline: "Ten minutes of silence. Your server is still running.",
+    headline: "Burning Money on setTimeout",
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
   },
   "failure-ghost-restaurant": {
-    headline: "The restaurant never answers.",
+    headline: "Sometimes No One Responds",
     marker: "notifyRestaurant",
     markerLabel: "timeout wins the race",
   },
   "failure-prep-window": {
-    headline: "Nothing happens for twenty minutes. Something has to remember.",
+    headline: "Scheduling Work Hours Into the Future",
     marker: ["chargePayment", "notifyRestaurant"],
     markerLabel: "20 min sleep",
   },
   "failure-driver-refuses": {
-    headline: "Charged the card. Started cooking. No one's coming.",
-    marker: "assignDriver",
-    markerLabel: "fatal → unwind",
+    headline: "Dispute the Order",
+    marker: "sendReceipt",
+    markerLabel: "post-delivery dispute",
   },
   "failure-admin-cancel": {
-    headline: "The workflow is asleep. The customer is not.",
+    headline: "The User Hits Cancel",
     marker: ["notifyRestaurant", "assignDriver"],
     markerLabel: "interrupt from outside",
   },
   "failure-live-updates": {
-    headline: "Your backend knows. Your frontend doesn't.",
+    headline: "Live Status Updates",
     marker: "span",
     markerLabel: "streamed end-to-end",
   },
   "failure-fan-out": {
-    headline: "Fan out three. Get back two.",
+    headline: "Simultaneously Email, SMS, and Push with Confidence",
     marker: "sendReceipt",
     markerLabel: "parallel, still durable",
   },
