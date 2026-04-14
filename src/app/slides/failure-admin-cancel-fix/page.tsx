@@ -8,16 +8,21 @@ export default function FailureAdminCancelFixSlide() {
       marker={["notifyRestaurant", "assignDriver"]}
       markerLabel="interrupt from outside"
       workflowFix={{
-        caption: "Run.wakeUp() interrupts any sleeping workflow from outside.",
-        code: `import { getRun } from "workflow/api"
+        caption:
+          "Resume a cancel hook for intent, then call Run.wakeUp() if you need to break a pending sleep right away.",
+        code: `import { getRun, resumeHook } from "workflow/api"
 
 // admin dashboard — one API call
-const run = getRun(runId)
-await run.wakeUp()
+await resumeHook(\`order:\${orderId}:admin-cancel\`, {
+  cancelled: true,
+  reason: "support",
+})
+await getRun(runId).wakeUp()
 
-// inside the workflow, after sleep:
-// sleep returns early → workflow checks
-// reason → throws FatalError → saga unwinds`,
+// inside the workflow:
+// Promise.race(cancelHook, sleep("6s"))
+// wakeUp() lets the sleep resolve early
+// the resumed hook provides the cancel reason`,
       }}
     />
   );

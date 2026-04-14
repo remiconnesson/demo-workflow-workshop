@@ -5,8 +5,8 @@ export default function FailureAdminCancelPatternSlide() {
     <PatternSlideLayout
       eyebrow="10d · The pattern"
       patternName="Stop Workflow"
-      description="Any workflow that's sleeping or waiting on a hook can be woken up from the outside. Your workflow code sees the interruption and decides what to do next."
-      apiPrimitive="Run.wakeUp()"
+      description="Use a hook as the stop signal, and optionally call Run.wakeUp() to interrupt a pending sleep so the workflow can observe that signal immediately."
+      apiPrimitive="createHook() + resumeHook() + Run.wakeUp()"
       docSection="Cookbook · Agent Patterns"
       docUrl="useworkflow.dev/docs/cookbook/agent-patterns/stop-workflow"
       marker={["notifyRestaurant", "assignDriver"]}
