@@ -17,7 +17,7 @@ export default async function OneMoreThingSlide() {
         </div>
         <h2 className="mt-2 text-[44px] font-semibold leading-tight tracking-tight">
           An AI picks the restaurant.
-          <span className="text-zinc-500"> Every guarantee above — for agents.</span>
+          <span className="text-zinc-500"> The same durability model, now for agents.</span>
         </h2>
       </div>
 
@@ -32,7 +32,7 @@ export default async function OneMoreThingSlide() {
               DurableAgent
             </div>
             <div className="mt-2 font-sans text-xl leading-snug text-sky-100/80">
-              Tool calls can be steps. The agent loop is a workflow.
+              Tool calls can be durable steps. The agent loop can run as a workflow.
             </div>
           </div>
           <div className="h-20 w-px bg-sky-400/20" />

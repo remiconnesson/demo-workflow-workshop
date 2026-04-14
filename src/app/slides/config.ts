@@ -107,7 +107,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-slow-restaurant-fix",
     title: "Slow Restaurant · Fix",
     number: 14,
-    notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. Workflow resumes. No webhook endpoint.\"",
+    notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
   },
   {
     slug: "failure-slow-restaurant-pattern",
@@ -211,13 +211,13 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-admin-cancel-fix",
     title: "Admin Cancel · Fix",
     number: 30,
-    notes: "SAY: \"Run.wakeUp — shipped tonight. Any sleeping workflow can be interrupted from outside. One API call from the admin dashboard.\"",
+    notes: "SAY: \"Resume the cancel hook, then call Run.wakeUp. The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
   },
   {
     slug: "failure-admin-cancel-pattern",
     title: "Admin Cancel · Pattern",
     number: 31,
-    notes: "SAY: \"This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Combine it with a hook for the cancel signal.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Pair it with a hook when the workflow needs cancellation data immediately.\"\n\nPOINT at the URL.",
   },
 
   // --- 11: Live updates ---
@@ -243,7 +243,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-live-updates-pattern",
     title: "Live Updates · Pattern",
     number: 35,
-    notes: "SAY: \"This is Streaming. getWritable() gives any step a writable stream. The client reads it over plain HTTP, without a separate WebSocket or pubsub system.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is Streaming. Steps write structured updates with getWritable(). In this demo, the client reads that stream over plain HTTP, without a separate WebSocket or pubsub system.\"\n\nPOINT at the URL.",
   },
 
   // --- 12: Fan-out ---
@@ -285,7 +285,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "one-more-thing",
     title: "DurableAgent",
     number: 41,
-    notes: "PRESS 'Run' inside the mock to play the scripted agent reasoning.\n\nSAY: \"Same order. Customer types 'something spicy under fifteen bucks, gluten-free'. An LLM picks the restaurant. Tool calls are durable steps. The agent loop is a workflow. Every guarantee from tonight works on an AI agent out of the box. This is DurableAgent. It ships tonight.\"",
+    notes: "PRESS 'Run' inside the mock to play the scripted agent reasoning.\n\nSAY: \"Same order. Customer types 'something spicy under fifteen bucks, gluten-free'. An LLM picks the restaurant. The mock is scripted, but the API on the right is real: tool calls can be durable steps, and the agent loop can run as a workflow. Same durability model, now applied to agents.\"",
   },
 
   // ─── Act 5 · Close ─────────────────────────────────────────

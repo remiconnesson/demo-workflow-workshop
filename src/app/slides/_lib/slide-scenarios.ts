@@ -111,7 +111,7 @@ export const slideScenarios = {
   streaming: {
     scenarioId: "streaming-happy-path",
     title: "Event stream",
-    subtitle: "Workflow events streamed to the demo over HTTP.",
+    subtitle: "Step-level order updates streamed to the demo over HTTP.",
     autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },
@@ -230,7 +230,7 @@ export const slideScenarios = {
     scenarioId: "failure-admin-cancel",
     title: "Support cancels a sleeping order",
     subtitle:
-      "Run.wakeUp() interrupts the sleep, the admin-cancel hook fires, compensation unwinds.",
+      "Support resumes the cancel hook, calls Run.wakeUp(), and the workflow unwinds.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
