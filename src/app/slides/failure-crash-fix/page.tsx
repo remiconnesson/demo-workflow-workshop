@@ -8,13 +8,14 @@ export default function FailureCrashFixSlide() {
       marker={["chargePayment", "notifyRestaurant"]}
       markerLabel="crash here"
       workflowFix={{
-        caption: "Same six awaits. Two directives. The runtime replays from the event log.",
+        caption:
+          "Same six awaits. Two directives. On restart, the runtime replays completed steps from the event log.",
         code: `async function placeOrder(input) {
   "use workflow"
   const order   = await validateOrder(input)
   const payment = await chargePayment(order)
   await notifyRestaurant(order)
-  // crash anywhere — it resumes
+  // on restart, completed steps are skipped
 }
 
 async function chargePayment(order) {

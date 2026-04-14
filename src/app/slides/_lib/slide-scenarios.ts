@@ -180,7 +180,8 @@ export const slideScenarios = {
   failureCrash: {
     scenarioId: "failure-crash",
     title: "Server dies mid-order",
-    subtitle: "Press 💥 during the run — the runtime replays from the event log.",
+    subtitle:
+      "Press 💥 during the run to simulate the crash. The UI replays streamed events while the server run keeps going.",
     autoStart: false,
     input: { ...BASE_INPUT, failAt: null, autoAck: true },
   },

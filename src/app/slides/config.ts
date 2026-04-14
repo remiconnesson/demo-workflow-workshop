@@ -43,7 +43,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-crash-demo",
     title: "The Crash · Demo",
     number: 4,
-    notes: "PRESS r. Let the run start. CLICK 💥 Crash mid-flight.\n\nSAY: \"Server dies between charge and notify. Customer has been charged. Restaurant has not been told. What do you do now?\"",
+    notes: "PRESS r. Let the run start. CLICK 💥 to simulate the crash mid-flight.\n\nSAY: \"On-stage, I'm wiping the client state and replaying the log. In production, imagine the server dies between charge and notify. Customer has been charged. Restaurant has not been told. What do you do now?\"",
   },
   {
     slug: "failure-crash-naive",
@@ -55,13 +55,13 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-crash-fix",
     title: "The Crash · Fix",
     number: 6,
-    notes: "SAY: \"Or. Two directives. Same six awaits. The runtime replays from the event log. I didn't write a recovery worker. I wrote two strings.\"",
+    notes: "SAY: \"Or. Two directives. Same six awaits. On a real restart, the runtime replays from the event log. I didn't write a recovery worker. I wrote two strings.\"",
   },
   {
     slug: "failure-crash-pattern",
     title: "The Crash · Pattern",
     number: 7,
-    notes: "SAY: \"This is the Workflows and Steps pattern. 'use workflow' on the orchestrator, 'use step' on each unit of work. The runtime handles the event log.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is the Workflows and Steps pattern. 'use workflow' on the orchestrator, 'use step' on each unit of work. On restart, the runtime recovers from the event log.\"\n\nPOINT at the URL.",
   },
 
   // --- 05: Retry ---
