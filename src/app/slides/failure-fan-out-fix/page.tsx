@@ -4,7 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureFanOutFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="12c · The fan-out — workflow code"
+      eyebrow="11c · The fan-out — workflow code"
       {...failureGroups["failure-fan-out"]}
       workflowFix={{
         code: `// Promise.allSettled across separate steps

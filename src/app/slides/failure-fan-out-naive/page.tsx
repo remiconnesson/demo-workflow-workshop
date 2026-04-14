@@ -6,7 +6,7 @@ export default function FailureFanOutNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-fan-out"
-      eyebrow="12b · The fan-out — what you'd write"
+      eyebrow="11b · The fan-out — what you'd write"
       {...failureGroups["failure-fan-out"]}
       naiveCode={getFocusCode("failure-fan-out")}
     />

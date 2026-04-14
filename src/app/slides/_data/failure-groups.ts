@@ -29,7 +29,7 @@ export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
     markerLabel: "payment flaked",
   },
   "failure-slow-restaurant": {
-    headline: "Burning Money on setTimeout",
+    headline: "Burning Money on Wasted Compute",
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
   },
@@ -44,7 +44,7 @@ export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
     markerLabel: "20 min sleep",
   },
   "failure-driver-refuses": {
-    headline: "Dispute the Order",
+    headline: "Dispute the Entire Order",
     marker: "sendReceipt",
     markerLabel: "post-delivery dispute",
   },

@@ -4,7 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureAdminCancelFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="10c · Admin cancel — workflow code"
+      eyebrow="09c · Admin cancel — workflow code"
       {...failureGroups["failure-admin-cancel"]}
       workflowFix={{
         code: `// Resume a cancel hook for intent, then call

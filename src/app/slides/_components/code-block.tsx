@@ -38,7 +38,7 @@ export async function CodeBlock({
 
   return (
     <pre
-      className={`m-0 whitespace-pre font-mono ${textClass} leading-snug ${className}`}
+      className={`m-0 whitespace-pre font-mono ${textClass} leading-[1.5] ${className}`}
       // biome-ignore lint: Shiki emits trusted, pre-escaped HTML
       dangerouslySetInnerHTML={{ __html: html }}
     />

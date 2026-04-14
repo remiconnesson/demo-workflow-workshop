@@ -14,6 +14,7 @@ type DemoSlideLayoutProps = {
   scenario: OrderRunScenario;
   allowCrash?: boolean;
   allowAdminCancel?: boolean;
+  allowDispute?: boolean;
   showSleepCost?: boolean;
   showTimeline?: boolean;
   showCompensations?: boolean;
@@ -35,6 +36,7 @@ export function DemoSlideLayout({
   scenario,
   allowCrash = false,
   allowAdminCancel = false,
+  allowDispute = false,
   showSleepCost = false,
   showTimeline = true,
   showCompensations = true,
@@ -54,6 +56,7 @@ export function DemoSlideLayout({
           scenario={scenario}
           allowCrash={allowCrash}
           allowAdminCancel={allowAdminCancel}
+          allowDispute={allowDispute}
           showSleepCost={showSleepCost}
           showTimeline={showTimeline}
           showCompensations={showCompensations}

@@ -6,7 +6,7 @@ export default function FailureLiveUpdatesNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-live-updates"
-      eyebrow="11b · Live updates — what you'd write"
+      eyebrow="10b · Live updates — what you'd write"
       {...failureGroups["failure-live-updates"]}
       naiveCode={getFocusCode("failure-live-updates")}
     />

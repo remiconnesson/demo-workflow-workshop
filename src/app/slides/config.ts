@@ -174,108 +174,108 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"This is the Scheduling pattern. await sleep with any duration. The workflow suspends with zero compute cost and wakes up on time.\"\n\nPOINT at the URL.",
   },
 
-  // --- 09: Driver refuses ---
-  {
-    slug: "failure-driver-refuses-demo",
-    title: "The Refusal · Demo",
-    number: 25,
-    notes: "PRESS r. Restaurant accepts, driver declines. Watch fuchsia compensation pills fire in reverse.\n\nSAY: \"Only driver refused the job. Fatal. You need to undo everything. What do you do now?\"",
-  },
-  {
-    slug: "failure-driver-refuses-naive",
-    title: "The Refusal · Naive",
-    number: 26,
-    notes: "POINT at the code: \"Compensation coordinator. Reads the orders table. Runs reverse operations. Get the order wrong — you refund before you cancel and now you owe the restaurant.\"",
-  },
-  {
-    slug: "failure-driver-refuses-fix",
-    title: "The Refusal · Workflow Code",
-    number: 27,
-    notes: "SAY: \"Push an undo for each step. FatalError pops them in reverse. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
-  },
-  {
-    slug: "failure-driver-refuses-pattern",
-    title: "The Refusal · Concept / Pattern",
-    number: 28,
-    notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, FatalError triggers the reverse walk. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
-  },
-
-  // --- 10: Admin cancel ---
+  // --- 09: Admin cancel ---
   {
     slug: "failure-admin-cancel-demo",
     title: "Admin Cancel · Demo",
-    number: 29,
+    number: 25,
     notes: "PRESS r. Wait for the admin sleep window. CLICK the amber 'Admin cancel' button.\n\nSAY: \"Customer calls support. Wants to cancel the order sitting in a prep-window sleep. What do you do now?\"",
   },
   {
     slug: "failure-admin-cancel-naive",
     title: "Admin Cancel · Naive",
-    number: 30,
+    number: 26,
     notes: "POINT at the code: \"Admin dashboard has to know about the sleep-scheduler table. Delete the row. Manually kick the compensation coordinator. Two systems, not in a transaction.\"",
   },
   {
     slug: "failure-admin-cancel-fix",
     title: "Admin Cancel · Workflow Code",
-    number: 31,
+    number: 27,
     notes: "SAY: \"Resume the cancel hook, then call getRun(runId).wakeUp(). The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
   },
   {
     slug: "failure-admin-cancel-pattern",
     title: "Admin Cancel · Concept / Pattern",
-    number: 32,
+    number: 28,
     notes: "SAY: \"This is the payoff from the last few patterns. Sleep gave us the pause. Hooks gave us the external signal. Saga gave us the unwind. Here the stop signal is createHook plus resumeHook. If the run is sleeping, wake it so it sees that signal immediately.\"\n\nPOINT at the URL.",
   },
 
-  // --- 11: Live updates ---
+  // --- 10: Live updates ---
   {
     slug: "failure-live-updates-demo",
     title: "Live Updates · Demo",
-    number: 33,
+    number: 29,
     notes: "PRESS r. Watch the lab events stream in. Each step lands in real time.\n\nSAY: \"Customer is staring at a spinner. What do you do now?\"",
   },
   {
     slug: "failure-live-updates-naive",
     title: "Live Updates · Naive",
-    number: 34,
+    number: 30,
     notes: "POINT at the code: \"Pubsub service. WebSocket server. Redis for pub and a second Redis for sub. Handle reconnects, backpressure, ordering.\"",
   },
   {
     slug: "failure-live-updates-fix",
     title: "Live Updates · Workflow Code",
-    number: 35,
+    number: 31,
     notes: "SAY: \"getWritable. Steps write to a stream. Client subscribes. Backend and UI stay in sync without a second system.\"",
   },
   {
     slug: "failure-live-updates-pattern",
     title: "Live Updates · Concept / Pattern",
-    number: 36,
+    number: 32,
     notes: "SAY: \"This is Streaming. Steps write structured updates with getWritable(). In this demo, the client reads that stream over plain HTTP, without a separate WebSocket or pubsub system.\"\n\nPOINT at the URL.",
   },
 
-  // --- 12: Fan-out ---
+  // --- 11: Fan-out ---
   {
     slug: "failure-fan-out-demo",
     title: "The Fan-out · Demo",
-    number: 37,
-    notes: "LAST CONCEPT GROUP.\n\nPRESS r. Watch the fan-out log events.\n\nSAY: \"Three notifications. Email, push, loyalty. Email is down. What do you do now?\"",
+    number: 33,
+    notes: "PRESS r. Watch the fan-out log events.\n\nSAY: \"Three notifications. Email, push, loyalty. Email is down. What do you do now?\"",
   },
   {
     slug: "failure-fan-out-naive",
     title: "The Fan-out · Naive",
-    number: 38,
+    number: 34,
     notes: "POINT at the code: \"Per-channel state. Per-channel retries. Per-channel idempotency. This one file is bigger than your entire placeOrder function.\"",
   },
   {
     slug: "failure-fan-out-fix",
     title: "The Fan-out · Workflow Code",
-    number: 39,
+    number: 35,
     notes: "SAY: \"Promise.allSettled on three steps. Each durable independently. Email retries later. The other two finish now. It's just JavaScript, that happens to be durable.\"",
   },
   {
     slug: "failure-fan-out-pattern",
     title: "The Fan-out · Concept / Pattern",
+    number: 36,
+    notes: "SAY: \"This is Fan-Out and Parallel Delivery. Promise.all and allSettled just work — each branch is a durable step.\"",
+  },
+
+  // --- 12: Dispute the Order (FINALE) ---
+  {
+    slug: "failure-driver-refuses-demo",
+    title: "Dispute · Demo",
+    number: 37,
+    notes: "LAST CONCEPT GROUP.\n\nPRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
+  },
+  {
+    slug: "failure-driver-refuses-naive",
+    title: "Dispute · Naive",
+    number: 38,
+    notes: "POINT at the code: \"A compensation coordinator that walks every completed step. Refund. Cancel. Release. Get the order wrong — you refund before you cancel and now you owe the restaurant. And this only runs if your admin remembers to call it.\"",
+  },
+  {
+    slug: "failure-driver-refuses-fix",
+    title: "Dispute · Workflow Code",
+    number: 39,
+    notes: "SAY: \"Push an undo for each step. FatalError pops them in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
+  },
+  {
+    slug: "failure-driver-refuses-pattern",
+    title: "Dispute · Concept / Pattern",
     number: 40,
-    notes: "SAY: \"This is Fan-Out and Parallel Delivery. Promise.all and allSettled just work — each branch is a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
+    notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, FatalError triggers the reverse walk. Each compensation is itself a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
   },
 
   // ─── Act 3 · The Reveal ────────────────────────────────────

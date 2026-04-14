@@ -71,23 +71,17 @@ export const slideScenarios = {
     scriptedResumes: AUTO_FINISH_AFTER_RESTAURANT,
   },
   saga: {
-    scenarioId: "driver-decline-rollback",
-    title: "Driver decline triggers rollback",
-    subtitle: "Restaurant accepts, driver declines, compensations unwind.",
+    scenarioId: "dispute-window-rollback",
+    title: "saga",
+    subtitle:
+      "Stack an undo on every step so a missed delivery unwinds the whole run",
     autoStart: false,
-    input: { ...BASE_INPUT, failAt: null, autoAck: false },
-    scriptedResumes: [
-      {
-        step: "notifyRestaurant" as const,
-        delayMs: 500,
-        body: { kind: "restaurant-accept" as const, accepted: true },
-      },
-      {
-        step: "assignDriver" as const,
-        delayMs: 500,
-        body: { kind: "driver-accept" as const, accepted: false },
-      },
-    ],
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "disputeWindow" as const,
+    },
   },
   compensationTimeline: {
     scenarioId: "compensation-timeline-rollback",
@@ -179,9 +173,8 @@ export const slideScenarios = {
   },
   failureCrash: {
     scenarioId: "failure-crash",
-    title: "Server dies mid-order",
-    subtitle:
-      "Press 💥 during the run to simulate the crash. The UI replays streamed events while the server run keeps going.",
+    title: "failure-crash",
+    subtitle: "Automatically retry when errors pop up",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -192,9 +185,9 @@ export const slideScenarios = {
   },
   ghostRestaurant: {
     scenarioId: "ghost-restaurant",
-    title: "Restaurant never answers",
+    title: "ghost-restaurant",
     subtitle:
-      "Real Promise.race: the restaurant hook races against a sleep and the sleep wins.",
+      "Give the restaurant a deadline so your customer isn't left hanging",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -208,9 +201,8 @@ export const slideScenarios = {
   },
   failurePrepWindow: {
     scenarioId: "failure-prep-window",
-    title: "Waiting for the bakery prep window",
-    subtitle:
-      "await sleep(20m) compressed to ~3s. Visible pause between charge and notify.",
+    title: "failure-prep-window",
+    subtitle: "Sleep the workflow so your customer can pre-order",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -221,9 +213,9 @@ export const slideScenarios = {
   },
   failureFanOut: {
     scenarioId: "failure-fan-out",
-    title: "Three notifications, one fails",
+    title: "failure-fan-out",
     subtitle:
-      "Promise.allSettled over email/push/loyalty. Email flakes, the other two finish.",
+      "Parallelize notifications so each channel retries on its own",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -234,9 +226,8 @@ export const slideScenarios = {
   },
   failureAdminCancel: {
     scenarioId: "failure-admin-cancel",
-    title: "Support cancels a sleeping order",
-    subtitle:
-      "Support resumes the cancel hook, calls getRun(runId).wakeUp(), and the workflow unwinds.",
+    title: "failure-admin-cancel",
+    subtitle: "Expose a hook so your customer can change their mind",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -248,9 +239,9 @@ export const slideScenarios = {
   },
   naiveDoubleCharge: {
     scenarioId: "naive-double-charge",
-    title: "Customer charged twice (no idempotency)",
+    title: "naive-double-charge",
     subtitle:
-      "Plain Error + non-deterministic payment id → two pay_* rows in inspect.",
+      "Guard payments with an idempotency key to save your customer's credit card",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -274,9 +265,9 @@ export const slideScenarios = {
   },
   naivePoll: {
     scenarioId: "naive-poll",
-    title: "Naive poll holds compute for minutes",
+    title: "naive-poll",
     subtitle:
-      "10 × 300ms step attempts instead of a durable hook — server stays hot the whole time.",
+      "Avoid polling with a hook to avoid racking up the server costs",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -287,9 +278,8 @@ export const slideScenarios = {
   },
   naiveNoStream: {
     scenarioId: "naive-no-stream",
-    title: "Backend runs, frontend sees nothing",
-    subtitle:
-      "emit() suppressed except for the final done — no chunks until the run ends.",
+    title: "naive-no-stream",
+    subtitle: "Send events so your customer sees real-time progress",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -300,9 +290,9 @@ export const slideScenarios = {
   },
   naiveAllOrNothing: {
     scenarioId: "naive-all-or-nothing",
-    title: "Fan out three. Get back two.",
+    title: "naive-all-or-nothing",
     subtitle:
-      "Promise.all + plain Error → email retries exhaust, push/loyalty results discarded.",
+      "Keep each channel independent so a single failure can't cancel the rest",
     autoStart: false,
     input: {
       ...BASE_INPUT,

@@ -4,23 +4,22 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureDriverRefusesFixSlide() {
   return (
     <FixSlideLayout
-      eyebrow="09c · The refusal — workflow code"
+      eyebrow="12c · The dispute — workflow code"
       {...failureGroups["failure-driver-refuses"]}
       workflowFix={{
-        code: `// Push an undo for each step.
-// FatalError pops them in reverse.
-const compensations = []
-
-const paymentId = await chargePayment(order)
-compensations.push(
-  () => refundPayment(paymentId)
-)
-
-await notifyRestaurant(order)
-compensations.push(
-  () => cancelRestaurant(orderId)
-)
-// on FatalError → pop & call each`,
+        code: `// Every step already pushed its undo.
+// Open a post-delivery dispute window.
+const disputeHook = createHook({
+  token: \`order:\${orderId}:dispute\`,
+})
+const verdict = await Promise.race([
+  disputeHook,
+  sleep("24h"),
+])
+if (verdict?.reason) {
+  throw new FatalError(verdict.reason)
+  // FatalError pops every undo in reverse
+}`,
       }}
     />
   );

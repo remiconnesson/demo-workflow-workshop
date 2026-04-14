@@ -25,7 +25,7 @@ export default async function TheSetupSlide() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-zinc-950 p-10">
-        <CodeBlock code={PLACE_ORDER_CODE} lang="ts" textClass="text-3xl" />
+        <CodeBlock code={PLACE_ORDER_CODE} lang="ts" textClass="text-[26px]" />
       </div>
     </div>
   );

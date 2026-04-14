@@ -6,7 +6,7 @@ export default function FailureAdminCancelDemoSlide() {
   return (
     <DemoSlideLayout
       slide="failure-admin-cancel"
-      eyebrow="10a · Admin cancel — watch it interrupt"
+      eyebrow="09a · Admin cancel — watch it interrupt"
       {...failureGroups["failure-admin-cancel"]}
       scenario={slideScenarios.failureAdminCancel}
       allowAdminCancel

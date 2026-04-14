@@ -58,7 +58,7 @@ export default async function TheRevealSlide() {
           </div>
 
           <div className="mt-6 overflow-x-auto rounded-xl border border-white/5 bg-black/60 p-6">
-            <CodeBlock code={WORKFLOW_CODE} lang="ts" textClass="text-3xl" />
+            <CodeBlock code={WORKFLOW_CODE} lang="ts" textClass="text-[26px]" />
           </div>
 
           <div className="mt-5 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto font-mono text-base">

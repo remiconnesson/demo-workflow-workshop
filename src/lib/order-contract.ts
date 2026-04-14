@@ -36,7 +36,8 @@ export type DemoMode =
   | "naiveCrashNoRecover"
   | "naivePoll"
   | "naiveNoStream"
-  | "naiveAllOrNothing";
+  | "naiveAllOrNothing"
+  | "disputeWindow";
 
 export const ORDER_STEPS = [
   {
@@ -99,6 +100,7 @@ export const hookTokens = {
   delivered: (orderId: string) => `order:${orderId}:delivered`,
   adminCancel: (orderId: string) => `order:${orderId}:admin-cancel`,
   crashInject: (orderId: string) => `order:${orderId}:crash-inject`,
+  deliveryDispute: (orderId: string) => `order:${orderId}:delivery-dispute`,
 } as const;
 
 export const RESUME_KIND_BY_STEP = {

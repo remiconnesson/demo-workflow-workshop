@@ -6,9 +6,10 @@ export default function FailureDriverRefusesDemoSlide() {
   return (
     <DemoSlideLayout
       slide="failure-driver-refuses"
-      eyebrow="09a · The refusal — watch it unwind"
+      eyebrow="12a · The dispute — undo a done deal"
       {...failureGroups["failure-driver-refuses"]}
       scenario={slideScenarios.saga}
+      allowDispute
     />
   );
 }

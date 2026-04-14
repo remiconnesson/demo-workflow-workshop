@@ -6,7 +6,7 @@ export default function FailureAdminCancelNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-admin-cancel"
-      eyebrow="10b · Admin cancel — what you'd write"
+      eyebrow="09b · Admin cancel — what you'd write"
       {...failureGroups["failure-admin-cancel"]}
       naiveCode={getFocusCode("failure-admin-cancel")}
     />

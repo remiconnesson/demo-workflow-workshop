@@ -332,6 +332,41 @@ export async function placeOrderWorkflow(
 
     await sendReceipt(input, paymentId, failAt === "sendReceipt");
 
+    // 7. Post-delivery dispute window (demo mode only — the
+    //    failure-driver-refuses / "Dispute the Order" slide demonstrates
+    //    compensation unwinding a fully-completed happy path. All six
+    //    steps are green; we open a short race between a durable
+    //    disputeHook (resumed by the /api/orders/[orderId]/dispute
+    //    route) and a short sleep (5s compressed from 24h). If the
+    //    hook fires, FatalError cascades every compensation in reverse.
+    if (input.demoMode === "disputeWindow") {
+      const disputeHook = createHook<{ reason: string }>({
+        token: hookTokens.deliveryDispute(orderId),
+      });
+      await e({
+        type: "log",
+        message: "Dispute window open (5s compressed from 24h)",
+      });
+      const verdict = await Promise.race([
+        disputeHook.then((r) => ({
+          kind: "disputed" as const,
+          reason: r.reason,
+        })),
+        sleep("5s").then(() => ({ kind: "confirmed" as const })),
+      ]);
+      if (verdict.kind === "disputed") {
+        await e({
+          type: "log",
+          message: `Dispute: ${verdict.reason}`,
+        });
+        throw new FatalError(`Delivery disputed: ${verdict.reason}`);
+      }
+      await e({
+        type: "log",
+        message: "Dispute window closed, order confirmed",
+      });
+    }
+
     await e({
       type: "done",
       status: "completed",

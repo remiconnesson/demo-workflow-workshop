@@ -187,15 +187,25 @@ setInterval(async () => {
 };
 
 const FILE_COMPENSATION_COORDINATOR: NaiveFile = {
-  name: "compensation-coordinator.ts",
-  lines: 72,
+  name: "dispute-coordinator.ts",
+  lines: 88,
   addedOnSlide: "failure-driver-refuses",
-  code: `export async function compensate(orderId: string, reason: string) {
+  code: `// Customer disputes AFTER the happy path finished.
+// Every step already succeeded — status is "completed".
+// Now unwind all six of them, in reverse, by hand.
+export async function handleDispute(orderId: string, reason: string) {
   const order = await db.orders.findUniqueOrThrow({ where: { id: orderId } })
-  // walk backwards through the order's state — order matters:
-  // refund before cancel and you owe the restaurant for food they threw out
+  if (order.status !== "completed") throw new Error("not completed")
+
+  // Walk the completed-step list backwards. Order matters:
+  // void receipts before refund or your books are wrong;
+  // refund before cancel and you owe the restaurant for food;
+  // release the driver or you keep paying them.
   const ops: (() => Promise<void>)[] = []
 
+  if (order.receiptId) {
+    ops.push(() => receipts.void(order.receiptId!))
+  }
   if (order.driverId) {
     ops.push(() => dispatcher.releaseDriver(order.driverId!))
   }
@@ -214,8 +224,9 @@ const FILE_COMPENSATION_COORDINATOR: NaiveFile = {
 
   await db.orders.update({
     where: { id: orderId },
-    data: { status: "rolled_back", rollbackReason: reason },
+    data: { status: "disputed", disputeReason: reason },
   })
+  // And hope nobody marked anything complete in a cache somewhere.
 }`,
 };
 
@@ -359,14 +370,9 @@ function buildAccumulation(): Record<string, NaiveAccumulationEntry> {
   const afterPrepWindow = [...afterGhost, FILE_SLEEP_SCHEDULER];
   addSlide("failure-prep-window", FILE_SLEEP_SCHEDULER.name, afterPrepWindow);
 
-  const afterDriver = [...afterPrepWindow, FILE_COMPENSATION_COORDINATOR];
-  addSlide(
-    "failure-driver-refuses",
-    FILE_COMPENSATION_COORDINATOR.name,
-    afterDriver,
-  );
-
-  const afterAdminCancel = [...afterDriver, FILE_ADMIN_CANCEL_BRIDGE];
+  // New ordering matches the slide deck: admin cancel, live updates,
+  // fan-out, and THEN the dispute finale (biggest unwind last).
+  const afterAdminCancel = [...afterPrepWindow, FILE_ADMIN_CANCEL_BRIDGE];
   addSlide(
     "failure-admin-cancel",
     FILE_ADMIN_CANCEL_BRIDGE.name,
@@ -383,6 +389,13 @@ function buildAccumulation(): Record<string, NaiveAccumulationEntry> {
     afterFanOut,
   );
 
+  const afterDispute = [...afterFanOut, FILE_COMPENSATION_COORDINATOR];
+  addSlide(
+    "failure-driver-refuses",
+    FILE_COMPENSATION_COORDINATOR.name,
+    afterDispute,
+  );
+
   return accumulation;
 }
 
@@ -393,7 +406,7 @@ export function getNaiveAccumulation(slide: string): NaiveAccumulationEntry | nu
 }
 
 export function getFullNaiveCatalog(): NaiveFile[] {
-  return NAIVE_ACCUMULATION["failure-fan-out"]?.allFiles ?? [];
+  return NAIVE_ACCUMULATION["failure-driver-refuses"]?.allFiles ?? [];
 }
 
 export function getFocusCode(slide: string): string {

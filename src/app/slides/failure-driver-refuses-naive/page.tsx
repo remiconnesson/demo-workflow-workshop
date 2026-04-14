@@ -6,7 +6,7 @@ export default function FailureDriverRefusesNaiveSlide() {
   return (
     <NaiveSlideLayout
       slide="failure-driver-refuses"
-      eyebrow="09b · The refusal — what you'd write"
+      eyebrow="12b · The dispute — what you'd write"
       {...failureGroups["failure-driver-refuses"]}
       naiveCode={getFocusCode("failure-driver-refuses")}
     />

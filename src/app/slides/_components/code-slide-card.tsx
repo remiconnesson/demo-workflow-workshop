@@ -24,7 +24,7 @@ export function CodeSlideCard({ code, tone, lang = "ts" }: CodeSlideCardProps) {
       className={`flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border ${TONE_BORDER[tone]} bg-black/60 p-6`}
     >
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <CodeBlock code={code} lang={lang} textClass="text-3xl" />
+        <CodeBlock code={code} lang={lang} textClass="text-[26px]" />
       </div>
     </div>
   );

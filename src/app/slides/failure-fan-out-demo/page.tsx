@@ -6,7 +6,7 @@ export default function FailureFanOutDemoSlide() {
   return (
     <DemoSlideLayout
       slide="failure-fan-out"
-      eyebrow="12a · The fan-out — watch it scatter"
+      eyebrow="11a · The fan-out — watch it scatter"
       {...failureGroups["failure-fan-out"]}
       scenario={slideScenarios.naiveAllOrNothing}
       highlightSteps={["sendReceipt"]}

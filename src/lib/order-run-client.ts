@@ -56,6 +56,7 @@ export type OrderRunController = {
   resumeToast: string | null;
   error: string | null;
   adminCancelReady: boolean;
+  disputeReady: boolean;
   crashPhase: CrashPhase;
   crashMessage: string | null;
   start: () => Promise<void>;
@@ -63,6 +64,7 @@ export type OrderRunController = {
   resume: (body: ResumeBody) => Promise<void>;
   crash: () => Promise<void>;
   adminCancel: (reason?: string) => Promise<void>;
+  dispute: (reason?: string) => Promise<void>;
 };
 
 function makeOrderId(source: string, scenarioId: string): string {
@@ -106,6 +108,7 @@ export function useOrderRun(
   const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [adminCancelReady, setAdminCancelReady] = useState(false);
+  const [disputeReady, setDisputeReady] = useState(false);
   const [crashPhase, setCrashPhase] = useState<CrashPhase>("live");
   const [crashMessage, setCrashMessage] = useState<string | null>(null);
 
@@ -212,6 +215,49 @@ export function useOrderRun(
     [scenario.scenarioId, source],
   );
 
+  const dispute = useCallback(
+    async (reason?: string) => {
+      const currentOrderId = orderIdRef.current;
+      if (!currentOrderId) return;
+      setError(null);
+      console.info("[order-run] dispute_requested", {
+        source,
+        scenarioId: scenario.scenarioId,
+        orderId: currentOrderId,
+        reason,
+      });
+      const response = await fetch(
+        `/api/orders/${currentOrderId}/dispute`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reason: reason ?? "never arrived" }),
+        },
+      );
+      if (!response.ok) {
+        let message = `dispute failed: ${response.status}`;
+        try {
+          const body = (await response.json()) as { error?: string };
+          if (body.error) {
+            message = body.error;
+          }
+        } catch {
+          // Ignore JSON parse failures and fall back to status text.
+        }
+        setError(message);
+        console.warn("[order-run] dispute_rejected", {
+          source,
+          scenarioId: scenario.scenarioId,
+          orderId: currentOrderId,
+          status: response.status,
+          message,
+        });
+        return;
+      }
+    },
+    [scenario.scenarioId, source],
+  );
+
   const reset = useCallback(
     (reason = "reset") => {
       streamAbortRef.current?.abort();
@@ -234,6 +280,7 @@ export function useOrderRun(
       setResumeToast(null);
       setError(null);
       setAdminCancelReady(false);
+      setDisputeReady(false);
       setCrashPhase("live");
       crashPhaseRef.current = "live";
       setCrashMessage(null);
@@ -400,6 +447,7 @@ export function useOrderRun(
         case "done":
           clearScheduledResume("done");
           setAdminCancelReady(false);
+          setDisputeReady(false);
           setWaitStrategy(null);
           setDoneStatus(event.status);
           setRunning(false);
@@ -415,6 +463,15 @@ export function useOrderRun(
             event.message === "Support cancel window closed, continuing to dispatch"
           ) {
             setAdminCancelReady(false);
+          } else if (
+            event.message === "Dispute window open (5s compressed from 24h)"
+          ) {
+            setDisputeReady(true);
+          } else if (
+            event.message.startsWith("Dispute:") ||
+            event.message === "Dispute window closed, order confirmed"
+          ) {
+            setDisputeReady(false);
           }
           break;
         default:
@@ -622,6 +679,7 @@ export function useOrderRun(
     resumeToast,
     error,
     adminCancelReady,
+    disputeReady,
     crashPhase,
     crashMessage,
     start,
@@ -629,5 +687,6 @@ export function useOrderRun(
     resume,
     crash,
     adminCancel,
+    dispute,
   };
 }

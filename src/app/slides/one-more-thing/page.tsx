@@ -37,7 +37,7 @@ export default async function OneMoreThingSlide() {
           </div>
           <div className="h-20 w-px bg-sky-400/20" />
           <div className="overflow-hidden rounded-xl border border-white/5 bg-black/60 px-6 py-4">
-            <CodeBlock code={AGENT_CODE} lang="ts" textClass="text-3xl" />
+            <CodeBlock code={AGENT_CODE} lang="ts" textClass="text-[26px]" />
           </div>
         </div>
       </div>

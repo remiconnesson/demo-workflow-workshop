@@ -76,6 +76,7 @@ export function LiveOrderConceptLab({
   highlightSteps,
   allowCrash = false,
   allowAdminCancel = false,
+  allowDispute = false,
   showSleepCost = false,
 }: {
   slide: string;
@@ -90,6 +91,8 @@ export function LiveOrderConceptLab({
   allowCrash?: boolean;
   /** Show an Admin cancel button that fires Run.wakeUp() via the admin-cancel route. */
   allowAdminCancel?: boolean;
+  /** Show a Dispute order button that fires the post-delivery dispute hook. */
+  allowDispute?: boolean;
   /** Show the split cost comparison (naive polling vs SDK sleep) during durable sleep. */
   showSleepCost?: boolean;
 }) {
@@ -250,12 +253,9 @@ export function LiveOrderConceptLab({
   return (
     <div className="relative rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            {scenario.title}
-          </div>
-          <div className="mt-2 text-lg text-zinc-400 h-[56px] overflow-hidden line-clamp-2">
-            {scenario.subtitle ?? "\u00A0"}
+        <div className="flex-1">
+          <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
+            {scenario.subtitle ?? scenario.title}
           </div>
         </div>
         <div className="flex gap-2">
@@ -290,6 +290,20 @@ export function LiveOrderConceptLab({
               className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-300 hover:border-amber-400 hover:text-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               Admin cancel
+            </button>
+          ) : null}
+          {allowDispute ? (
+            <button
+              onClick={() => void controller.dispute("never arrived")}
+              disabled={
+                !controller.running ||
+                !controller.orderId ||
+                !controller.disputeReady ||
+                controller.doneStatus !== null
+              }
+              className="rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-4 py-2 text-sm text-fuchsia-300 hover:border-fuchsia-400 hover:text-fuchsia-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            >
+              Dispute order
             </button>
           ) : null}
           <button
