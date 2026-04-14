@@ -8,11 +8,11 @@ export default function FailureFanOutFixSlide() {
       marker="sendReceipt"
       markerLabel="parallel, still durable"
       workflowFix={{
-        caption: "Promise.allSettled — each step is durable independently.",
+        caption: "Promise.allSettled across separate steps gives each branch its own durable boundary.",
         code: `"use workflow"
 
-// each step checkpoints, retries,
-// and replays on its own
+// put each branch in its own step
+// for per-branch durability
 await Promise.allSettled([
   emailReceipt(order),
   pushNotification(order),
