@@ -1,15 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailureDriverRefusesFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="09c · The refusal — workflow code"
-      headline="The only driver refused the job."
-      marker="assignDriver"
-      markerLabel="fatal → unwind"
+      {...failureGroups["failure-driver-refuses"]}
       workflowFix={{
-        caption: "Push an undo for each step. FatalError pops them in reverse.",
-        code: `const compensations = []
+        code: `// Push an undo for each step.
+// FatalError pops them in reverse.
+const compensations = []
 
 const paymentId = await chargePayment(order)
 compensations.push(

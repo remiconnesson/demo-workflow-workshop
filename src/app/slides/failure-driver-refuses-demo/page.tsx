@@ -1,4 +1,5 @@
 import { DemoSlideLayout } from "../_components/demo-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function FailureDriverRefusesDemoSlide() {
@@ -6,9 +7,7 @@ export default function FailureDriverRefusesDemoSlide() {
     <DemoSlideLayout
       slide="failure-driver-refuses"
       eyebrow="09a · The refusal — watch it unwind"
-      headline="Charged the card. Started cooking. No one's coming."
-      marker="assignDriver"
-      markerLabel="fatal → unwind"
+      {...failureGroups["failure-driver-refuses"]}
       scenario={slideScenarios.saga}
     />
   );

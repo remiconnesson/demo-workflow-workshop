@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-crash"];
 
 export default function FailureCrashPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureCrashPatternSlide() {
       apiPrimitive={`"use workflow"  ·  "use step"`}
       docSection="Foundations"
       docUrl="useworkflow.dev/docs/foundations/workflows-and-steps"
-      marker={["chargePayment", "notifyRestaurant"]}
-      markerLabel="crash here"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

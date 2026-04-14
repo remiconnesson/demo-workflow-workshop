@@ -217,13 +217,13 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-admin-cancel-fix",
     title: "Admin Cancel · Workflow Code",
     number: 31,
-    notes: "SAY: \"Resume the cancel hook, then call Run.wakeUp. The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
+    notes: "SAY: \"Resume the cancel hook, then call getRun(runId).wakeUp(). The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
   },
   {
     slug: "failure-admin-cancel-pattern",
     title: "Admin Cancel · Concept / Pattern",
     number: 32,
-    notes: "SAY: \"This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Pair it with a hook when the workflow needs cancellation data immediately.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is the payoff from the last few patterns. Sleep gave us the pause. Hooks gave us the external signal. Saga gave us the unwind. Here the stop signal is createHook plus resumeHook. If the run is sleeping, wake it so it sees that signal immediately.\"\n\nPOINT at the URL.",
   },
 
   // --- 11: Live updates ---

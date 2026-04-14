@@ -1,4 +1,5 @@
 import type { OrderStepId } from "@/lib/order-contract";
+import { CopyablePrompt } from "./copyable-prompt";
 import { DemoStrip } from "./demo-strip";
 
 type PatternSlideLayoutProps = {
@@ -28,30 +29,39 @@ export function PatternSlideLayout({
   marker,
   markerLabel,
 }: PatternSlideLayoutProps) {
+  const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
+
   return (
-    <div className="flex h-full w-full flex-col gap-6 px-14 py-8">
+    <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
       <DemoStrip marker={marker} label={markerLabel} />
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-10">
-        <h2 className="text-center text-7xl font-semibold tracking-tight">
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
+        <h2 className="text-center text-6xl font-semibold tracking-tight">
           {patternName}
         </h2>
 
-        <p className="max-w-3xl text-center text-3xl leading-relaxed text-zinc-400">
+        <p className="max-w-3xl text-center text-2xl leading-relaxed text-zinc-400">
           {description}
         </p>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-950 px-10 py-6 text-center font-mono text-3xl text-white">
+        <div className="rounded-2xl border border-white/10 bg-zinc-950 px-10 py-5 text-center font-mono text-2xl text-white">
           {apiPrimitive}
         </div>
 
-        <div className="mt-4 flex flex-col items-center gap-2">
+        <CopyablePrompt />
+
+        <div className="flex flex-col items-center gap-1">
           <div className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-600">
             {docSection}
           </div>
-          <div className="font-mono text-2xl text-zinc-300">
+          <a
+            href={docHref}
+            target="_blank"
+            rel="noreferrer"
+            className="font-mono text-xl text-zinc-300 underline decoration-zinc-700 underline-offset-4 transition hover:text-white hover:decoration-white"
+          >
             {docUrl}
-          </div>
+          </a>
         </div>
       </div>
     </div>

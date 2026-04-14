@@ -394,12 +394,12 @@ Three parallel lanes, each checkpointing independently. A dim note: "one fails �
 ### 16. `wakeup` — Interrupt from outside
 
 **Headline:** Admin cancel
-**Sub:** `Run.wakeUp()` — new in GA
+**Sub:** `getRun(runId).wakeUp()` — new in GA
 
-**On screen:** Lab shows an order mid-sleep (from Slide 8's 20-minute wait). On the right, a small "Admin dashboard" card with a single "Cancel this order" button. Presenter clicks it. The sleeping workflow wakes up with a cancellation reason, the orchestrator sees it, and compensations unwind. Phone shows "Cancelled by support".
+**On screen:** Lab shows an order mid-sleep (from Slide 8's 20-minute wait). On the right, a small "Admin dashboard" card with a single "Cancel this order" button. Presenter clicks it. The admin route resumes the cancel hook and wakes the sleeping workflow, the orchestrator sees the cancel reason, and compensations unwind. Phone shows "Cancelled by support".
 
 **Presenter words:**
-> "One more. A workflow that's sleeping or waiting on a hook can be woken up *from the outside*. Admin dashboard, another workflow, a cron job, whatever. `Run.wakeUp()` with a reason. Your workflow code sees the reason and decides what to do — in this case, throw a fatal and let the saga unwind. This shipped tonight for GA. It turns every long-running workflow into something you can interrupt and cancel cleanly."
+> "One more. A workflow that's sleeping can be woken up *from the outside*. Admin dashboard, another workflow, a cron job, whatever. Call `getRun(runId).wakeUp()`, and pair it with a hook when you need structured cancellation data. Your workflow code sees that signal and decides what to do — in this case, throw a fatal and let the saga unwind. This shipped tonight for GA. It turns every long-running workflow into something you can interrupt and cancel cleanly."
 
 **Click cue:** advance → `durable-agent`.
 
@@ -452,7 +452,7 @@ This is what I'd build in order, grouped so each commit leaves the deck runnable
 **Phase 1 — Infrastructure (new capabilities the script needs)**
 1. Add a **persistent code strip** shell to the slide layout so every slide can opt in. Takes one file + a slide-layout tweak.
 2. Add a **`crash-and-resume` scenario** to `LiveOrderConceptLab`: simulate a process death, reconstruct from the real event log, replay visually. This unlocks slides 4 and 6 — the whole load-bearing beam.
-3. Add a **`wakeup` scenario** (sleeping workflow + external `Run.wakeUp()` call from an admin card).
+3. Add a **`wakeup` scenario** (sleeping workflow + external `getRun(runId).wakeUp()` call from an admin card).
 
 **Phase 2 — Script-driven slide edits (existing slides get rewritten to match the script)**
 4. Rewrite copy on: `title`, `demo` → `the-order`, `naive`, `directives` → `two-directives`, `replay`, `sleep`, `hooks` (absorb tokens), `timeout-race`, `idempotency`, `saga` (absorb compensation-timeline), `parallel` (absorb fan-out), `streaming` (strip any console-like UI), `close`.

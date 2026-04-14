@@ -284,6 +284,7 @@ export function LiveOrderConceptLab({
               disabled={
                 !controller.running ||
                 !controller.orderId ||
+                !controller.adminCancelReady ||
                 controller.doneStatus !== null
               }
               className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-300 hover:border-amber-400 hover:text-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"

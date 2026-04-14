@@ -183,7 +183,12 @@ export const slideScenarios = {
     subtitle:
       "Press 💥 during the run to simulate the crash. The UI replays streamed events while the server run keeps going.",
     autoStart: false,
-    input: { ...BASE_INPUT, failAt: null, autoAck: true },
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "crashInjectable" as const,
+    },
   },
   ghostRestaurant: {
     scenarioId: "ghost-restaurant",
@@ -231,7 +236,7 @@ export const slideScenarios = {
     scenarioId: "failure-admin-cancel",
     title: "Support cancels a sleeping order",
     subtitle:
-      "Support resumes the cancel hook, calls Run.wakeUp(), and the workflow unwinds.",
+      "Support resumes the cancel hook, calls getRun(runId).wakeUp(), and the workflow unwinds.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -240,6 +245,71 @@ export const slideScenarios = {
       demoMode: "adminSleepBeforeDriver" as const,
     },
     silentWaitingSteps: ["notifyRestaurant"],
+  },
+  naiveDoubleCharge: {
+    scenarioId: "naive-double-charge",
+    title: "Customer charged twice (no idempotency)",
+    subtitle:
+      "Plain Error + non-deterministic payment id → two pay_* rows in inspect.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "naiveDoubleCharge" as const,
+    },
+  },
+  naiveCrash: {
+    scenarioId: "naive-crash-no-recover",
+    title: "Money moved, order didn't",
+    subtitle:
+      "FatalError between charge and notify → refund compensation unwinds, restaurant never hears.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "naiveCrashNoRecover" as const,
+    },
+  },
+  naivePoll: {
+    scenarioId: "naive-poll",
+    title: "Naive poll holds compute for minutes",
+    subtitle:
+      "10 × 300ms step attempts instead of a durable hook — server stays hot the whole time.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "naivePoll" as const,
+    },
+  },
+  naiveNoStream: {
+    scenarioId: "naive-no-stream",
+    title: "Backend runs, frontend sees nothing",
+    subtitle:
+      "emit() suppressed except for the final done — no chunks until the run ends.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "naiveNoStream" as const,
+    },
+  },
+  naiveAllOrNothing: {
+    scenarioId: "naive-all-or-nothing",
+    title: "Fan out three. Get back two.",
+    subtitle:
+      "Promise.all + plain Error → email retries exhaust, push/loyalty results discarded.",
+    autoStart: false,
+    input: {
+      ...BASE_INPUT,
+      failAt: null,
+      autoAck: true,
+      demoMode: "naiveAllOrNothing" as const,
+    },
   },
   timeoutRace: {
     scenarioId: "timeout-race",

@@ -30,7 +30,13 @@ export type DemoMode =
   | "replayProbeBeforeAssignDriver"
   | "prepWindowSleep"
   | "fanOutSendReceipt"
-  | "adminSleepBeforeDriver";
+  | "adminSleepBeforeDriver"
+  | "crashInjectable"
+  | "naiveDoubleCharge"
+  | "naiveCrashNoRecover"
+  | "naivePoll"
+  | "naiveNoStream"
+  | "naiveAllOrNothing";
 
 export const ORDER_STEPS = [
   {
@@ -92,6 +98,7 @@ export const hookTokens = {
   driverAccept: (orderId: string) => `order:${orderId}:driver-accept`,
   delivered: (orderId: string) => `order:${orderId}:delivered`,
   adminCancel: (orderId: string) => `order:${orderId}:admin-cancel`,
+  crashInject: (orderId: string) => `order:${orderId}:crash-inject`,
 } as const;
 
 export const RESUME_KIND_BY_STEP = {

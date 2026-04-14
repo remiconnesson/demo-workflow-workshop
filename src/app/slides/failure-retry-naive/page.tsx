@@ -1,4 +1,5 @@
 import { NaiveSlideLayout } from "../_components/naive-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { getFocusCode } from "../_data/naive-accumulation";
 
 export default function FailureRetryNaiveSlide() {
@@ -6,9 +7,7 @@ export default function FailureRetryNaiveSlide() {
     <NaiveSlideLayout
       slide="failure-retry"
       eyebrow="05b · The retry — what you'd write"
-      headline="The charge ran twice."
-      marker="chargePayment"
-      markerLabel="payment flaked"
+      {...failureGroups["failure-retry"]}
       naiveCode={getFocusCode("failure-retry")}
     />
   );

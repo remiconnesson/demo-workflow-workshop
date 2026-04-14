@@ -55,6 +55,7 @@ export type OrderRunController = {
   scheduledResume: ScheduledResume | null;
   resumeToast: string | null;
   error: string | null;
+  adminCancelReady: boolean;
   crashPhase: CrashPhase;
   crashMessage: string | null;
   start: () => Promise<void>;
@@ -104,6 +105,7 @@ export function useOrderRun(
     useState<ScheduledResume | null>(null);
   const [resumeToast, setResumeToast] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [adminCancelReady, setAdminCancelReady] = useState(false);
   const [crashPhase, setCrashPhase] = useState<CrashPhase>("live");
   const [crashMessage, setCrashMessage] = useState<string | null>(null);
 
@@ -171,6 +173,7 @@ export function useOrderRun(
     async (reason?: string) => {
       const currentOrderId = orderIdRef.current;
       if (!currentOrderId) return;
+      setError(null);
       console.info("[order-run] admin_cancel_requested", {
         source,
         scenarioId: scenario.scenarioId,
@@ -186,7 +189,24 @@ export function useOrderRun(
         },
       );
       if (!response.ok) {
-        throw new Error(`admin-cancel failed: ${response.status}`);
+        let message = `admin-cancel failed: ${response.status}`;
+        try {
+          const body = (await response.json()) as { error?: string };
+          if (body.error) {
+            message = body.error;
+          }
+        } catch {
+          // Ignore JSON parse failures and fall back to status text.
+        }
+        setError(message);
+        console.warn("[order-run] admin_cancel_rejected", {
+          source,
+          scenarioId: scenario.scenarioId,
+          orderId: currentOrderId,
+          status: response.status,
+          message,
+        });
+        return;
       }
     },
     [scenario.scenarioId, source],
@@ -213,6 +233,7 @@ export function useOrderRun(
       setDoneStatus(null);
       setResumeToast(null);
       setError(null);
+      setAdminCancelReady(false);
       setCrashPhase("live");
       crashPhaseRef.current = "live";
       setCrashMessage(null);
@@ -271,6 +292,7 @@ export function useOrderRun(
           break;
         case "waiting_for_hook": {
           const step = event.step as HookStep;
+          setAdminCancelReady(false);
           setStepState((current) => ({ ...current, [step]: "waiting" }));
           setWaitingOn(step);
 
@@ -361,6 +383,7 @@ export function useOrderRun(
         }
         case "hook_resolved":
           clearScheduledResume("hook_resolved");
+          setAdminCancelReady(false);
           setWaitStrategy(null);
           setStepState((current) => ({
             ...current,
@@ -376,10 +399,23 @@ export function useOrderRun(
           break;
         case "done":
           clearScheduledResume("done");
+          setAdminCancelReady(false);
           setWaitStrategy(null);
           setDoneStatus(event.status);
           setRunning(false);
           setWaitingOn(null);
+          break;
+        case "log":
+          if (
+            event.message === "Admin cancel window open — sleeping 6s before dispatch"
+          ) {
+            setAdminCancelReady(true);
+          } else if (
+            event.message.startsWith("Admin cancel signal received:") ||
+            event.message === "Support cancel window closed, continuing to dispatch"
+          ) {
+            setAdminCancelReady(false);
+          }
           break;
         default:
           break;
@@ -424,6 +460,45 @@ export function useOrderRun(
       orderId: orderIdRef.current,
       bufferedEvents: eventsRef.current.length,
     });
+
+    // Fire a real server-side crash when the scenario enables it. The
+    // /api/orders/[orderId]/crash route resumes the crash-inject hook
+    // and calls Run.wakeUp(), which drives the workflow's inter-step
+    // Promise.race into the crash branch. The workflow throws a plain
+    // Error → runtime retries → replays from the event log. Visible in
+    // `npx workflow web`. Failures here are logged but never abort the
+    // on-stage UI replay, which stays load-bearing for the visual beat.
+    if (scenario.input.demoMode === "crashInjectable") {
+      try {
+        const response = await fetch(
+          `/api/orders/${orderIdRef.current}/crash`,
+          { method: "POST", headers: { "Content-Type": "application/json" } },
+        );
+        if (!response.ok) {
+          let message = `crash-inject failed: ${response.status}`;
+          try {
+            const body = (await response.json()) as { error?: string };
+            if (body.error) message = body.error;
+          } catch {
+            // Ignore JSON parse failure and fall back to status text.
+          }
+          console.warn("[order-run] crash_inject_rejected", {
+            source,
+            scenarioId: scenario.scenarioId,
+            orderId: orderIdRef.current,
+            status: response.status,
+            message,
+          });
+        }
+      } catch (caught) {
+        console.warn("[order-run] crash_inject_failed", {
+          source,
+          scenarioId: scenario.scenarioId,
+          orderId: orderIdRef.current,
+          message: caught instanceof Error ? caught.message : String(caught),
+        });
+      }
+    }
 
     // Stop any pending auto-resume timers — a "dead" process can't
     // schedule things. The real workflow on the server keeps running.
@@ -479,7 +554,13 @@ export function useOrderRun(
       replayed: snapshot.length,
       tail: tail.length,
     });
-  }, [applyDerivedState, clearScheduledResume, scenario.scenarioId, source]);
+  }, [
+    applyDerivedState,
+    clearScheduledResume,
+    scenario.input.demoMode,
+    scenario.scenarioId,
+    source,
+  ]);
 
   const start = useCallback(async () => {
     reset("restart");
@@ -588,6 +669,7 @@ export function useOrderRun(
     scheduledResume,
     resumeToast,
     error,
+    adminCancelReady,
     crashPhase,
     crashMessage,
     start,

@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-ghost-restaurant"];
 
 export default function FailureGhostRestaurantPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureGhostRestaurantPatternSlide() {
       apiPrimitive="Promise.race([ hook, sleep() ])"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/content-router"
-      marker="notifyRestaurant"
-      markerLabel="timeout wins the race"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

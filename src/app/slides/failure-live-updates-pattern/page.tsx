@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-live-updates"];
 
 export default function FailureLiveUpdatesPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureLiveUpdatesPatternSlide() {
       apiPrimitive="getWritable()"
       docSection="Foundations"
       docUrl="useworkflow.dev/docs/foundations/streaming"
-      marker="span"
-      markerLabel="streamed end-to-end"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { DemoSlideLayout } from "../_components/demo-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function FailureRetryDemoSlide() {
@@ -6,10 +7,8 @@ export default function FailureRetryDemoSlide() {
     <DemoSlideLayout
       slide="failure-retry"
       eyebrow="05a · The retry — watch it break"
-      headline="Your customer just got charged twice."
-      marker="chargePayment"
-      markerLabel="payment flaked"
-      scenario={slideScenarios.idempotency}
+      {...failureGroups["failure-retry"]}
+      scenario={slideScenarios.naiveDoubleCharge}
       highlightSteps={["chargePayment"]}
     />
   );

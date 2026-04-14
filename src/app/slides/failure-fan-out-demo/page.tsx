@@ -1,4 +1,5 @@
 import { DemoSlideLayout } from "../_components/demo-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function FailureFanOutDemoSlide() {
@@ -6,10 +7,8 @@ export default function FailureFanOutDemoSlide() {
     <DemoSlideLayout
       slide="failure-fan-out"
       eyebrow="12a · The fan-out — watch it scatter"
-      headline="Fan out three. Get back two. Now what?"
-      marker="sendReceipt"
-      markerLabel="parallel, still durable"
-      scenario={slideScenarios.failureFanOut}
+      {...failureGroups["failure-fan-out"]}
+      scenario={slideScenarios.naiveAllOrNothing}
       highlightSteps={["sendReceipt"]}
     />
   );

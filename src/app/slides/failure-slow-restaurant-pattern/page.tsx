@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-slow-restaurant"];
 
 export default function FailureSlowRestaurantPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureSlowRestaurantPatternSlide() {
       apiPrimitive="createHook()"
       docSection="Cookbook · Agent Patterns"
       docUrl="useworkflow.dev/docs/cookbook/agent-patterns/human-in-the-loop"
-      marker="notifyRestaurant"
-      markerLabel="suspended on a hook"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

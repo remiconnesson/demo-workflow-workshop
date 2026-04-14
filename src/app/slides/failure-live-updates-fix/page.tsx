@@ -1,15 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailureLiveUpdatesFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="11c · Live updates — workflow code"
-      headline="The customer is staring at a spinner."
-      marker="span"
-      markerLabel="streamed end-to-end"
+      {...failureGroups["failure-live-updates"]}
       workflowFix={{
-        caption: "Steps write to a stream. Client subscribes. No pubsub infrastructure.",
-        code: `async function chargePayment(order) {
+        code: `// Steps write to a stream. Client subscribes.
+// No pubsub infrastructure.
+async function chargePayment(order) {
   "use step"
   const w = getWritable().getWriter()
   await w.write({

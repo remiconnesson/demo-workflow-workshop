@@ -1,4 +1,5 @@
 import { NaiveSlideLayout } from "../_components/naive-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { getFocusCode } from "../_data/naive-accumulation";
 
 export default function FailureFanOutNaiveSlide() {
@@ -6,9 +7,7 @@ export default function FailureFanOutNaiveSlide() {
     <NaiveSlideLayout
       slide="failure-fan-out"
       eyebrow="12b · The fan-out — what you'd write"
-      headline="Three notifications. One fails."
-      marker="sendReceipt"
-      markerLabel="parallel, still durable"
+      {...failureGroups["failure-fan-out"]}
       naiveCode={getFocusCode("failure-fan-out")}
     />
   );

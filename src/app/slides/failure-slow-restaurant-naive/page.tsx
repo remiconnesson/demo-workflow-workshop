@@ -1,4 +1,5 @@
 import { NaiveSlideLayout } from "../_components/naive-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { getFocusCode } from "../_data/naive-accumulation";
 
 export default function FailureSlowRestaurantNaiveSlide() {
@@ -6,9 +7,7 @@ export default function FailureSlowRestaurantNaiveSlide() {
     <NaiveSlideLayout
       slide="failure-slow-restaurant"
       eyebrow="06b · The slow restaurant — what you'd write"
-      headline="The restaurant takes ten minutes to accept."
-      marker="notifyRestaurant"
-      markerLabel="suspended on a hook"
+      {...failureGroups["failure-slow-restaurant"]}
       naiveCode={getFocusCode("failure-slow-restaurant")}
     />
   );

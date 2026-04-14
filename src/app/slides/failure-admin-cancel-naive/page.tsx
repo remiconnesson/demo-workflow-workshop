@@ -1,4 +1,5 @@
 import { NaiveSlideLayout } from "../_components/naive-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { getFocusCode } from "../_data/naive-accumulation";
 
 export default function FailureAdminCancelNaiveSlide() {
@@ -6,9 +7,7 @@ export default function FailureAdminCancelNaiveSlide() {
     <NaiveSlideLayout
       slide="failure-admin-cancel"
       eyebrow="10b · Admin cancel — what you'd write"
-      headline="Support needs to cancel a sleeping order."
-      marker={["notifyRestaurant", "assignDriver"]}
-      markerLabel="interrupt from outside"
+      {...failureGroups["failure-admin-cancel"]}
       naiveCode={getFocusCode("failure-admin-cancel")}
     />
   );

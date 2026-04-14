@@ -445,10 +445,10 @@ Nine concepts, four slides each. The four-slide rhythm repeats identically for e
 
 #### 30. `failure-admin-cancel-fix` — Admin Cancel · Fix
 
-**On screen:** Full-width SDK code. Highlighted: `await run.wakeUp({ reason: 'admin-cancelled' })` and the branch inside placeOrder.
+**On screen:** Full-width SDK code. Highlighted: `await getRun(runId).wakeUp()` and the branch inside placeOrder.
 
 **Presenter words:**
-> "Run.wakeUp — shipped tonight. Any sleeping workflow can be interrupted from outside. One API call from the admin dashboard."
+> "`getRun(runId).wakeUp()` — shipped tonight. Any sleeping workflow can be interrupted from outside. One API call from the admin dashboard."
 
 **Click cue:** -> `failure-admin-cancel-pattern`.
 
@@ -457,7 +457,7 @@ Nine concepts, four slides each. The four-slide rhythm repeats identically for e
 **On screen:** Pattern name: **Stop Workflow**. Link to `useworkflow.dev/docs/cookbook/agent-patterns/stop-workflow`.
 
 **Presenter words:**
-> "This is the Stop Workflow pattern. Run.wakeUp() interrupts pending sleeps. Combine it with a hook for the cancel signal."
+> "This is the payoff from the last few patterns. Sleep gave us the pause. Hooks gave us the external signal. Saga gave us the unwind. Here the stop signal is `createHook()` plus `resumeHook()`. If the run is sleeping, wake it so it sees that signal immediately."
 > POINT at the URL.
 
 **Click cue:** -> `failure-live-updates-demo`.

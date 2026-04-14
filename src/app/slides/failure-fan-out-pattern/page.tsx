@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-fan-out"];
 
 export default function FailureFanOutPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureFanOutPatternSlide() {
       apiPrimitive="Promise.allSettled([ ...steps ])"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/fan-out"
-      marker="sendReceipt"
-      markerLabel="parallel, still durable"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

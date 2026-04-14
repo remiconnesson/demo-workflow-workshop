@@ -1,15 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailureFanOutFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="12c · The fan-out — workflow code"
-      headline="Three notifications. One fails."
-      marker="sendReceipt"
-      markerLabel="parallel, still durable"
+      {...failureGroups["failure-fan-out"]}
       workflowFix={{
-        caption: "Promise.allSettled across separate steps gives each branch its own durable boundary.",
-        code: `"use workflow"
+        code: `// Promise.allSettled across separate steps
+// gives each branch its own durable boundary.
+"use workflow"
 
 // put each branch in its own step
 // for per-branch durability

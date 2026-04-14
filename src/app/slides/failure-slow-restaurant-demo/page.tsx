@@ -1,4 +1,5 @@
 import { DemoSlideLayout } from "../_components/demo-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function FailureSlowRestaurantDemoSlide() {
@@ -6,10 +7,8 @@ export default function FailureSlowRestaurantDemoSlide() {
     <DemoSlideLayout
       slide="failure-slow-restaurant"
       eyebrow="06a · The slow restaurant — watch it wait"
-      headline="Ten minutes of silence. Your server is still running."
-      marker="notifyRestaurant"
-      markerLabel="suspended on a hook"
-      scenario={slideScenarios.hooks}
+      {...failureGroups["failure-slow-restaurant"]}
+      scenario={slideScenarios.naivePoll}
       highlightSteps={["notifyRestaurant"]}
     />
   );

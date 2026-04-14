@@ -1,16 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailureAdminCancelFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="10c · Admin cancel — workflow code"
-      headline="Support needs to cancel a sleeping order."
-      marker={["notifyRestaurant", "assignDriver"]}
-      markerLabel="interrupt from outside"
+      {...failureGroups["failure-admin-cancel"]}
       workflowFix={{
-        caption:
-          "Resume a cancel hook for intent, then call Run.wakeUp() if you need to break a pending sleep right away.",
-        code: `import { getRun, resumeHook } from "workflow/api"
+        code: `// Resume a cancel hook for intent, then call
+// getRun(runId).wakeUp() to break a pending sleep.
+import { getRun, resumeHook } from "workflow/api"
 
 // admin dashboard — one API call
 await resumeHook(\`order:\${orderId}:admin-cancel\`, {

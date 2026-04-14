@@ -82,10 +82,52 @@ export async function placeOrderWorkflow(
 
   const compensations: Compensation[] = [];
   const { orderId, failAt = null, autoAck = true } = input;
+  const demoMode = input.demoMode;
+  const e = (event: OrderEvent) => emit(event, demoMode);
+
+  // Optional crash-inject hook. When demoMode === "crashInjectable" we open
+  // a durable hook that can be resumed at any point during the run. Between
+  // major step sections we race this hook against a tiny sleep — if the
+  // hook has already been resumed, we call simulateCrash() which is a step
+  // that throws RetryableError on its first attempt. The Workflow runtime
+  // records this as step_retrying → step_completed, which is what shows up
+  // in `npx workflow inspect` as the visible "the process crashed and the
+  // runtime replayed from the event log" moment.
+  const crashHook =
+    input.demoMode === "crashInjectable"
+      ? createHook<{ crashed: true }>({
+          token: hookTokens.crashInject(orderId),
+        })
+      : null;
+
+  // Latch so we only crash once per run (the hook resumes permanently).
+  let crashTriggered = false;
+
+  // Race the raw hook (not a `.then()` wrapper) against a sleep sentinel.
+  // Wrapping the hook in `.then()` broke the workflow runtime's ability
+  // to replay the hook-wins branch — observed as sleep winning every race
+  // in run wrun_01KP6ZD3E9QT4T5PG0TK4F5ZME even after hook_received fired.
+  const SLEEP_SENTINEL = Symbol("crash-checkpoint-sleep");
+
+  async function crashCheckpoint(label: string): Promise<void> {
+    if (!crashHook || crashTriggered) return;
+    const raced = await Promise.race([
+      crashHook,
+      sleep("200ms").then(() => SLEEP_SENTINEL),
+    ]);
+    if (raced === SLEEP_SENTINEL) return;
+    crashTriggered = true;
+    await e({
+      type: "log",
+      message: `CRASH_INJECTED :: checkpoint=${label} — runtime will record step_retrying then replay from event log`,
+    });
+    await simulateCrash(label);
+  }
 
   try {
     // 1. Validate order
     await validateOrder(input, failAt === "validateOrder");
+    await crashCheckpoint("chargePayment");
 
     // 2. Charge payment
     const paymentId = await chargePayment(
@@ -98,23 +140,29 @@ export async function placeOrderWorkflow(
         action: "refundPayment",
         undo: () => refundPayment(orderId, paymentToRefund),
       });
-      await emit({
+      await e({
         type: "compensation_pushed",
         action: "refundPayment",
         forStep: "chargePayment",
       });
     }
 
+    if (input.demoMode === "naiveCrashNoRecover") {
+      await naiveCrash();
+    }
+
+    await crashCheckpoint("notifyRestaurant");
+
     // 2b. Prep-window sleep (demo mode only — visible pause between
     //     chargePayment and notifyRestaurant for the failure-prep-window
     //     slide. Real 20 minutes compressed to a few seconds for stage.)
     if (input.demoMode === "prepWindowSleep") {
-      await emit({
+      await e({
         type: "log",
         message: "Waiting for bakery prep window (20m compressed to ~3s)",
       });
       await sleep("3s");
-      await emit({ type: "log", message: "Prep window open" });
+      await e({ type: "log", message: "Prep window open" });
     }
 
     // 3. Notify restaurant + wait for acceptance hook
@@ -123,7 +171,7 @@ export async function placeOrderWorkflow(
       action: "cancelRestaurantOrder",
       undo: () => cancelRestaurantOrder(orderId),
     });
-    await emit({
+    await e({
       type: "compensation_pushed",
       action: "cancelRestaurantOrder",
       forStep: "notifyRestaurant",
@@ -132,7 +180,7 @@ export async function placeOrderWorkflow(
     const restaurantHook = createHook<{ accepted: boolean; reason?: string }>({
       token: hookTokens.restaurantAccept(orderId),
     });
-    await emit({
+    await e({
       type: "waiting_for_hook",
       step: "notifyRestaurant",
       token: hookTokens.restaurantAccept(orderId),
@@ -152,8 +200,8 @@ export async function placeOrderWorkflow(
       ]);
       if (raced.kind === "timeout") {
         const timeoutLabel = input.restaurantTimeout;
-        await emit({ type: "log", message: "Restaurant did not accept in time" });
-        await emit({
+        await e({ type: "log", message: "Restaurant did not accept in time" });
+        await e({
           type: "step_failed",
           step: "notifyRestaurant",
           label: "Notify restaurant",
@@ -172,7 +220,7 @@ export async function placeOrderWorkflow(
       restaurantResult = await restaurantHook;
     }
 
-    await emit({
+    await e({
       type: "hook_resolved",
       step: "notifyRestaurant",
       token: hookTokens.restaurantAccept(orderId),
@@ -201,7 +249,7 @@ export async function placeOrderWorkflow(
       // try to auto-resume this via the standard restaurant/driver
       // path — the admin-cancel hook is resumed out-of-band by the
       // /api/orders/[orderId]/admin-cancel route.
-      await emit({
+      await e({
         type: "log",
         message: "Admin cancel window open — sleeping 6s before dispatch",
       });
@@ -213,7 +261,7 @@ export async function placeOrderWorkflow(
         sleep("6s").then(() => ({ kind: "slept" as const })),
       ]);
       if (adminResult.kind === "cancelled") {
-        await emit({
+        await e({
           type: "log",
           message: `Admin cancel signal received: ${adminResult.reason ?? "support"}`,
         });
@@ -221,11 +269,13 @@ export async function placeOrderWorkflow(
           `Admin cancel: ${adminResult.reason ?? "support intervened"}`,
         );
       }
-      await emit({
+      await e({
         type: "log",
         message: "Support cancel window closed, continuing to dispatch",
       });
     }
+
+    await crashCheckpoint("assignDriver");
 
     // 3b. Replay probe (demo mode only — injects a retry before assignDriver)
     await replayProbe(input);
@@ -238,7 +288,7 @@ export async function placeOrderWorkflow(
         action: "releaseDriver",
         undo: () => releaseDriver(orderId, driverToRelease),
       });
-      await emit({
+      await e({
         type: "compensation_pushed",
         action: "releaseDriver",
         forStep: "assignDriver",
@@ -248,7 +298,7 @@ export async function placeOrderWorkflow(
     const driverHook = createHook<{ accepted: boolean }>({
       token: hookTokens.driverAccept(orderId),
     });
-    await emit({
+    await e({
       type: "waiting_for_hook",
       step: "assignDriver",
       token: hookTokens.driverAccept(orderId),
@@ -262,8 +312,8 @@ export async function placeOrderWorkflow(
     ]);
     if (driverResult.kind === "timeout") {
       const timeoutLabel = input.driverTimeout ?? "2m";
-      await emit({ type: "log", message: "Driver did not accept in time" });
-      await emit({
+      await e({ type: "log", message: "Driver did not accept in time" });
+      await e({
         type: "step_failed",
         step: "assignDriver",
         label: "Assign driver",
@@ -275,7 +325,7 @@ export async function placeOrderWorkflow(
       });
       throw new FatalError(`Driver assignment timed out for order ${orderId}`);
     }
-    await emit({
+    await e({
       type: "hook_resolved",
       step: "assignDriver",
       token: hookTokens.driverAccept(orderId),
@@ -285,8 +335,10 @@ export async function placeOrderWorkflow(
       throw new FatalError(`Driver declined order ${orderId}`);
     }
 
+    await crashCheckpoint("trackDelivery");
+
     // 5. Track delivery (wait for delivered hook)
-    await emit({
+    await e({
       type: "step_running",
       step: "trackDelivery",
       label: "Driver en route",
@@ -294,7 +346,7 @@ export async function placeOrderWorkflow(
     const deliveredHook = createHook<{ photo?: string }>({
       token: hookTokens.delivered(orderId),
     });
-    await emit({
+    await e({
       type: "waiting_for_hook",
       step: "trackDelivery",
       token: hookTokens.delivered(orderId),
@@ -302,7 +354,7 @@ export async function placeOrderWorkflow(
     });
     const delivered = await deliveredHook;
     if (failAt === "trackDelivery") {
-      await emit({
+      await e({
         type: "step_failed",
         step: "trackDelivery",
         label: "Track delivery",
@@ -310,17 +362,19 @@ export async function placeOrderWorkflow(
       });
       throw new FatalError("Delivery failed verification");
     }
-    await emit({
+    await e({
       type: "step_succeeded",
       step: "trackDelivery",
       label: "Track delivery",
       detail: delivered.photo ? "Photo received" : "Delivered",
     });
 
+    await crashCheckpoint("sendReceipt");
+
     // 6. Send receipt
     await sendReceipt(input, paymentId, failAt === "sendReceipt");
 
-    await emit({
+    await e({
       type: "done",
       status: "completed",
       orderId,
@@ -336,7 +390,7 @@ export async function placeOrderWorkflow(
   } catch (error) {
     if (!(error instanceof FatalError)) throw error;
 
-    await emit({
+    await e({
       type: "log",
       message: `Saga failed: ${error.message}. Rolling back…`,
     });
@@ -344,13 +398,13 @@ export async function placeOrderWorkflow(
     const executed: CompensationAction[] = [];
     while (compensations.length > 0) {
       const c = compensations.pop()!;
-      await emit({ type: "compensating", action: c.action });
+      await e({ type: "compensating", action: c.action });
       await c.undo();
-      await emit({ type: "compensated", action: c.action });
+      await e({ type: "compensated", action: c.action });
       executed.push(c.action);
     }
 
-    await emit({
+    await e({
       type: "done",
       status: "rolled_back",
       orderId,
@@ -368,8 +422,15 @@ export async function placeOrderWorkflow(
 
 // ---------- Steps ----------
 
-async function emit(event: OrderEvent): Promise<void> {
+// naiveNoStream suppresses every stream chunk except the final `done`,
+// so the audience can see the frontend stall while the backend finishes.
+function streamAllowed(mode: DemoMode | undefined, eventType: OrderEvent["type"]): boolean {
+  return mode !== "naiveNoStream" || eventType === "done";
+}
+
+async function emit(event: OrderEvent, mode?: DemoMode): Promise<void> {
   "use step";
+  if (!streamAllowed(mode, event.type)) return;
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     await writer.write(event);
@@ -382,16 +443,86 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function writeEvent(
+  writer: WritableStreamDefaultWriter<OrderEvent>,
+  event: OrderEvent,
+  mode?: DemoMode,
+): Promise<void> {
+  if (!streamAllowed(mode, event.type)) return;
+  await writer.write(event);
+}
+
+// Simulates a process crash as a step-level retry. On attempt 1 we throw
+// RetryableError — the Workflow runtime records step_retrying and schedules
+// a retry. On attempt 2 we return cleanly. This is what makes the crash
+// visible in `npx workflow inspect` as a failed-then-recovered step, which
+// is the closest analog to a real process crash + event-log replay.
+async function simulateCrash(label: string): Promise<void> {
+  "use step";
+  const { attempt, stepId } = getStepMetadata();
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    if (attempt === 1) {
+      await writer.write({
+        type: "log",
+        message: `💥 CRASH :: simulateCrash step throwing RetryableError (checkpoint=${label}, stepId=${stepId}, attempt=1)`,
+      });
+      console.info("[workflow] crash_injected", { label, stepId, attempt });
+      throw new RetryableError(`Simulated process crash before ${label}`, {
+        retryAfter: "500ms",
+      });
+    }
+    await writer.write({
+      type: "log",
+      message: `💥 CRASH :: recovered — runtime replayed from event log (checkpoint=${label}, attempt=${attempt})`,
+    });
+    console.info("[workflow] crash_recovered", { label, stepId, attempt });
+  } finally {
+    writer.releaseLock();
+  }
+}
+
+async function naivePollTick(orderId: string, iteration: number): Promise<void> {
+  "use step";
+  await delay(300);
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    await writer.write({
+      type: "log",
+      message: `naive poll ${iteration}/10 — still holding compute`,
+    });
+    console.info("[workflow] naive_poll_tick", { orderId, iteration });
+  } finally {
+    writer.releaseLock();
+  }
+}
+
+async function naiveCrash(): Promise<void> {
+  "use step";
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    await writer.write({
+      type: "log",
+      message:
+        "naive: process crashed between charge and notify — no durable checkpoint",
+    });
+    console.info("[workflow] naive_crash_no_recover");
+  } finally {
+    writer.releaseLock();
+  }
+  throw new FatalError("Process crashed before restaurant was notified");
+}
+
 async function replayProbe(input: OrderInput): Promise<void> {
   "use step";
   if (input.demoMode !== "replayProbeBeforeAssignDriver") return;
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     const { stepId, attempt } = getStepMetadata();
-    await writer.write({
+    await writeEvent(writer, {
       type: "log",
       message: `replayProbe stepId=${stepId} attempt=${attempt}`,
-    });
+    }, input.demoMode);
     if (attempt === 1) {
       throw new Error("Injected replay probe before assignDriver");
     }
@@ -407,28 +538,28 @@ async function validateOrder(
   "use step";
   const writer = getWritable<OrderEvent>().getWriter();
   try {
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_running",
       step: "validateOrder",
       label: "Validate order",
-    });
+    }, input.demoMode);
     await delay(400);
     if (shouldFail || input.items.length === 0) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "step_failed",
         step: "validateOrder",
         label: "Validate order",
         error: "Invalid order — empty cart",
-      });
+      }, input.demoMode);
       throw new FatalError(`validateOrder failed for ${input.orderId}`);
     }
     const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_succeeded",
       step: "validateOrder",
       label: "Validate order",
       detail: `${input.items.length} items, total $${total.toFixed(2)}`,
-    });
+    }, input.demoMode);
   } finally {
     writer.releaseLock();
   }
@@ -442,15 +573,15 @@ async function chargePayment(
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     const { stepId, attempt } = getStepMetadata();
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_running",
       step: "chargePayment",
       label: "Charge payment",
-    });
-    await writer.write({
+    }, input.demoMode);
+    await writeEvent(writer, {
       type: "log",
       message: `chargePayment stepId=${stepId} attempt=${attempt}`,
-    });
+    }, input.demoMode);
     console.info("[workflow] chargePayment", {
       orderId: input.orderId,
       stepId,
@@ -459,40 +590,71 @@ async function chargePayment(
       demoMode: input.demoMode ?? "standard",
     });
     if (input.demoMode === "chargePaymentUnhandledOnce" && attempt === 1) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "log",
         message:
           "chargePayment throwing uncaught Error to demonstrate default retry",
-      });
+      }, input.demoMode);
       throw new Error("Transient payment gateway outage");
+    }
+    if (input.demoMode === "naiveDoubleCharge") {
+      // Naive path: non-deterministic payment id per attempt (no idempotency key).
+      // Attempt 1 "charges" then crashes; attempt 2 "charges again" with a fresh id.
+      const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
+      const paymentId = `pay_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
+      await writeEvent(writer, {
+        type: "log",
+        message: `naive: charged ${paymentId} (no idempotency key) attempt=${attempt}`,
+      }, input.demoMode);
+      console.info("[workflow] naive_double_charge", {
+        orderId: input.orderId,
+        attempt,
+        paymentId,
+      });
+      if (attempt === 1) {
+        await writeEvent(writer, {
+          type: "step_succeeded",
+          step: "chargePayment",
+          label: "Charge payment",
+          detail: `naive charge #1 ${paymentId} (about to crash)`,
+        }, input.demoMode);
+        throw new Error("Payment API 5xx");
+      }
+      await writeEvent(writer, {
+        type: "step_succeeded",
+        step: "chargePayment",
+        label: "Charge payment",
+        detail: `Charged twice: attempt1 vs ${paymentId} total=$${total.toFixed(2)}`,
+      }, input.demoMode);
+      return paymentId;
     }
     await delay(600);
     if (input.failAt === "chargePaymentRetryable" && attempt === 1) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "log",
         message: `Payment API rate limited. Retrying with same stepId ${stepId}`,
-      });
+      }, input.demoMode);
       throw new RetryableError("Payment API rate limited", {
         retryAfter: "2s",
       });
     }
     if (shouldFail) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "step_failed",
         step: "chargePayment",
         label: "Charge payment",
         error: "Card declined",
-      });
+      }, input.demoMode);
       throw new FatalError(`chargePayment failed for ${input.orderId}`);
     }
     const paymentId = `pay_${stepId}`;
     const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_succeeded",
       step: "chargePayment",
       label: "Charge payment",
       detail: `Charged $${total.toFixed(2)} (${paymentId}) key=${stepId}`,
-    });
+    }, input.demoMode);
     return paymentId;
   } finally {
     writer.releaseLock();
@@ -504,29 +666,47 @@ async function notifyRestaurant(
   shouldFail: boolean,
 ): Promise<void> {
   "use step";
-  const writer = getWritable<OrderEvent>().getWriter();
+  let writer = getWritable<OrderEvent>().getWriter();
+  let released = false;
   try {
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_running",
       step: "notifyRestaurant",
       label: "Notify restaurant",
-    });
+    }, input.demoMode);
+    if (input.demoMode === "naivePoll") {
+      writer.releaseLock();
+      released = true;
+      for (let i = 1; i <= 10; i += 1) {
+        await naivePollTick(input.orderId, i);
+      }
+      writer = getWritable<OrderEvent>().getWriter();
+      released = false;
+      await writer.write({
+        type: "log",
+        message:
+          "naive poll exhausted — restaurant never answered, server held compute entire time",
+      });
+      throw new FatalError("Naive poll gave up after 10 attempts");
+    }
     await delay(500);
     if (shouldFail) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "step_failed",
         step: "notifyRestaurant",
         label: "Notify restaurant",
         error: "Restaurant system unreachable",
-      });
+      }, input.demoMode);
       throw new FatalError(`notifyRestaurant failed for ${input.orderId}`);
     }
-    await writer.write({
+    await writeEvent(writer, {
       type: "log",
       message: "Restaurant ticket sent to kitchen; awaiting acceptance",
-    });
+    }, input.demoMode);
   } finally {
-    writer.releaseLock();
+    if (!released) {
+      writer.releaseLock();
+    }
   }
 }
 
@@ -537,26 +717,26 @@ async function assignDriver(
   "use step";
   const writer = getWritable<OrderEvent>().getWriter();
   try {
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_running",
       step: "assignDriver",
       label: "Assign driver",
-    });
+    }, input.demoMode);
     await delay(500);
     if (shouldFail) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "step_failed",
         step: "assignDriver",
         label: "Assign driver",
         error: "No drivers available",
-      });
+      }, input.demoMode);
       throw new FatalError(`assignDriver failed for ${input.orderId}`);
     }
     const driverId = `drv_${Math.floor(Math.random() * 9000 + 1000)}`;
-    await writer.write({
+    await writeEvent(writer, {
       type: "log",
       message: `Dispatched ${driverId}; awaiting acceptance`,
-    });
+    }, input.demoMode);
     return driverId;
   } finally {
     writer.releaseLock();
@@ -569,57 +749,138 @@ async function sendReceipt(
   shouldFail: boolean,
 ): Promise<void> {
   "use step";
-  const writer = getWritable<OrderEvent>().getWriter();
+  let writer = getWritable<OrderEvent>().getWriter();
+  let released = false;
   try {
-    await writer.write({
+    await writeEvent(writer, {
       type: "step_running",
       step: "sendReceipt",
       label: "Send receipt",
-    });
+    }, input.demoMode);
     await delay(300);
     if (shouldFail) {
-      await writer.write({
+      await writeEvent(writer, {
         type: "step_failed",
         step: "sendReceipt",
         label: "Send receipt",
         error: "Email provider error",
-      });
+      }, input.demoMode);
       throw new FatalError(`sendReceipt failed for ${input.orderId}`);
     }
-    // Fan-out demo mode: emit per-channel log events that visualize a
-    // Promise.allSettled of three notification channels, with one
-    // channel failing and retrying under durability guarantees.
+    // Fan-out demo mode: actually dispatch three parallel child steps
+    // via Promise.allSettled. One channel (email) throws a RetryableError
+    // on its first attempt so the audience can see durability carry it
+    // to eventual success without the other channels re-running.
     if (input.demoMode === "fanOutSendReceipt") {
-      await writer.write({
-        type: "log",
-        message: "fan-out → email dispatched (channel 1 of 3)",
-      });
-      await delay(180);
-      await writer.write({
-        type: "log",
-        message: "fan-out → push dispatched (channel 2 of 3)",
-      });
-      await delay(180);
-      await writer.write({
-        type: "log",
-        message: "fan-out → loyalty dispatched (channel 3 of 3)",
-      });
-      await delay(220);
-      await writer.write({
-        type: "log",
-        message: "fan-out → email 5xx, queued for retry; push + loyalty ok",
-      });
-      await delay(220);
-      await writer.write({
+      writer.releaseLock();
+      released = true;
+      await Promise.allSettled([
+        sendEmail(input),
+        sendPush(input),
+        sendLoyalty(input),
+      ]);
+      writer = getWritable<OrderEvent>().getWriter();
+      released = false;
+      await writeEvent(writer, {
         type: "log",
         message: "fan-out → 3 of 3 eventually delivered",
-      });
+      }, input.demoMode);
     }
-    await writer.write({
+    if (input.demoMode === "naiveAllOrNothing") {
+      writer.releaseLock();
+      released = true;
+      // Promise.all: one rejection sinks the whole step; sibling results are discarded.
+      await Promise.all([
+        sendEmail(input),
+        sendPush(input),
+        sendLoyalty(input),
+      ]);
+      writer = getWritable<OrderEvent>().getWriter();
+      released = false;
+      await writer.write({
+        type: "log",
+        message: "naive all-or-nothing: unreachable (Promise.all rejected)",
+      });
+      throw new FatalError("naive all-or-nothing: one channel failed the batch");
+    }
+    await writeEvent(writer, {
       type: "step_succeeded",
       step: "sendReceipt",
       label: "Send receipt",
       detail: `Receipt for ${paymentId} emailed to ${input.customerName}`,
+    }, input.demoMode);
+  } finally {
+    if (!released) {
+      writer.releaseLock();
+    }
+  }
+}
+
+async function sendEmail(input: OrderInput): Promise<void> {
+  "use step";
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    const { attempt } = getStepMetadata();
+    if (input.demoMode === "naiveAllOrNothing") {
+      await writer.write({
+        type: "log",
+        message: `naive fan-out → email attempt ${attempt} threw plain Error`,
+      });
+      console.info("[workflow] naive_email_fail", {
+        orderId: input.orderId,
+        attempt,
+      });
+      throw new Error("Email provider 5xx (naive: no RetryableError, no allSettled)");
+    }
+    if (attempt === 1) {
+      await writeEvent(writer, {
+        type: "log",
+        message: "fan-out → email 5xx queued for retry",
+      }, input.demoMode);
+      throw new RetryableError("Email provider 5xx", {
+        retryAfter: "300ms",
+      });
+    }
+    await delay(180);
+    await writeEvent(writer, {
+      type: "log",
+      message: `fan-out → email dispatched to ${input.customerName}`,
+    }, input.demoMode);
+  } finally {
+    writer.releaseLock();
+  }
+}
+
+async function sendPush(input: OrderInput): Promise<void> {
+  "use step";
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    await delay(180);
+    await writeEvent(writer, {
+      type: "log",
+      message: `fan-out → push dispatched for ${input.orderId}`,
+    }, input.demoMode);
+    console.info("[workflow] push_sent", {
+      orderId: input.orderId,
+      demoMode: input.demoMode ?? "standard",
+    });
+  } finally {
+    writer.releaseLock();
+  }
+}
+
+async function sendLoyalty(input: OrderInput): Promise<void> {
+  "use step";
+  const writer = getWritable<OrderEvent>().getWriter();
+  try {
+    await delay(220);
+    await writeEvent(writer, {
+      type: "log",
+      message: `fan-out → loyalty dispatched for ${input.orderId}`,
+    }, input.demoMode);
+    console.info("[workflow] loyalty_sent", {
+      orderId: input.orderId,
+      demoMode: input.demoMode ?? "standard",
     });
   } finally {
     writer.releaseLock();

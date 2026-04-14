@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-prep-window"];
 
 export default function FailurePrepWindowPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailurePrepWindowPatternSlide() {
       apiPrimitive={`await sleep('20m')`}
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/scheduling"
-      marker={["chargePayment", "notifyRestaurant"]}
-      markerLabel="20 min sleep"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

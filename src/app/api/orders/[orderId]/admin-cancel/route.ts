@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRun, resumeHook } from "workflow/api";
+import { HookNotFoundError } from "workflow/errors";
 import { hookTokens } from "@/workflows/place-order";
 
 type AdminCancelBody = { reason?: string };
@@ -23,25 +24,40 @@ export async function POST(
   const { orderId } = await params;
   const body = (await req.json().catch(() => ({}))) as AdminCancelBody;
   const token = hookTokens.adminCancel(orderId);
+  try {
+    const hook = await resumeHook(token, {
+      cancelled: true,
+      reason: body.reason ?? "admin-cancelled",
+    });
 
-  const hook = await resumeHook(token, {
-    cancelled: true,
-    reason: body.reason ?? "admin-cancelled",
-  });
+    const result = await getRun(hook.runId).wakeUp();
 
-  const result = await getRun(hook.runId).wakeUp();
+    console.info("[demo] admin_cancel", {
+      orderId,
+      token,
+      runId: hook.runId,
+      stoppedSleeps: result.stoppedCount,
+    });
 
-  console.info("[demo] admin_cancel", {
-    orderId,
-    token,
-    runId: hook.runId,
-    stoppedSleeps: result.stoppedCount,
-  });
+    return NextResponse.json({
+      ok: true,
+      token,
+      runId: hook.runId,
+      stoppedSleeps: result.stoppedCount,
+    });
+  } catch (error) {
+    if (HookNotFoundError.is(error)) {
+      console.info("[demo] admin_cancel_not_ready", {
+        orderId,
+        token,
+      });
 
-  return NextResponse.json({
-    ok: true,
-    token,
-    runId: hook.runId,
-    stoppedSleeps: result.stoppedCount,
-  });
+      return NextResponse.json(
+        { error: "Admin cancel is not ready yet. Wait for the cancel window." },
+        { status: 409 },
+      );
+    }
+
+    throw error;
+  }
 }

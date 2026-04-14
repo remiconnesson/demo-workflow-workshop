@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-driver-refuses"];
 
 export default function FailureDriverRefusesPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureDriverRefusesPatternSlide() {
       apiPrimitive="FatalError  ·  compensations[]"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/saga"
-      marker="assignDriver"
-      markerLabel="fatal → unwind"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

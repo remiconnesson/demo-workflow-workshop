@@ -1,15 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailureSlowRestaurantFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="06c · The slow restaurant — workflow code"
-      headline="The restaurant takes ten minutes to accept."
-      marker="notifyRestaurant"
-      markerLabel="suspended on a hook"
+      {...failureGroups["failure-slow-restaurant"]}
       workflowFix={{
-        caption: "createHook suspends the workflow. No webhook. No worker. No polling.",
-        code: `// inside placeOrder ("use workflow"):
+        code: `// createHook suspends the workflow.
+// No webhook. No worker. No polling.
+// (inside placeOrder — "use workflow")
 const hook = createHook<{ accepted: boolean }>({
   token: \`order:\${orderId}:restaurant\`,
 })

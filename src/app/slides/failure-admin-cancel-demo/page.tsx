@@ -1,4 +1,5 @@
 import { DemoSlideLayout } from "../_components/demo-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 import { slideScenarios } from "../_lib/slide-scenarios";
 
 export default function FailureAdminCancelDemoSlide() {
@@ -6,9 +7,7 @@ export default function FailureAdminCancelDemoSlide() {
     <DemoSlideLayout
       slide="failure-admin-cancel"
       eyebrow="10a · Admin cancel — watch it interrupt"
-      headline="The workflow is asleep. The customer is not."
-      marker={["notifyRestaurant", "assignDriver"]}
-      markerLabel="interrupt from outside"
+      {...failureGroups["failure-admin-cancel"]}
       scenario={slideScenarios.failureAdminCancel}
       allowAdminCancel
     />

@@ -1,4 +1,7 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
+
+const { marker, markerLabel } = failureGroups["failure-retry"];
 
 export default function FailureRetryPatternSlide() {
   return (
@@ -9,8 +12,8 @@ export default function FailureRetryPatternSlide() {
       apiPrimitive="getStepMetadata().stepId"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/idempotency"
-      marker="chargePayment"
-      markerLabel="payment flaked"
+      marker={marker}
+      markerLabel={markerLabel}
     />
   );
 }

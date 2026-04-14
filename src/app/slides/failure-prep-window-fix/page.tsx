@@ -1,15 +1,15 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
+import { failureGroups } from "../_data/failure-groups";
 
 export default function FailurePrepWindowFixSlide() {
   return (
     <FixSlideLayout
       eyebrow="08c · The wait — workflow code"
-      headline="Wait twenty minutes. Don't pay for it."
-      marker={["chargePayment", "notifyRestaurant"]}
-      markerLabel="20 min sleep"
+      {...failureGroups["failure-prep-window"]}
       workflowFix={{
-        caption: "One line. The function suspends. You pay for nothing while it sleeps.",
-        code: `"use workflow"
+        code: `// One line. The function suspends.
+// You pay for nothing while it sleeps.
+"use workflow"
 
 async function placeOrder(input) {
   const order = await validateOrder(input)

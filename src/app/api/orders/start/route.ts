@@ -4,6 +4,7 @@ import {
   placeOrderWorkflow,
   type OrderInput,
 } from "@/workflows/place-order";
+import { setLatestRunId } from "@/lib/latest-run-store";
 
 export async function POST(req: Request) {
   const raw = (await req.json()) as OrderInput;
@@ -23,6 +24,7 @@ export async function POST(req: Request) {
     itemCount: input.items.length,
   });
   const run = await start(placeOrderWorkflow, [input]);
+  setLatestRunId(run.runId);
   console.info("[demo] order_run_started", {
     orderId: input.orderId,
     runId: run.runId,
