@@ -43,7 +43,7 @@ export default function CloseSlide() {
       <p className="mt-8 font-mono text-2xl text-zinc-500">
         npm i workflow
       </p>
-      <p className="font-mono text-3xl text-zinc-300">workflow-sdk.dev</p>
+      <p className="font-mono text-3xl text-zinc-300">useworkflow.dev</p>
 
       <p className="mt-12 text-xl text-zinc-600">
         Press <span className="font-mono">d</span> to return to demo

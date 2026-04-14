@@ -14,12 +14,12 @@ async function placeOrder(input) {
 }`;
 
 const ANNOTATIONS = [
-  { line: "validateOrder", note: "crash-safe · replay" },
-  { line: "chargePayment", note: "idempotent retry · saga-compensated" },
-  { line: "notifyRestaurant", note: "hookable · timeout-raceable · wakeable" },
-  { line: "assignDriver", note: "fatal-aware · saga-compensated" },
-  { line: "trackDelivery", note: "streamed to the client in real time" },
-  { line: "sendReceipt", note: "parallel fan-out · allSettled" },
+  { line: "validateOrder", note: "replay-safe step" },
+  { line: "chargePayment", note: "stable stepId -> idempotent retry" },
+  { line: "notifyRestaurant", note: "hook pause + timeout race in workflow code" },
+  { line: "assignDriver", note: "FatalError -> rollback path" },
+  { line: "trackDelivery", note: "stream updates written from steps" },
+  { line: "sendReceipt", note: "parallel fan-out with Promise.allSettled" },
 ];
 
 export default async function TheRevealSlide() {
@@ -30,7 +30,7 @@ export default async function TheRevealSlide() {
           13 · The reveal
         </div>
         <h2 className="mt-2 text-[44px] font-semibold leading-tight tracking-tight">
-          Same product. Same guarantees.
+          Same product. Much less machinery.
           <span className="text-zinc-500"> One of these is yours to maintain.</span>
         </h2>
       </div>
@@ -74,7 +74,7 @@ export default async function TheRevealSlide() {
 
       <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-5 text-center">
         <span className="font-mono text-3xl text-zinc-100">
-          Two directives. Every failure from tonight, handled.
+          Two directives unlock replay. Hooks, sleep, retries, and saga logic stay in your code.
         </span>
       </div>
     </div>

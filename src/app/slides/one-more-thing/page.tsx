@@ -2,10 +2,11 @@ import { CodeBlock } from "../_components/code-block";
 import { DurableAgentMock } from "../_components/durable-agent-mock";
 
 const AGENT_CODE = `const agent = new DurableAgent({
-  model: 'claude-4-sonnet',
+  model: 'anthropic/claude-sonnet-4.5',
+  instructions: 'Help pick the restaurant',
   tools: { search, checkMenu },
 })
-await agent.run({ prompt })`;
+await agent.stream({ messages, writable })`;
 
 export default async function OneMoreThingSlide() {
   return (
@@ -31,7 +32,7 @@ export default async function OneMoreThingSlide() {
               DurableAgent
             </div>
             <div className="mt-2 font-sans text-xl leading-snug text-sky-100/80">
-              Tool calls are steps. The agent loop is a workflow.
+              Tool calls can be steps. The agent loop is a workflow.
             </div>
           </div>
           <div className="h-20 w-px bg-sky-400/20" />
