@@ -1,6 +1,5 @@
 import type { OrderStepId } from "@/lib/order-contract";
 import { CopyablePrompt } from "./copyable-prompt";
-import { DemoStrip } from "./demo-strip";
 
 type PatternSlideLayoutProps = {
   eyebrow: string;
@@ -9,7 +8,7 @@ type PatternSlideLayoutProps = {
   docUrl: string;
   docSection: string;
   apiPrimitive: string;
-  marker: OrderStepId | OrderStepId[] | "span";
+  marker?: OrderStepId | OrderStepId[] | "span";
   markerLabel?: string;
 };
 
@@ -20,23 +19,18 @@ type PatternSlideLayoutProps = {
  * captures the URL from this slide).
  */
 export function PatternSlideLayout({
-  eyebrow,
   patternName,
   description,
   docUrl,
   docSection,
   apiPrimitive,
-  marker,
-  markerLabel,
 }: PatternSlideLayoutProps) {
   const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
 
   return (
     <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
-      <DemoStrip marker={marker} label={markerLabel} />
-
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6">
-        <h2 className="text-center text-6xl font-semibold tracking-tight">
+        <h2 className="text-center text-8xl font-semibold tracking-tight">
           {patternName}
         </h2>
 

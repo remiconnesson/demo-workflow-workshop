@@ -2,7 +2,6 @@
 
 import type { OrderStepId } from "@/lib/order-contract";
 import type { OrderRunScenario } from "@/lib/order-run-client";
-import { DemoStrip } from "./demo-strip";
 import { LiveOrderConceptLab } from "./live-order-concept-lab";
 
 type DemoSlideLayoutProps = {
@@ -23,16 +22,13 @@ type DemoSlideLayoutProps = {
 
 /**
  * The "demo" slide — first beat per concept in Act 2.
- * Full-width lab showing the failure in action. No code,
- * no fix — just the demo reacting to the problem. The
- * audience sees what breaks before they see how to fix it.
+ * Condensed headline sits directly above the lab; subtitle is suppressed
+ * so one text layer competes for attention. The audience sees the problem,
+ * not a ladder of titles.
  */
 export function DemoSlideLayout({
   slide,
-  eyebrow,
   headline,
-  marker,
-  markerLabel,
   scenario,
   allowCrash = false,
   allowAdminCancel = false,
@@ -43,17 +39,15 @@ export function DemoSlideLayout({
   highlightSteps,
 }: DemoSlideLayoutProps) {
   return (
-    <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
-      <DemoStrip marker={marker} label={markerLabel} />
-
-      <h2 className="text-[52px] font-semibold leading-tight tracking-tight">
+    <div className="flex h-full w-full flex-col gap-8 px-14 py-24">
+      <h2 className="text-[84px] font-semibold leading-[0.9] tracking-[-0.03em] [font-stretch:condensed]">
         {headline}
       </h2>
 
       <div className="min-h-0 flex-1">
         <LiveOrderConceptLab
           slide={slide}
-          scenario={scenario}
+          scenario={{ ...scenario, subtitle: "" }}
           allowCrash={allowCrash}
           allowAdminCancel={allowAdminCancel}
           allowDispute={allowDispute}

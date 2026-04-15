@@ -15,7 +15,6 @@ export default function SlidesLayout({
   const slug = pathname.split("/").pop() ?? "";
   const { current, prev, next, total } = getSlideNav(slug);
   const [showNotes, setShowNotes] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
 
   // Listen for workflow run events from child slides
@@ -33,7 +32,6 @@ export default function SlidesLayout({
   // Clear run info on slide change
   useEffect(() => {
     setRunInfo(null);
-    setShowDebug(false);
   }, [slug]);
 
   useEffect(() => {
@@ -146,22 +144,10 @@ export default function SlidesLayout({
         >
           n
         </button>
-        {runInfo && (
-          <button
-            onClick={() => setShowDebug((s) => !s)}
-            className={`rounded border px-2 py-0.5 text-sm transition-colors ${
-              showDebug
-                ? "border-emerald-400/30 text-emerald-400"
-                : "border-white/10 text-zinc-600 hover:text-zinc-400"
-            }`}
-          >
-            $
-          </button>
-        )}
       </div>
 
-      {/* debug drawer — fixed at bottom, toggled by $ button */}
-      {showDebug && runInfo && (
+      {/* debug drawer — always open when a run is active */}
+      {runInfo && (
         <div className="fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
           <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
         </div>

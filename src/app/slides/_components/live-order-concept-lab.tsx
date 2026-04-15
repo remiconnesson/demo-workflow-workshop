@@ -113,6 +113,12 @@ export function LiveOrderConceptLab({
   const showManualControls =
     controller.waitingOn !== null && waitStrategy === "manual";
 
+  // Count chargePayment successes — naiveDoubleCharge emits step_succeeded twice.
+  const chargeCount = controller.events.reduce(
+    (n, e) => (e.type === "step_succeeded" && e.step === "chargePayment" ? n + 1 : n),
+    0,
+  );
+
   // Derive active step for the status pill
   const activeStep = ORDER_STEPS.find((s) => {
     const st = controller.stepState[s.id];
@@ -404,6 +410,16 @@ export function LiveOrderConceptLab({
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
+                {/* Double-charge badge — opacity-gated to avoid CLS */}
+                {step.id === "chargePayment" ? (
+                  <div
+                    className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-full border-2 border-red-400 bg-red-500 px-3 py-0.5 font-mono text-lg font-bold text-white shadow-[0_0_24px_rgba(248,113,113,0.6)] transition-opacity duration-500 ${
+                      chargeCount >= 2 ? "opacity-100 animate-pulse" : "opacity-0"
+                    }`}
+                  >
+                    ×2
+                  </div>
+                ) : null}
                 {/* Glow layer — always in DOM, visibility via bg color */}
                 <div className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${GLOW_STYLE[state]}`} />
                 {/* Node */}
