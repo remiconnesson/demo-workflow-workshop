@@ -4,10 +4,10 @@ const FAILURE_MODES = [
   "Restaurant takes 10 minutes to respond",
   "Restaurant never responds",
   "20-minute prep window",
-  "Customer disputes a delivered order",
   "Support cancels a sleeping order",
   "Customer wants live updates",
   "Three notifications, one fails",
+  "Customer disputes a delivered order",
 ];
 
 export default async function TheSetupFailuresSlide() {
