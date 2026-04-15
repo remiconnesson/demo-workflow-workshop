@@ -59,7 +59,7 @@ export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
     markerLabel: "streamed end-to-end",
   },
   "failure-fan-out": {
-    headline: "Simultaneously Email, SMS, and Push with Confidence",
+    headline: "Simultaneously Email, Push, and Loyalty with Confidence",
     marker: "sendReceipt",
     markerLabel: "parallel, still durable",
   },

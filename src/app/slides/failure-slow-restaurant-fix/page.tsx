@@ -7,18 +7,24 @@ export default function FailureSlowRestaurantFixSlide() {
       eyebrow="06c · The slow restaurant — workflow code"
       {...failureGroups["failure-slow-restaurant"]}
       workflowFix={{
-        code: `// createHook suspends the workflow.
-// No webhook. No worker. No polling.
-// (inside placeOrder — "use workflow")
-const hook = createHook<{ accepted: boolean }>({
-  token: \`order:\${orderId}:restaurant\`,
-})
+        code: `async function placeOrder(orderId: string) {
+  "use workflow"
 
-// workflow suspends here — no cost
-const result = await hook
+  // createHook suspends the workflow.
+  // No webhook. No worker. No polling.
+  const hook = createHook<{ accepted: boolean }>({
+    token: \`order:\${orderId}:restaurant-accept\`,
+  })
 
-if (!result.accepted) {
-  throw new FatalError("Rejected")
+  // Race the hook against a 24h sleep.
+  const result = await Promise.race([
+    hook,
+    sleep("24h").then(() => ({ accepted: false })),
+  ])
+
+  if (!result.accepted) {
+    throw new Error("Restaurant never accepted")
+  }
 }`,
       }}
     />

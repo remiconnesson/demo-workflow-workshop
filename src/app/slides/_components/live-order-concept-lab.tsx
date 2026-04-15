@@ -89,7 +89,7 @@ export function LiveOrderConceptLab({
   highlightSteps?: string[];
   /** Show a 💥 crash button that tears down UI state and replays from the event log. */
   allowCrash?: boolean;
-  /** Show an Admin cancel button that fires Run.wakeUp() via the admin-cancel route. */
+  /** Show an Admin cancel button that resumes the admin-cancel hook via the route. */
   allowAdminCancel?: boolean;
   /** Show a Dispute order button that fires the post-delivery dispute hook. */
   allowDispute?: boolean;

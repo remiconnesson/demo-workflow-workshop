@@ -12,15 +12,20 @@ export default function FailureLiveUpdatesFixSlide() {
 async function chargePayment(order) {
   "use step"
   const w = getWritable().getWriter()
-  await w.write({
-    step: "charge", status: "running",
-  })
-  const result = await stripe.charge(order)
-  await w.write({
-    step: "charge", status: "done",
-  })
-  w.releaseLock()
-  return result
+  try {
+    await w.write({
+      type: "step_running",
+      step: "chargePayment", label: "Charge payment",
+    })
+    const result = await stripe.charge(order)
+    await w.write({
+      type: "step_succeeded",
+      step: "chargePayment", label: "Charge payment",
+    })
+    return result
+  } finally {
+    w.releaseLock()
+  }
 }`,
       }}
     />

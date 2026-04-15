@@ -1,25 +1,39 @@
 import { CodeBlock } from "../_components/code-block";
 import { NaivePanel } from "../_components/naive-panel";
 
-const WORKFLOW_CODE = `"use workflow"
+const WORKFLOW_CODE = `async function placeOrder(input) {
+  "use workflow"
+  const compensations = []
+  try {
+    await validateOrder(input)
+    const paymentId = await chargePayment(input)
+    compensations.push(() => refundPayment(paymentId))
 
-async function placeOrder(input) {
-  const order    = await validateOrder(input)
-  const payment  = await chargePayment(order)
-  const accepted = await notifyRestaurant(order)
-  const driver   = await assignDriver(order)
-  const delivery = await trackDelivery(order, driver)
-  await sendReceipt(order, payment)
-  return { ok: true }
+    await notifyRestaurant(input)
+    compensations.push(() => cancelRestaurantOrder(input.orderId))
+    const accept = createHook({ token: restaurantAccept(input.orderId) })
+    const r = await Promise.race([accept, sleep("2m").then(() => "timeout")])
+    if (r === "timeout" || !r.accepted) throw new Error("rejected")
+
+    const driverId = await assignDriver(input)
+    compensations.push(() => releaseDriver(driverId))
+    await createHook({ token: delivered(input.orderId) })
+    await sendReceipt(input, paymentId)
+    return { orderId: input.orderId, status: "completed" }
+  } catch (err) {
+    while (compensations.length) await compensations.pop()()
+    return { orderId: input.orderId, status: "rolled_back" }
+  }
 }`;
 
 const ANNOTATIONS = [
   { line: "validateOrder", note: "replay-safe step" },
   { line: "chargePayment", note: "stable stepId -> idempotent retry" },
-  { line: "notifyRestaurant", note: "hook pause + timeout race in workflow code" },
-  { line: "assignDriver", note: "FatalError -> rollback path" },
-  { line: "trackDelivery", note: "stream updates written from steps" },
-  { line: "sendReceipt", note: "parallel fan-out with Promise.allSettled" },
+  { line: "createHook", note: "durable token — restaurant accept resumes the run" },
+  { line: "Promise.race", note: "hook vs sleep timeout, in workflow code" },
+  { line: "delivered hook", note: "second pause for the courier handoff" },
+  { line: "compensations", note: "workflow catch unwinds in reverse on error" },
+  { line: "return", note: "real shape: completed or rolled_back" },
 ];
 
 export default async function TheRevealSlide() {
@@ -38,7 +52,7 @@ export default async function TheRevealSlide() {
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-6 overflow-hidden">
         {/* Naive horror — reuse NaivePanel's final (slide 12) accumulation */}
         <div className="min-h-0">
-          <NaivePanel slide="failure-fan-out" />
+          <NaivePanel slide="failure-driver-refuses" />
         </div>
 
         {/* Workflow version — big mono block */}

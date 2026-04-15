@@ -519,12 +519,10 @@ export function useOrderRun(
     });
 
     // Fire a real server-side crash when the scenario enables it. The
-    // /api/orders/[orderId]/crash route resumes the crash-inject hook
-    // and calls Run.wakeUp(), which drives the workflow's inter-step
-    // Promise.race into the crash branch. The workflow throws a plain
-    // Error → runtime retries → replays from the event log. Visible in
-    // `npx workflow web`. Failures here are logged but never abort the
-    // on-stage UI replay, which stays load-bearing for the visual beat.
+    // /api/orders/[orderId]/crash route writes a flag file (see
+    // src/lib/crash-flags.ts) that the next step consumes and throws
+    // RetryableError on, so the runtime records a real retry/replay
+    // visible in `npx workflow web`. Failures here are logged only.
     if (scenario.input.demoMode === "crashInjectable") {
       try {
         const response = await fetch(
@@ -557,12 +555,8 @@ export function useOrderRun(
       }
     }
 
-    // The crash now arms a real flag the next step reads (see
-    // /api/orders/[orderId]/crash). The step throws RetryableError,
-    // the runtime records step_retrying, and the resulting
-    // step_failed → step_running → step_succeeded events flow
-    // through the live stream — we don't fake a wipe-and-replay
-    // anymore, the real workflow event log drives the UI.
+    // After arming the flag, the live stream carries the resulting
+    // step_failed → step_running → step_succeeded events; no UI fakery.
   }, [
     applyDerivedState,
     clearScheduledResume,
@@ -609,32 +603,70 @@ export function useOrderRun(
 
       const controller = new AbortController();
       streamAbortRef.current = controller;
-      const streamResponse = await fetch(
-        `/api/runs/${started.runId}/stream`,
-        { signal: controller.signal },
-      );
-      if (!streamResponse.ok || !streamResponse.body) {
-        throw new Error(`stream failed: ${streamResponse.status}`);
-      }
-      console.info("[order-run] stream_open", {
-        source,
-        scenarioId: scenario.scenarioId,
-        runId: started.runId,
-      });
 
-      const reader = streamResponse.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
+      // Resumable stream consumption: count chunks locally so we can
+      // refetch with ?startIndex=<next> on transient network errors.
+      let nextIndex = 0;
+      const maxRetries = 3;
+      let attempt = 0;
       while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          const event = JSON.parse(line) as OrderEvent;
-          applyEvent(event);
+        const url =
+          nextIndex === 0
+            ? `/api/runs/${started.runId}/stream`
+            : `/api/runs/${started.runId}/stream?startIndex=${nextIndex}`;
+        try {
+          const streamResponse = await fetch(url, { signal: controller.signal });
+          if (!streamResponse.ok || !streamResponse.body) {
+            throw new Error(`stream failed: ${streamResponse.status}`);
+          }
+          console.info("[order-run] stream_open", {
+            source,
+            scenarioId: scenario.scenarioId,
+            runId: started.runId,
+            startIndex: nextIndex,
+            attempt,
+          });
+
+          const reader = streamResponse.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let closedCleanly = false;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              closedCleanly = true;
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              const event = JSON.parse(line) as OrderEvent;
+              applyEvent(event);
+              nextIndex += 1;
+            }
+          }
+          if (closedCleanly) break;
+        } catch (caught) {
+          if (controller.signal.aborted) throw caught;
+          if (caught instanceof DOMException && caught.name === "AbortError") {
+            throw caught;
+          }
+          attempt += 1;
+          if (attempt > maxRetries) throw caught;
+          const backoff = 500 * attempt;
+          console.warn("[order-run] stream_retry", {
+            source,
+            scenarioId: scenario.scenarioId,
+            runId: started.runId,
+            nextIndex,
+            attempt,
+            backoff,
+            message: caught instanceof Error ? caught.message : String(caught),
+          });
+          await new Promise((resolve) => window.setTimeout(resolve, backoff));
+          continue;
         }
       }
     } catch (caught) {

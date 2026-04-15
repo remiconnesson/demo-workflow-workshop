@@ -9,7 +9,6 @@ const RECAP_PILLS = [
   { label: "saga", tone: "fuchsia" },
   { label: "streaming", tone: "sky" },
   { label: "parallel", tone: "sky" },
-  { label: "wake-up", tone: "amber" },
   { label: "agents", tone: "sky" },
 ] as const;
 

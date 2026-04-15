@@ -174,7 +174,8 @@ export const slideScenarios = {
   failureCrash: {
     scenarioId: "failure-crash",
     title: "failure-crash",
-    subtitle: "Automatically retry when errors pop up",
+    subtitle:
+      "A crash mid-workflow forces the process to restart — and pick up where it left off.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -240,8 +241,7 @@ export const slideScenarios = {
   naiveDoubleCharge: {
     scenarioId: "naive-double-charge",
     title: "naive-double-charge",
-    subtitle:
-      "Guard payments with an idempotency key to save your customer's credit card",
+    subtitle: "A transient retry charged the customer's card twice.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -254,7 +254,7 @@ export const slideScenarios = {
     scenarioId: "naive-crash-no-recover",
     title: "Money moved, order didn't",
     subtitle:
-      "FatalError between charge and notify → refund compensation unwinds, restaurant never hears.",
+      "A crash between charge and notify — refund unwinds, the restaurant never hears.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -276,23 +276,10 @@ export const slideScenarios = {
       demoMode: "naivePoll" as const,
     },
   },
-  naiveNoStream: {
-    scenarioId: "naive-no-stream",
-    title: "naive-no-stream",
-    subtitle: "Send events so your customer sees real-time progress",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: true,
-      demoMode: "naiveNoStream" as const,
-    },
-  },
   naiveAllOrNothing: {
     scenarioId: "naive-all-or-nothing",
     title: "naive-all-or-nothing",
-    subtitle:
-      "Keep each channel independent so a single failure can't cancel the rest",
+    subtitle: "One flaky channel (email) rejected the whole receipt batch.",
     autoStart: false,
     input: {
       ...BASE_INPUT,

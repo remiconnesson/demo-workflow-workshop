@@ -4,7 +4,7 @@ const FAILURE_MODES = [
   "Restaurant takes 10 minutes to respond",
   "Restaurant never responds",
   "20-minute prep window",
-  "Driver refuses the job",
+  "Customer disputes a delivered order",
   "Support cancels a sleeping order",
   "Customer wants live updates",
   "Three notifications, one fails",

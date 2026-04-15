@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getRun, resumeHook } from "workflow/api";
+import { resumeHook } from "workflow/api";
 import { HookNotFoundError } from "workflow/errors";
 import { hookTokens } from "@/workflows/place-order";
 
@@ -9,12 +9,12 @@ type DisputeBody = { reason?: string };
  * Delivery dispute endpoint. Drives the `failure-driver-refuses` /
  * "Dispute the Order" finale slide.
  *
- * 1. Resumes the delivery-dispute hook so the workflow's Promise.race
- *    sees the disputed branch and throws a FatalError — cascading
- *    every compensation in reverse (refund, cancel, release) even
- *    though all six steps already reported success.
- * 2. Calls Run.wakeUp() on the workflow so the pending 5s sleep
- *    returns immediately and the race evaluates at once.
+ * Resumes the delivery-dispute hook. The workflow is paused inside
+ * `Promise.race([disputeHook, sleep("24h")])` — resuming wins the
+ * race, the workflow throws a plain Error, and compensations unwind
+ * in reverse (refund, cancel, release) even though all six steps
+ * already reported success. `resumeHook` wakes the suspended
+ * workflow automatically, so no explicit `run.wakeUp()` is needed.
  */
 export async function POST(
   req: Request,
@@ -28,20 +28,16 @@ export async function POST(
       reason: body.reason ?? "never arrived",
     });
 
-    const result = await getRun(hook.runId).wakeUp();
-
     console.info("[demo] delivery_dispute", {
       orderId,
       token,
       runId: hook.runId,
-      stoppedSleeps: result.stoppedCount,
     });
 
     return NextResponse.json({
       ok: true,
       token,
       runId: hook.runId,
-      stoppedSleeps: result.stoppedCount,
     });
   } catch (error) {
     if (HookNotFoundError.is(error)) {

@@ -9,16 +9,18 @@ export default function FailureFanOutFixSlide() {
       workflowFix={{
         code: `// Promise.allSettled across separate steps
 // gives each branch its own durable boundary.
-"use workflow"
+async function placeOrder(order) {
+  "use workflow"
 
-// put each branch in its own step
-// for per-branch durability
-await Promise.allSettled([
-  emailReceipt(order),
-  pushNotification(order),
-  updateLoyalty(order),
-])
-// one fails? others still finish.`,
+  // put each branch in its own step
+  // for per-branch durability
+  await Promise.allSettled([
+    emailReceipt(order),
+    pushNotification(order),
+    updateLoyalty(order),
+  ])
+  // one fails? others still finish.
+}`,
       }}
     />
   );

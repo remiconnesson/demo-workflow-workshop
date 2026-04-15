@@ -7,6 +7,19 @@ import {
   getWritable,
   sleep,
 } from "workflow";
+
+// Duration string accepted by workflow's `sleep()` — mirrors `ms`'s
+// StringValue (e.g. "500ms", "2s", "1m", "1h"). We declare locally
+// rather than importing from `ms` because `ms` is a transitive (not
+// direct) dep of this project; pnpm's strict hoisting would reject
+// the import. `sleep()` takes the full union, but we only use string
+// durations from user input, so narrowing to this shape is accurate.
+type DurationString =
+  | `${number}ms`
+  | `${number}s`
+  | `${number}m`
+  | `${number}h`
+  | `${number}d`;
 import {
   type CompensationAction,
   type DemoMode,
@@ -34,13 +47,13 @@ export type OrderInput = {
   failAt?: FailStep;
   autoAck?: boolean; // automatically resume hooks after a short delay
   demoMode?: DemoMode;
-  driverTimeout?: string; // e.g. "1s", "2m" — defaults to "2m"
+  driverTimeout?: DurationString; // e.g. "1s", "2m" — defaults to "2m"
   /**
    * Optional race: wrap the restaurant-accept hook in a Promise.race
-   * against a sleep of this duration. If the sleep wins, a FatalError
-   * fires and compensation unwinds. Drives the `ghostRestaurant` scenario.
+   * against a sleep of this duration. If the sleep wins, an Error is
+   * thrown and compensation unwinds. Drives the `ghostRestaurant` scenario.
    */
-  restaurantTimeout?: string;
+  restaurantTimeout?: DurationString;
 };
 
 export type OrderEvent =
@@ -150,7 +163,7 @@ export async function placeOrderWorkflow(
         label: "Notify restaurant",
         error: "Naive poll gave up after 10 attempts",
       });
-      throw new FatalError("Naive poll gave up after 10 attempts");
+      throw new Error("Naive poll gave up after 10 attempts");
     }
 
     // 3. Notify restaurant + wait for acceptance hook
@@ -182,7 +195,7 @@ export async function placeOrderWorkflow(
     if (input.restaurantTimeout) {
       const raced = await Promise.race([
         restaurantHook.then((r) => ({ kind: "resolved" as const, r })),
-        sleep(input.restaurantTimeout as "2m").then(() => ({
+        sleep(input.restaurantTimeout).then(() => ({
           kind: "timeout" as const,
         })),
       ]);
@@ -199,7 +212,7 @@ export async function placeOrderWorkflow(
           orderId,
           restaurantTimeout: timeoutLabel,
         });
-        throw new FatalError(
+        throw new Error(
           `Restaurant acceptance timed out for order ${orderId}`,
         );
       }
@@ -215,17 +228,16 @@ export async function placeOrderWorkflow(
       detail: restaurantResult.accepted ? "Restaurant accepted" : "Restaurant rejected",
     });
     if (!restaurantResult.accepted) {
-      throw new FatalError(
+      throw new Error(
         `Restaurant rejected order ${orderId}${restaurantResult.reason ? `: ${restaurantResult.reason}` : ""}`,
       );
     }
 
     // 3c. Admin-cancel window (demo mode only — the failure-admin-cancel
-    //     slide demonstrates Run.wakeUp() by opening a short sleep that
-    //     support can interrupt from the admin dashboard. External code
-    //     resumes the admin-cancel hook AND calls run.wakeUp() so the
-    //     sleep returns immediately and the workflow reads the cancel
-    //     signal via Promise.race.)
+    //     slide demonstrates graceful cancellation by racing a cancel
+    //     hook against a short decision sleep. resumeHook() from the
+    //     /api/orders/[orderId]/admin-cancel route wins the race and
+    //     wakes the suspended workflow on its own; no wakeUp needed.)
     if (input.demoMode === "adminSleepBeforeDriver") {
       const adminCancelHook = createHook<{
         cancelled: boolean;
@@ -253,7 +265,7 @@ export async function placeOrderWorkflow(
           type: "log",
           message: `Admin cancel signal received: ${adminResult.reason ?? "support"}`,
         });
-        throw new FatalError(
+        throw new Error(
           `Admin cancel: ${adminResult.reason ?? "support intervened"}`,
         );
       }
@@ -291,7 +303,7 @@ export async function placeOrderWorkflow(
     });
     const driverResult = await Promise.race([
       driverHook.then((r) => ({ kind: "resolved" as const, r })),
-      sleep((input.driverTimeout ?? "2m") as "2m").then(() => ({
+      sleep(input.driverTimeout ?? "2m").then(() => ({
         kind: "timeout" as const,
       })),
     ]);
@@ -308,7 +320,7 @@ export async function placeOrderWorkflow(
         orderId,
         driverTimeout: timeoutLabel,
       });
-      throw new FatalError(`Driver assignment timed out for order ${orderId}`);
+      throw new Error(`Driver assignment timed out for order ${orderId}`);
     }
     await e({
       type: "hook_resolved",
@@ -317,7 +329,7 @@ export async function placeOrderWorkflow(
       detail: driverResult.r.accepted ? "Driver accepted" : "Driver declined",
     });
     if (!driverResult.r.accepted) {
-      throw new FatalError(`Driver declined order ${orderId}`);
+      throw new Error(`Driver declined order ${orderId}`);
     }
 
     // 5. Track delivery (wait for delivered hook) — not crash-armable
@@ -344,7 +356,7 @@ export async function placeOrderWorkflow(
         label: "Track delivery",
         error: "Delivery reported missing by customer",
       });
-      throw new FatalError("Delivery failed verification");
+      throw new Error("Delivery failed verification");
     }
     await e({
       type: "step_succeeded",
@@ -369,7 +381,7 @@ export async function placeOrderWorkflow(
           sendLoyalty(input),
         ]);
       } catch {
-        throw new FatalError(
+        throw new Error(
           "naive all-or-nothing: one channel failed the batch",
         );
       }
@@ -381,7 +393,7 @@ export async function placeOrderWorkflow(
     //    steps are green; we open a short race between a durable
     //    disputeHook (resumed by the /api/orders/[orderId]/dispute
     //    route) and a short sleep (5s compressed from 24h). If the
-    //    hook fires, FatalError cascades every compensation in reverse.
+    //    hook fires, the thrown Error cascades every compensation in reverse.
     if (input.demoMode === "disputeWindow") {
       const disputeHook = createHook<{ reason: string }>({
         token: hookTokens.deliveryDispute(orderId),
@@ -402,7 +414,7 @@ export async function placeOrderWorkflow(
           type: "log",
           message: `Dispute: ${verdict.reason}`,
         });
-        throw new FatalError(`Delivery disputed: ${verdict.reason}`);
+        throw new Error(`Delivery disputed: ${verdict.reason}`);
       }
       await e({
         type: "log",
@@ -424,11 +436,10 @@ export async function placeOrderWorkflow(
       compensationOrder: compensations.map((c) => c.action),
     };
   } catch (error) {
-    if (!(error instanceof FatalError)) throw error;
-
+    const message = error instanceof Error ? error.message : String(error);
     await e({
       type: "log",
-      message: `Saga failed: ${error.message}. Rolling back…`,
+      message: `Saga failed: ${message}. Rolling back…`,
     });
 
     const executed: CompensationAction[] = [];
@@ -583,6 +594,11 @@ async function validateOrder(
       step: "validateOrder",
       label: "Validate order",
     }, input.demoMode);
+    // Note: getWorkflowMetadata() is explicitly callable inside a step —
+    // the SDK exports it from @workflow/core/step with the JSDoc "Returns
+    // metadata available in the current workflow run inside a step function."
+    // Steps get workflowRunId/workflowName; only getStepMetadata() fields
+    // (stepId, attempt, stepStartedAt) are step-scoped.
     if (
       attempt === 1 &&
       consumeCrashFlag(input.orderId, {
@@ -858,7 +874,10 @@ async function assignDriver(
       }, input.demoMode);
       throw new FatalError(`assignDriver failed for ${input.orderId}`);
     }
-    const driverId = `drv_${Math.floor(Math.random() * 9000 + 1000)}`;
+    // Derive from stepId so retries of this step produce the same
+    // driverId — teaches idempotency rather than regenerating a random
+    // value on replay.
+    const driverId = `drv_${stepId.slice(-4)}`;
     await writeEvent(writer, {
       type: "log",
       message: `Dispatched ${driverId}; awaiting acceptance`,

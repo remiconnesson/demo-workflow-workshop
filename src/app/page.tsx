@@ -76,42 +76,13 @@ const HOTSPOT_COLORS = {
   },
 } as const;
 
-function SlideHotspot({
-  href,
-  label,
-  active,
-  color,
-}: {
+function SlideHotspot(_: {
   href: string;
   label: string;
   active: boolean;
   color: keyof typeof HOTSPOT_COLORS;
 }) {
-  const c = HOTSPOT_COLORS[color];
-  return (
-    <Link
-      href={href}
-      className="group relative z-20 flex items-center"
-      title={label}
-    >
-      {/* larger hit area */}
-      <span className="absolute -inset-4" />
-      {/* dot */}
-      <span
-        className={`relative h-2.5 w-2.5 rounded-full transition-all duration-500 ${
-          active
-            ? `${c.active} shadow-[0_0_12px_3px] animate-pulse`
-            : `${c.idle} shadow-[0_0_0px_0px]`
-        } group-hover:scale-[2] group-hover:shadow-[0_0_16px_4px]`}
-      />
-      {/* label on hover */}
-      <span
-        className={`pointer-events-none absolute left-6 whitespace-nowrap rounded-lg border px-3 py-1.5 text-sm font-semibold opacity-0 transition-opacity group-hover:opacity-100 ${c.label}`}
-      >
-        {label}
-      </span>
-    </Link>
-  );
+  return null;
 }
 
 type DemoPhase =

@@ -9,9 +9,8 @@ export default function FailurePrepWindowFixSlide() {
       workflowFix={{
         code: `// One line. The function suspends.
 // You pay for nothing while it sleeps.
-"use workflow"
-
 async function placeOrder(input) {
+  "use workflow"
   const order = await validateOrder(input)
   const payment = await chargePayment(order)
 

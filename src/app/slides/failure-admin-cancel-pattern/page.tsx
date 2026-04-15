@@ -8,7 +8,7 @@ export default function FailureAdminCancelPatternSlide() {
     <PatternSlideLayout
       eyebrow="09d · Admin cancel — concept / pattern"
       patternName="Stop Workflow"
-      description="This is the payoff from the last few patterns: use a hook as the stop signal, let the workflow observe it, and unwind durably. If the run is sleeping, you can wake it so the cancel lands immediately."
+      description="Race a cancel hook against a short decision window. resumeHook() wins the race and wakes the suspended workflow automatically, so the saga unwinds compensations durably."
       apiPrimitive="createHook() + resumeHook()"
       docSection="Cookbook · Agent Patterns"
       docUrl="useworkflow.dev/docs/cookbook/agent-patterns/stop-workflow"

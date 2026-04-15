@@ -338,7 +338,7 @@ export const foundations = {
         logs: [
           {
             kind: "ERR",
-            msg: 'assignDriver \u00B7 FatalError("Driver declined order")',
+            msg: 'assignDriver \u00B7 FatalError("No drivers available")',
           },
           { kind: "CMP", msg: "running cancelRestaurantOrder" },
           { kind: "CMP", msg: "running refundPayment" },

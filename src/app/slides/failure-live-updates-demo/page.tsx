@@ -8,7 +8,7 @@ export default function FailureLiveUpdatesDemoSlide() {
       slide="failure-live-updates"
       eyebrow="10a · Live updates — watch it stream"
       {...failureGroups["failure-live-updates"]}
-      scenario={slideScenarios.demo}
+      scenario={slideScenarios.streaming}
     />
   );
 }

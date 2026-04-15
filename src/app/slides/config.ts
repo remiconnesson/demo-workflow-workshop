@@ -127,7 +127,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-ghost-restaurant-demo",
     title: "The Ghost · Demo",
     number: 17,
-    notes: "PRESS r. The restaurant hook races against sleep('2s'). Sleep wins. FatalError. Compensations fire.\n\nSAY: \"Restaurant never answers. What do you do now?\"",
+    notes: "PRESS r. The restaurant hook races against sleep('2s'). Sleep wins. Throw an error. Compensations fire.\n\nSAY: \"Restaurant never answers. What do you do now?\"",
   },
   {
     slug: "failure-ghost-restaurant-naive",
@@ -191,7 +191,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-admin-cancel-fix",
     title: "Admin Cancel · Workflow Code",
     number: 27,
-    notes: "SAY: \"Resume the cancel hook, then call getRun(runId).wakeUp(). The sleeping workflow wakes up, reads the cancel signal, and unwinds.\"",
+    notes: "SAY: \"Resume the cancel hook. The workflow wakes automatically, reads the cancel signal, and unwinds compensations in reverse.\"",
   },
   {
     slug: "failure-admin-cancel-pattern",
@@ -269,13 +269,13 @@ export const SLIDES: SlideInfo[] = [
     slug: "failure-driver-refuses-fix",
     title: "Dispute · Workflow Code",
     number: 39,
-    notes: "SAY: \"Push an undo for each step. FatalError pops them in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
+    notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
     slug: "failure-driver-refuses-pattern",
     title: "Dispute · Concept / Pattern",
     number: 40,
-    notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, FatalError triggers the reverse walk. Each compensation is itself a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
+    notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL: \"This is the last pattern. Now let me show you what all of that adds up to.\"",
   },
 
   // ─── Act 3 · The Reveal ────────────────────────────────────

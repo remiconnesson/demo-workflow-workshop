@@ -7,18 +7,25 @@ export default function FailureDriverRefusesFixSlide() {
       eyebrow="12c · The dispute — workflow code"
       {...failureGroups["failure-driver-refuses"]}
       workflowFix={{
-        code: `// Every step already pushed its undo.
-// Open a post-delivery dispute window.
-const disputeHook = createHook({
-  token: \`order:\${orderId}:dispute\`,
-})
-const verdict = await Promise.race([
-  disputeHook,
-  sleep("24h"),
-])
-if (verdict?.reason) {
-  throw new FatalError(verdict.reason)
-  // FatalError pops every undo in reverse
+        code: `async function placeOrder(orderId: string) {
+  "use workflow"
+
+  // ...prior steps each pushed their undo onto the saga.
+
+  // Open a post-delivery dispute window.
+  const disputeHook = createHook<{ reason: string }>({
+    token: \`order:\${orderId}:delivery-dispute\`,
+  })
+
+  const verdict = await Promise.race([
+    disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
+    sleep("24h").then(() => ({ kind: "ok" as const })),
+  ])
+
+  if (verdict.kind === "disputed") {
+    // Workflow catch {} unwinds every compensation in reverse.
+    throw new Error(\`Disputed: \${verdict.reason}\`)
+  }
 }`,
       }}
     />

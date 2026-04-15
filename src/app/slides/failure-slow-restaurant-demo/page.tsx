@@ -8,7 +8,7 @@ export default function FailureSlowRestaurantDemoSlide() {
       slide="failure-slow-restaurant"
       eyebrow="06a · The slow restaurant — watch it wait"
       {...failureGroups["failure-slow-restaurant"]}
-      scenario={slideScenarios.naivePoll}
+      scenario={slideScenarios.approvalGate}
       highlightSteps={["notifyRestaurant"]}
     />
   );

@@ -8,8 +8,8 @@ export default function FailureDriverRefusesPatternSlide() {
     <PatternSlideLayout
       eyebrow="12d · The dispute — concept / pattern"
       patternName="Transactions & Rollbacks"
-      description="Every step pushes an undo as it succeeds. Even after the happy path completes, a post-delivery dispute hook can throw FatalError — and the workflow unwinds every compensation in reverse. A durable saga you implement with workflow primitives."
-      apiPrimitive="FatalError  ·  compensations[]"
+      description="Every step pushes an undo as it succeeds. A post-delivery dispute hook throws an error, and the workflow's catch unwinds compensations in reverse — even after the happy path finished."
+      apiPrimitive="try/catch  ·  compensations[]  ·  reverse unwind"
       docSection="Cookbook · Common Patterns"
       docUrl="useworkflow.dev/docs/cookbook/common-patterns/saga"
       marker={marker}

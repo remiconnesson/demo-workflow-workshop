@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { resumeHook } from "workflow/api";
+import { HookNotFoundError } from "workflow/errors";
 import { hookTokens } from "@/workflows/place-order";
 
 type ResumeBody =
@@ -34,7 +35,24 @@ export async function POST(
       return NextResponse.json({ error: "unknown kind" }, { status: 400 });
   }
 
-  await resumeHook(token, payload);
-  console.info("[demo] hook_resume", { orderId, kind: body.kind, token });
-  return NextResponse.json({ ok: true, token });
+  try {
+    const hook = await resumeHook(token, payload);
+    console.info("[demo] hook_resume", { orderId, kind: body.kind, token, runId: hook.runId });
+    return NextResponse.json({ ok: true, token, runId: hook.runId });
+  } catch (error) {
+    if (HookNotFoundError.is(error)) {
+      console.info("[demo] hook_resume_not_ready", {
+        orderId,
+        kind: body.kind,
+        token,
+      });
+
+      return NextResponse.json(
+        { error: "Hook is not ready yet or has already been resumed." },
+        { status: 409 },
+      );
+    }
+
+    throw error;
+  }
 }

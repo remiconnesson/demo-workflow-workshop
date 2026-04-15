@@ -7,19 +7,23 @@ export default function FailureGhostRestaurantFixSlide() {
       eyebrow="07c · The ghost — workflow code"
       {...failureGroups["failure-ghost-restaurant"]}
       workflowFix={{
-        code: `// Race the hook against a sleep.
-// Whichever resolves first wins.
-const hook = createHook<{ accepted: boolean }>({
-  token: \`order:\${orderId}:restaurant\`,
-})
+        code: `async function placeOrder(orderId: string) {
+  "use workflow"
 
-const result = await Promise.race([
-  hook,
-  sleep("2m").then(() => "timeout"),
-])
+  // Race the hook against a sleep.
+  // Whichever resolves first wins.
+  const hook = createHook<{ accepted: boolean }>({
+    token: \`order:\${orderId}:restaurant-accept\`,
+  })
 
-if (result === "timeout") {
-  throw new FatalError("Timed out")
+  const result = await Promise.race([
+    hook,
+    sleep("2m").then(() => "timeout" as const),
+  ])
+
+  if (result === "timeout") {
+    throw new Error("Restaurant timed out")
+  }
 }`,
       }}
     />

@@ -1,12 +1,22 @@
 import { CodeBlock } from "../_components/code-block";
 import { DurableAgentMock } from "../_components/durable-agent-mock";
 
-const AGENT_CODE = `const agent = new DurableAgent({
-  model: 'anthropic/claude-sonnet-4.5',
-  instructions: 'Help pick the restaurant',
-  tools: { search, checkMenu },
-})
-await agent.stream({ messages, writable })`;
+const AGENT_CODE = `import { DurableAgent } from "@workflow/ai/agent"
+import { getWritable } from "workflow"
+import type { UIMessageChunk, ModelMessage } from "ai"
+
+async function pickRestaurant(messages: ModelMessage[]) {
+  "use workflow"
+  const agent = new DurableAgent({
+    model: 'anthropic/claude-sonnet-4.5',
+    instructions: 'Help pick the restaurant',
+    tools: { search, checkMenu },
+  })
+  await agent.stream({
+    messages,
+    writable: getWritable<UIMessageChunk>(),
+  })
+}`;
 
 export default async function OneMoreThingSlide() {
   return (

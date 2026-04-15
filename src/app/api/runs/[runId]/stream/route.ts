@@ -1,12 +1,16 @@
 import { getRun } from "workflow/api";
 
 export async function GET(
-  _req: Request,
+  request: Request,
   { params }: { params: Promise<{ runId: string }> },
 ) {
   const { runId } = await params;
   const run = getRun(runId);
-  const source = run.getReadable();
+  const startIndexParam = new URL(request.url).searchParams.get("startIndex");
+  const startIndex = startIndexParam !== null ? Number(startIndexParam) : NaN;
+  const source = Number.isFinite(startIndex)
+    ? run.getReadable({ startIndex })
+    : run.getReadable();
 
   // The workflow stream contains structured objects. Encode each to
   // newline-delimited JSON bytes so it can be sent over HTTP.

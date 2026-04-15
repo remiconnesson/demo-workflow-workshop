@@ -35,7 +35,6 @@ export type DemoMode =
   | "naiveDoubleCharge"
   | "naiveCrashNoRecover"
   | "naivePoll"
-  | "naiveNoStream"
   | "naiveAllOrNothing"
   | "disputeWindow";
 
@@ -99,9 +98,10 @@ export const hookTokens = {
   driverAccept: (orderId: string) => `order:${orderId}:driver-accept`,
   delivered: (orderId: string) => `order:${orderId}:delivered`,
   adminCancel: (orderId: string) => `order:${orderId}:admin-cancel`,
-  crashInject: (orderId: string) => `order:${orderId}:crash-inject`,
   deliveryDispute: (orderId: string) => `order:${orderId}:delivery-dispute`,
 } as const;
+// NOTE: tokens are keyed only on orderId — caller must ensure one
+// active run per orderId or createHook() will throw hook_conflict.
 
 export const RESUME_KIND_BY_STEP = {
   notifyRestaurant: "restaurant-accept",
