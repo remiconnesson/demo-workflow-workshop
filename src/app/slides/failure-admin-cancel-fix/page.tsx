@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureAdminCancelFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-admin-cancel"
       eyebrow="09c · Admin cancel — workflow code"
       {...failureGroups["failure-admin-cancel"]}
       workflowFix={{

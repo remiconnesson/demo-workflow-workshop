@@ -9,7 +9,7 @@ pnpm install
 pnpm dev
 ```
 
-Then open `http://localhost:3000/` — it drops you on the opening slide. Arrow keys move through the deck, `r` runs the current slide's demo, `R` resets it, `n` toggles speaker notes.
+Then open `http://localhost:3000/`.
 
 ### Observing runs
 

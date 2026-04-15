@@ -1,13 +1,15 @@
 import type { OrderStepId } from "@/lib/order-contract";
+import type { FailureGroupSlug } from "../_data/failure-groups";
 import { CodeSlideCard } from "./code-slide-card";
-import { DemoStrip } from "./demo-strip";
+import { FinishedTimelineStrip } from "./finished-timeline-strip";
 
 type NaiveSlideLayoutProps = {
-  slide: string;
+  slide: FailureGroupSlug;
   eyebrow: string;
   headline: string;
   marker: OrderStepId | OrderStepId[] | "span";
   markerLabel?: string;
+  highlightSteps?: OrderStepId[];
   naiveCode: string;
 };
 
@@ -17,15 +19,14 @@ type NaiveSlideLayoutProps = {
  * distinguishes it.
  */
 export async function NaiveSlideLayout({
-  eyebrow,
+  slide,
   headline,
-  marker,
-  markerLabel,
+  highlightSteps,
   naiveCode,
 }: NaiveSlideLayoutProps) {
   return (
     <div className="flex h-full w-full flex-col gap-5 px-14 py-8">
-      <DemoStrip marker={marker} label={markerLabel} />
+      <FinishedTimelineStrip slide={slide} highlightSteps={highlightSteps} />
 
       <h2 className="text-[52px] font-semibold leading-tight tracking-tight">
         {headline}

@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureRetryFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-retry"
       eyebrow="05c · The retry — workflow code"
       {...failureGroups["failure-retry"]}
       workflowFix={{

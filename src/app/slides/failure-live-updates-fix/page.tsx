@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureLiveUpdatesFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-live-updates"
       eyebrow="10c · Live updates — workflow code"
       {...failureGroups["failure-live-updates"]}
       workflowFix={{

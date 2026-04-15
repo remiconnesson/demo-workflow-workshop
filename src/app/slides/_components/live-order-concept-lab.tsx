@@ -119,6 +119,18 @@ export function LiveOrderConceptLab({
     0,
   );
 
+  const compensationFired = controller.compensations.length > 0;
+
+  type BadgeTone = "red" | "amber" | "fuchsia" | "sky";
+  type Badge = { label: string; tone: BadgeTone; pulse?: boolean };
+
+  const toneClass: Record<BadgeTone, string> = {
+    red: "border-red-400 bg-red-500 text-white shadow-[0_0_24px_rgba(248,113,113,0.6)]",
+    amber: "border-amber-300 bg-amber-400 text-black shadow-[0_0_24px_rgba(252,211,77,0.55)]",
+    fuchsia: "border-fuchsia-400 bg-fuchsia-500 text-white shadow-[0_0_24px_rgba(232,121,249,0.55)]",
+    sky: "border-sky-400 bg-sky-500 text-white shadow-[0_0_24px_rgba(56,189,248,0.6)]",
+  };
+
   // Derive active step for the status pill
   const activeStep = ORDER_STEPS.find((s) => {
     const st = controller.stepState[s.id];
@@ -129,6 +141,106 @@ export function LiveOrderConceptLab({
     const st = controller.stepState[step.id];
     return st === undefined || st === "pending";
   });
+
+  // Live cost ticker for the slow-restaurant wait — dramatizes the naive
+  // polling cost you WOULD pay without a durable hook.
+  const [waitElapsedMs, setWaitElapsedMs] = useState(0);
+  useEffect(() => {
+    if (!controller.waitingOn) {
+      setWaitElapsedMs(0);
+      return;
+    }
+    const start = performance.now();
+    const id = window.setInterval(() => {
+      setWaitElapsedMs(performance.now() - start);
+    }, 120);
+    return () => window.clearInterval(id);
+  }, [controller.waitingOn]);
+  // $60/hr naive compute × 1,000 orders → ~$1/sec across the fleet.
+  const waitCost = (waitElapsedMs / 1000) * 1.0;
+
+  // Track the step that was running at the moment of a crash, so we can
+  // persist a "replayed" chip on it after recovery.
+  const crashedStepRef = useRef<OrderStepId | null>(null);
+  useEffect(() => {
+    if (controller.crashPhase === "crashed" && !crashedStepRef.current && activeStep) {
+      crashedStepRef.current = activeStep.id;
+    }
+    if (phase === "idle" && isResetState) {
+      crashedStepRef.current = null;
+    }
+  }, [controller.crashPhase, activeStep, phase, isResetState]);
+
+  const stepBadges: Partial<Record<OrderStepId, Badge>> = (() => {
+    const state = (id: OrderStepId) => controller.stepState[id];
+    switch (slide) {
+      case "failure-retry":
+        return chargeCount >= 2
+          ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
+          : {};
+      case "failure-crash": {
+        const step = crashedStepRef.current ?? "notifyRestaurant";
+        if (controller.crashPhase === "crashed") {
+          return { [step]: { label: "💥 crashed", tone: "red", pulse: true } };
+        }
+        if (controller.crashPhase === "replaying") {
+          return { [step]: { label: "replaying", tone: "sky", pulse: true } };
+        }
+        if (crashedStepRef.current) {
+          return { [step]: { label: "replayed", tone: "sky" } };
+        }
+        return {};
+      }
+      case "failure-slow-restaurant":
+        if (controller.waitingOn === "notifyRestaurant") {
+          const label = `💸 burning $${waitCost.toFixed(2)}`;
+          return { notifyRestaurant: { label, tone: "red", pulse: true } };
+        }
+        return {};
+      case "failure-ghost-restaurant":
+        if (state("notifyRestaurant") === "failed" || phase === "rolled_back") {
+          return { notifyRestaurant: { label: "timeout", tone: "red" } };
+        }
+        if (controller.waitingOn === "notifyRestaurant") {
+          return { notifyRestaurant: { label: "no-ack", tone: "amber", pulse: true } };
+        }
+        return {};
+      case "failure-prep-window":
+        if (
+          state("chargePayment") === "success" &&
+          (state("notifyRestaurant") === "pending" ||
+            state("notifyRestaurant") === "running")
+        ) {
+          return { notifyRestaurant: { label: "20m sleep", tone: "amber", pulse: true } };
+        }
+        return {};
+      case "failure-admin-cancel":
+        if (compensationFired || phase === "rolled_back") {
+          return {
+            notifyRestaurant: { label: "cancelled", tone: "fuchsia" },
+            assignDriver: { label: "cancelled", tone: "fuchsia" },
+          };
+        }
+        return {};
+      case "failure-driver-refuses":
+        if (compensationFired || phase === "rolled_back") {
+          return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
+        }
+        return {};
+      case "failure-fan-out":
+        if (state("sendReceipt") === "running" || state("sendReceipt") === "success") {
+          return { sendReceipt: { label: "×3 parallel", tone: "sky" } };
+        }
+        return {};
+      case "failure-live-updates":
+        if (phase === "running" && activeStep) {
+          return { [activeStep.id]: { label: "streaming", tone: "sky", pulse: true } };
+        }
+        return {};
+      default:
+        return {};
+    }
+  })();
 
   useEffect(() => {
     if (!activeStep) {
@@ -410,16 +522,19 @@ export function LiveOrderConceptLab({
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
-                {/* Double-charge badge — opacity-gated to avoid CLS */}
-                {step.id === "chargePayment" ? (
-                  <div
-                    className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-full border-2 border-red-400 bg-red-500 px-3 py-0.5 font-mono text-lg font-bold text-white shadow-[0_0_24px_rgba(248,113,113,0.6)] transition-opacity duration-500 ${
-                      chargeCount >= 2 ? "opacity-100 animate-pulse" : "opacity-0"
-                    }`}
-                  >
-                    ×2
-                  </div>
-                ) : null}
+                {/* Scenario affordance badge — opacity-gated to avoid CLS */}
+                {(() => {
+                  const badge = stepBadges[step.id];
+                  return (
+                    <div
+                      className={`pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold transition-opacity duration-500 ${
+                        badge ? toneClass[badge.tone] : "border-transparent bg-transparent text-transparent"
+                      } ${badge ? "opacity-100" : "opacity-0"} ${badge?.pulse ? "animate-pulse" : ""}`}
+                    >
+                      {badge?.label ?? "·"}
+                    </div>
+                  );
+                })()}
                 {/* Glow layer — always in DOM, visibility via bg color */}
                 <div className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${GLOW_STYLE[state]}`} />
                 {/* Node */}

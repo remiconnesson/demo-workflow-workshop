@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureCrashFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-crash"
       eyebrow="04c · The crash — workflow code"
       {...failureGroups["failure-crash"]}
       workflowFix={{

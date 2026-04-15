@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailurePrepWindowFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-prep-window"
       eyebrow="08c · The wait — workflow code"
       {...failureGroups["failure-prep-window"]}
       workflowFix={{

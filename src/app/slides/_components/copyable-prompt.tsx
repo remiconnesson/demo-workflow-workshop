@@ -56,7 +56,7 @@ export function CopyablePrompt() {
           className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 text-sm font-semibold text-zinc-200 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
         >
           {copied ? <CheckIcon /> : <CopyIcon />}
-          <span className="font-mono text-xs uppercase tracking-[0.18em]">
+          <span className="inline-block min-w-[3.5rem] text-center font-mono text-xs uppercase tracking-[0.18em]">
             {copied ? "Copied" : "Copy"}
           </span>
         </button>
@@ -67,11 +67,14 @@ export function CopyablePrompt() {
       <p className="mt-4 font-mono text-xl text-emerald-300">
         {inspectCommand}
       </p>
-      {!runId ? (
-        <p className="mt-2 text-base leading-relaxed text-zinc-500">
-          Waiting for a workflow run — kick one off from any demo slide and this updates live.
-        </p>
-      ) : null}
+      <p
+        className={`mt-2 text-base leading-relaxed text-zinc-500 transition-opacity duration-300 ${
+          runId ? "opacity-0" : "opacity-100"
+        }`}
+        aria-hidden={runId ? true : undefined}
+      >
+        Waiting for a workflow run — kick one off from any demo slide and this updates live.
+      </p>
     </div>
   );
 }

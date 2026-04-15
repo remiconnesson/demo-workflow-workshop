@@ -148,8 +148,10 @@ export default function SlidesLayout({
 
       {/* debug drawer — always open when a run is active */}
       {runInfo && (
-        <div className="fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
-          <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
+        <div className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
+          <div className="pointer-events-auto">
+            <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
+          </div>
         </div>
       )}
     </div>

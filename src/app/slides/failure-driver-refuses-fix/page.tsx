@@ -4,6 +4,7 @@ import { failureGroups } from "../_data/failure-groups";
 export default function FailureDriverRefusesFixSlide() {
   return (
     <FixSlideLayout
+      slide="failure-driver-refuses"
       eyebrow="12c · The dispute — workflow code"
       {...failureGroups["failure-driver-refuses"]}
       workflowFix={{
