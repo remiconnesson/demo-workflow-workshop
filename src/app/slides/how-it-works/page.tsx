@@ -2,23 +2,15 @@ const BEATS = [
   {
     label: "Demo",
     tagline: "Define the Problem",
-    description: "The lab runs. The failure happens live on the phone.",
+    description: "The lab runs. The failure happens live.",
     accent: "border-red-500/40 bg-red-500/5",
     numberColor: "text-red-400",
     taglineColor: "text-red-200",
   },
   {
-    label: "Naive",
-    tagline: "Show the Challenge",
-    description: "The glue code you'd write without the SDK. Tables, workers, coordinators.",
-    accent: "border-amber-400/40 bg-amber-400/5",
-    numberColor: "text-amber-300",
-    taglineColor: "text-amber-200",
-  },
-  {
     label: "Workflow SDK",
     tagline: "Workflow SDK Solution",
-    description: "The Workflow SDK version. One file. A handful of lines.",
+    description: "Just a few lines of code.",
     accent: "border-emerald-400/40 bg-emerald-400/5",
     numberColor: "text-emerald-300",
     taglineColor: "text-emerald-200",
@@ -26,7 +18,7 @@ const BEATS = [
   {
     label: "Pattern",
     tagline: "Explore with your Agent",
-    description: "The SDK vocabulary plus the cookbook URL to take home.",
+    description: "The SDK vocabulary for your Agent.",
     accent: "border-white/20 bg-white/5",
     numberColor: "text-zinc-300",
     taglineColor: "text-zinc-200",
@@ -43,7 +35,7 @@ export default function HowItWorksSlide() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-4 gap-6">
+      <div className="grid grid-cols-3 gap-6">
         {BEATS.map((beat, i) => (
           <div
             key={beat.label}

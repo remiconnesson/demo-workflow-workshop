@@ -102,7 +102,7 @@ This is the canonical mapping. Every concept has a Title Case headline (the "wha
 | Concept | Headline (`failure-groups.ts`) | Subtitle (`slide-scenarios.ts`) |
 |---|---|---|
 | Crash | **Unexpected Failures Happen Anywhere** | Automatically retry when errors pop up |
-| Retry | **Accidentally Charging Twice** | Guard payments with an idempotency key to save your customer's credit card |
+| Retry | **Never Charge Twice** | Guard payments with an idempotency key to save your customer's credit card |
 | Slow Restaurant | **Wait for Humans** | Avoid polling with a hook to avoid racking up the server costs |
 | Ghost Restaurant | **Sometimes No One Responds** | Give the restaurant a deadline so your customer isn't left hanging |
 | Prep Window | **Scheduling Work Hours Into the Future** | Sleep the workflow so your customer can pre-order |
@@ -242,7 +242,7 @@ Nine concepts, four slides each. The four-slide rhythm repeats identically for e
 
 ### Concept 2: Retry (slides 9-12)
 
-**Headline:** Accidentally Charging Twice
+**Headline:** Never Charge Twice
 **Subtitle:** Guard payments with an idempotency key to save your customer's credit card
 **Demo strip marker:** `charge`
 

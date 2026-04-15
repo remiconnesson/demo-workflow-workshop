@@ -8,17 +8,17 @@ export default function FailureRetryFixSlide() {
       eyebrow="05c · The retry — workflow code"
       {...failureGroups["failure-retry"]}
       workflowFix={{
-        code: `// Every step gets a stable ID.
-// Pass it as the idempotency key.
+        code: `// if this fails, it runs again
 async function chargePayment(order) {
+  // "use step" marks the durable boundary...
   "use step"
+  // ...and getStepMetadata hands you its identity
   const { stepId } = getStepMetadata()
+  // lock it down with a stable id
   return stripe.charges.create({
     amount: order.total,
     idempotencyKey: stepId,
   })
-  // retries send the same key
-  // Stripe deduplicates
 }`,
       }}
     />

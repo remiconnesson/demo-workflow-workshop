@@ -30,7 +30,7 @@ export function CopyablePrompt() {
   }, []);
 
   const runIdDisplay = runId ?? "<run_id>";
-  const inspectCommand = `npx workflow inspect ${runIdDisplay}`;
+  const inspectCommand = `npx workflow inspect run ${runIdDisplay}`;
   const fullPrompt = `${BASE_PROMPT}\n\n${inspectCommand}`;
 
   async function handleCopy() {

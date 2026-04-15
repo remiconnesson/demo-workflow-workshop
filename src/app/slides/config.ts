@@ -6,14 +6,14 @@ export type SlideInfo = {
 };
 
 /**
- * The 28-slide workshop arc (~1 hour).
+ * The 23-slide workshop arc (~1 hour).
  *
  * Act I — Setup (1–5): cold open, happy-path demo, code, the four failures, workshop map.
- * Act II — Three workflow failures × 4 beats each (6–17): retry, slow restaurant, dispute.
- * Act III — Pivot (18): workflows → agents.
- * Act IV — Observer agent (19–22): demo, naive, fix, pattern.
- * Act V — Analyst agent (23–26): demo, naive, fix, pattern.
- * Act VI — Close (27–28): the mirror, ship it.
+ * Act II — Three workflow failures × 3 beats each (6–14): retry, slow restaurant, dispute.
+ * Act III — Pivot (15): workflows → agents.
+ * Act IV — Observer agent (16–18): demo, fix, pattern.
+ * Act V — Analyst agent (19–21): demo, fix, pattern.
+ * Act VI — Close (22–23): the mirror, ship it.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act I · Setup ─────────────────────────────────────────
@@ -45,10 +45,10 @@ export const SLIDES: SlideInfo[] = [
     slug: "how-it-works",
     title: "How This Workshop Works",
     number: 5,
-    notes: "SAY: \"Here's the shape of the next hour. A handful of failures. Each one gets four beats: demo, naive, workflow code, pattern. See it break, see the pain, see the fix, learn the name. Then we pivot to agents.\"",
+    notes: "SAY: \"Here's the shape of the next hour. A handful of failures. Each one gets three beats: demo, workflow code, pattern. See it break, see the fix, learn the name. Then we pivot to agents.\"",
   },
 
-  // ─── Act II · Three workflow failures × 4 beats ────────────
+  // ─── Act II · Three workflow failures × 3 beats ────────────
 
   // --- Retry ---
   {
@@ -58,21 +58,15 @@ export const SLIDES: SlideInfo[] = [
     notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
   },
   {
-    slug: "failure-retry-naive",
-    title: "The Retry · Naive",
-    number: 7,
-    notes: "POINT at the code: \"An idempotency keys table. Another column on orders for attempt number. A second database for your first database.\"",
-  },
-  {
     slug: "failure-retry-fix",
     title: "The Retry · Workflow Code",
-    number: 8,
+    number: 7,
     notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
   },
   {
     slug: "failure-retry-pattern",
     title: "The Retry · Pattern",
-    number: 9,
+    number: 8,
     notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
   },
 
@@ -80,25 +74,19 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "failure-slow-restaurant-demo",
     title: "Slow Restaurant · Demo",
-    number: 10,
+    number: 9,
     notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
-  },
-  {
-    slug: "failure-slow-restaurant-naive",
-    title: "Slow Restaurant · Naive",
-    number: 11,
-    notes: "POINT at the code: \"202 Accepted. Background job. A webhook endpoint. A pipeline-resume worker. Three endpoints and two workers for one logical order.\"",
   },
   {
     slug: "failure-slow-restaurant-fix",
     title: "Slow Restaurant · Workflow Code",
-    number: 12,
+    number: 10,
     notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
   },
   {
     slug: "failure-slow-restaurant-pattern",
     title: "Slow Restaurant · Pattern",
-    number: 13,
+    number: 11,
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
   },
 
@@ -106,25 +94,19 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "failure-driver-refuses-demo",
     title: "Dispute · Demo",
-    number: 14,
+    number: 12,
     notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
-  },
-  {
-    slug: "failure-driver-refuses-naive",
-    title: "Dispute · Naive",
-    number: 15,
-    notes: "POINT at the code: \"A compensation coordinator that walks every completed step. Refund. Cancel. Release. Get the order wrong — you refund before you cancel and now you owe the restaurant. And this only runs if your admin remembers to call it.\"",
   },
   {
     slug: "failure-driver-refuses-fix",
     title: "Dispute · Workflow Code",
-    number: 16,
+    number: 13,
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
     slug: "failure-driver-refuses-pattern",
     title: "Dispute · Pattern",
-    number: 17,
+    number: 14,
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
 
@@ -132,7 +114,7 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "the-pivot",
     title: "The Pivot",
-    number: 18,
+    number: 15,
     notes: "SAY: \"Same primitives — steps, hooks, compensations — now power something that looks completely different. Agents.\"\n\nPAUSE. Let the audience re-orient.",
   },
 
@@ -140,25 +122,19 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "agent-observer-demo",
     title: "Observer · Demo",
-    number: 19,
+    number: 16,
     notes: "PRESS r. Let the observer agent run autonomously. Watch tool calls land as durable steps.\n\nSAY: \"An agent that monitors the system while you sleep. Long-running. Survives restarts. Resumes from its last tool call.\"",
-  },
-  {
-    slug: "agent-observer-naive",
-    title: "Observer · Naive",
-    number: 20,
-    notes: "POINT at the code: \"A chat-loop in a serverless function. Hope the process lives long enough. Re-feed context from scratch on every retry. Lose state the moment anything times out.\"",
   },
   {
     slug: "agent-observer-fix",
     title: "Observer · Workflow Code",
-    number: 21,
+    number: 17,
     notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow. Restarts resume mid-thought from the last tool call.\"",
   },
   {
     slug: "agent-observer-pattern",
     title: "Observer · Pattern",
-    number: 22,
+    number: 18,
     notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
   },
 
@@ -166,25 +142,19 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "agent-analyst-demo",
     title: "Analyst · Demo",
-    number: 23,
+    number: 19,
     notes: "PRESS r. The analyst reaches a decision point and pauses for human approval.\n\nSAY: \"An agent that waits for you. Mid-task, it asks a human. Then picks up exactly where it left off.\"",
-  },
-  {
-    slug: "agent-analyst-naive",
-    title: "Analyst · Naive",
-    number: 24,
-    notes: "POINT at the code: \"Persist conversation state to Redis. Poll for approval. Reconstruct the agent on every callback. Pray nothing drifts.\"",
   },
   {
     slug: "agent-analyst-fix",
     title: "Analyst · Workflow Code",
-    number: 25,
+    number: 20,
     notes: "SAY: \"defineHook inside the agent loop. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
   },
   {
     slug: "agent-analyst-pattern",
     title: "Analyst · Pattern",
-    number: 26,
+    number: 21,
     notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with defineHook. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
   },
 
@@ -192,13 +162,13 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "the-mirror",
     title: "The Mirror",
-    number: 27,
+    number: 22,
     notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"Left side: a workflow. Right side: an agent. Same primitives. Same durability model. One mental model for every long-running thing you build.\"\n\nPAUSE.",
   },
   {
     slug: "close",
     title: "Ship It",
-    number: 28,
+    number: 23,
     notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
   },
 ];

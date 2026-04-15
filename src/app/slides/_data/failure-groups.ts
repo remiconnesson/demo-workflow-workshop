@@ -13,7 +13,7 @@ export type FailureGroup = {
 
 export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
   "failure-retry": {
-    headline: "Accidentally Charging Twice",
+    headline: "Never Charge Twice",
     marker: "chargePayment",
     markerLabel: "payment flaked",
   },

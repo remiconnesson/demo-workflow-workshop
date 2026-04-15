@@ -86,17 +86,6 @@ export function DebugDrawer({
         >
           <span className="text-zinc-600">$</span> {command}
         </a>
-        {orderId && (
-          <a
-            href={webUiUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-sm text-zinc-600 hover:text-zinc-400 transition-colors shrink-0"
-            title="Open workflow web UI in a new tab"
-          >
-            {orderId}
-          </a>
-        )}
       </div>
       {/* Event feed — presenter-only, hidden from audience */}
       {events.length > 0 && (
