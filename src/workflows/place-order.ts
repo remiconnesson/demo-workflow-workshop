@@ -463,19 +463,8 @@ const naiveAttempt1Ids = new Map<string, string>();
 
 // ---------- Steps ----------
 
-// naiveNoStream suppresses the visible progress events (step_*, log,
-// compensation_*) so the audience sees the frontend stall while the
-// backend finishes. Coordination events (waiting_for_hook, hook_resolved,
-// done) still pass through so the client can auto-ack hooks — otherwise
-// the workflow hangs waiting on a restaurant/driver/delivered hook that
-// nothing resumes and the demo never completes.
-function streamAllowed(mode: DemoMode | undefined, eventType: OrderEvent["type"]): boolean {
-  if (mode !== "naiveNoStream") return true;
-  return (
-    eventType === "waiting_for_hook" ||
-    eventType === "hook_resolved" ||
-    eventType === "done"
-  );
+function streamAllowed(_mode: DemoMode | undefined, _eventType: OrderEvent["type"]): boolean {
+  return true;
 }
 
 async function emit(event: OrderEvent, mode?: DemoMode): Promise<void> {
