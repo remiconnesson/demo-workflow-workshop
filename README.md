@@ -57,7 +57,7 @@ The failure groups, in order:
 Important routes:
 
 - `/` redirects to `/slides/title`
-- `/slides/title` opening slide — Workflow SDK intro with the follow-along repo URL (`github.com/vercel-labs/workflow-ga-slides`) and clone/install instructions
+- `/slides/title` opening slide — Workflow SDK intro with the follow-along repo URL (`github.com/vercel-labs/workflow-workshop`) and clone/install instructions
 - `/slides/the-demo` slide 2 — happy-path order demo
 - `/slides/close` final slide
 - `/variations` index of older visual experiments

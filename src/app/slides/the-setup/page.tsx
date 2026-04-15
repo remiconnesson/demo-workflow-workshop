@@ -15,11 +15,8 @@ export default async function TheSetupSlide() {
   return (
     <div className="flex h-full w-full flex-col justify-center gap-10 px-20">
       <div>
-        <div className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">
-          One bad day
-        </div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
-          Fifteen lines. Six awaits.
+          Nine lines. Six awaits.
           <span className="text-zinc-500"> What could go wrong?</span>
         </h2>
       </div>

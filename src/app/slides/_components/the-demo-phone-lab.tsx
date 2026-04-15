@@ -46,12 +46,12 @@ const NODE_STYLE: Record<SlideStepState, string> = {
 };
 
 const LINE_STYLE: Record<SlideStepState, string> = {
-  pending: "bg-white/10",
+  pending: "bg-transparent",
   running: "bg-white/10",
   waiting: "bg-white/10",
   success: "bg-white",
   failed: "bg-white/10",
-  skipped: "bg-white/10",
+  skipped: "bg-transparent",
 };
 
 function fmtElapsed(ms: number) {
@@ -356,72 +356,34 @@ export function TheDemoPhoneLab() {
         </div>
       </div>
 
-      {/* ─────────────────── Right: headline + dashboard ─────────────────── */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-8">
-        <div>
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            The order
-          </div>
-          <h2 className="mt-3 text-5xl font-semibold tracking-tight">
-            Ordering Donuts Should Be Easy, Right?
-          </h2>
-          <p className="mt-3 text-2xl text-zinc-400">
-            Tap <span className="text-white">Place order</span> on the phone.
-            Six steps. End to end.
-          </p>
-        </div>
+      {/* ─────────────────── Right: V5 · question-only ─────────────────── */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-12">
+        <h2 className="text-7xl font-semibold leading-[0.95] tracking-tight">
+          Ordering donuts
+          <br />
+          <span className="text-zinc-500">should be easy, right?</span>
+        </h2>
 
         <section className="rounded-2xl border border-white/10 bg-zinc-950 p-10">
-          <div className="flex flex-wrap items-start justify-between gap-8">
-            <div>
-              <div className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                Current run
-              </div>
-              <h1 className="mt-3 text-5xl font-semibold tracking-tight">
-                {doneStatus === "completed"
-                  ? "Delivered"
+          <div className="flex items-end justify-end gap-8">
+            <div
+              className={`${geistMono.className} text-6xl font-semibold ${
+                doneStatus === "completed"
+                  ? "text-white"
                   : doneStatus === "rolled_back"
-                    ? "Rolled back"
+                    ? "text-fuchsia-300"
                     : running
-                      ? "Orchestrating…"
-                      : "Ready to dispatch"}
-              </h1>
+                      ? "text-sky-300"
+                      : "text-zinc-500"
+              }`}
+            >
+              {successCount}/{ORDER_STEPS.length}
             </div>
-            <div className="flex items-center gap-10">
-              <div>
-                <div className="text-sm uppercase tracking-[0.2em] text-zinc-500">
-                  Elapsed
-                </div>
-                <div
-                  className={`mt-2 text-3xl font-semibold ${geistMono.className}`}
-                >
-                  {fmtElapsed(elapsed)}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm uppercase tracking-[0.2em] text-zinc-500">
-                  Steps
-                </div>
-                <div
-                  className={`mt-2 text-3xl font-semibold ${geistMono.className}`}
-                >
-                  {successCount}/{ORDER_STEPS.length}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm uppercase tracking-[0.2em] text-zinc-500">
-                  Comps
-                </div>
-                <div
-                  className={`mt-2 text-3xl font-semibold ${compensations.length ? "text-fuchsia-400" : ""} ${geistMono.className}`}
-                >
-                  {compensations.length}
-                </div>
-              </div>
+            <div
+              className={`${geistMono.className} text-3xl ${compensations.length ? "text-fuchsia-400" : "text-zinc-700"}`}
+            >
             </div>
           </div>
-
-          {/* horizontal step timeline */}
           <div className="mt-10">
             <div className="relative flex items-start gap-0">
               {ORDER_STEPS.map((s, i) => {
@@ -434,7 +396,7 @@ export function TheDemoPhoneLab() {
                   >
                     <div className="relative flex w-full items-center justify-center">
                       <div
-                        className={`relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 transition-colors ${NODE_STYLE[state]}`}
+                        className={`relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 bg-black transition-colors ${NODE_STYLE[state]}`}
                       >
                         {STEP_ICON[s.id]}
                       </div>
@@ -446,9 +408,6 @@ export function TheDemoPhoneLab() {
                     </div>
                     <div className="mt-4 text-center text-base font-semibold text-zinc-300">
                       {s.label}
-                    </div>
-                    <div className="mt-1 text-center text-sm text-zinc-600">
-                      {s.sub}
                     </div>
                   </div>
                 );

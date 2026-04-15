@@ -24,13 +24,13 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "the-demo",
-    title: "The Order",
+    title: "",
     number: 2,
     notes: "PRESS r to run. Let all six steps go green.\n\nSAY: \"Six steps. Validate, charge, notify, assign, track, receipt. Millions of times a day. Remember this feeling when it works — for the next hour, it's not going to.\"",
   },
   {
     slug: "the-setup",
-    title: "One Bad Day",
+    title: "Setup",
     number: 3,
     notes: "POINT at the code: \"Six awaits. Fifteen lines. No framework. This is the version we're about to break.\"",
   },
