@@ -1,28 +1,46 @@
 # Workflow GA Slides
 
-This repo is a Next.js 16 presentation app for the Workflow SDK GA story.
+A Next.js 16 presentation app for the Workflow SDK GA story. The root `/` redirects to the deck at `/slides/title`; everything is a slide.
 
-It has three main surfaces:
+## Running It
 
-- `/` is the main live demo: a Triangle Donuts order flow with a phone UI on the left and a workflow dashboard on the right.
-- `/slides/*` is the presentation deck: a 42-slide failure tour that starts from a happy-path order and walks through crashes, retries, hooks, sleeps, rollbacks, streaming, fan-out, and the DurableAgent close.
-- `/variations` and `/v1` through `/v28` are design explorations and alternate slide/demo treatments.
+```bash
+pnpm install
+pnpm dev
+```
 
-## What The App Contains
+Then open `http://localhost:3000/` — it drops you on the opening slide. Arrow keys move through the deck, `r` runs the current slide's demo, `R` resets it, `n` toggles speaker notes.
 
-The presentation deck is defined in `src/app/slides/config.ts`.
+### Observing runs
 
-The deck is structured as:
+Every failure slide fires a real Workflow run. Two CLI tools, used throughout the demo, let you watch and poke at those runs from another terminal while `pnpm dev` is up:
 
-1. Act 1: cold open, the happy-path demo, and setup.
-2. Act 2: failure groups, each in a four-slide rhythm.
-3. Demo: show the failure visually.
-4. Naive: show the ad hoc code you would otherwise write.
-5. Workflow code: show the Workflow SDK solution.
-6. Pattern: name the concept and point to the relevant docs.
-7. Act 3+: the reveal, DurableAgent, and close.
+```bash
+# Live, browser-based dashboard — timeline, step state, payloads, streams
+npx workflow web
+npx workflow web <runId>          # jump straight to a specific run
 
-The current failure groups are:
+# Terminal-native inspection — great for scripting and quick checks
+npx workflow inspect runs         # list recent runs
+npx workflow inspect run <runId>  # full run detail
+npx workflow inspect steps -d     # step outputs and errors
+npx workflow inspect sleeps -r <runId>  # sleeping timers for a run
+```
+
+When a slide starts a run, the on-screen debug drawer surfaces the `runId` and an "Open in `workflow web`" link so you can pivot from the presentation to the inspector in one click. The workflow code itself (`src/workflows/place-order.ts`) references these commands in comments next to the behaviour they expose.
+
+## Deck Structure
+
+The deck is defined in `src/app/slides/config.ts`. Act 1 is cold open + happy-path demo + setup. Act 2 is a series of **failure groups** — each group is four slides in a fixed rhythm:
+
+1. **User story** — the failure plays out visibly on stage. A real run fires, something breaks, audience sees what goes wrong.
+2. **Before** — the ad-hoc, no-framework code you'd otherwise write to cope with it (reconciliation workers, scheduler tables, idempotency tables, custom resume workers).
+3. **After** — the same behaviour in Workflow SDK code: directives, hooks, sleeps, sagas, streaming. Short, durable, obvious.
+4. **Agent Exploration** — names the SDK pattern and points to the cookbook/docs URL, so attendees (and their coding agents) can go explore further.
+
+Act 3+ closes with the reveal, DurableAgent, and the ship-it slide.
+
+The failure groups, in order:
 
 - Crash / replay
 - Retry / idempotency
@@ -38,13 +56,13 @@ The current failure groups are:
 
 Important routes:
 
-- `/` main presenter-friendly demo
-- `/slides/title` first deck slide
-- `/slides/the-demo` happy-path presentation demo
+- `/` redirects to `/slides/title`
+- `/slides/title` opening slide — Workflow SDK intro with the follow-along repo URL (`github.com/vercel-labs/workflow-ga-slides`) and clone/install instructions
+- `/slides/the-demo` slide 2 — happy-path order demo
 - `/slides/close` final slide
 - `/variations` index of older visual experiments
 
-The root demo uses the Workflow runtime through Next route handlers under `src/app/api/*` and the workflow in `src/workflows/place-order.ts`.
+The demo slides use the Workflow runtime through Next route handlers under `src/app/api/*` and the workflow in `src/workflows/place-order.ts`.
 
 ## Slide Controls
 
@@ -54,32 +72,14 @@ Keyboard shortcuts:
 
 - `ArrowRight`: next slide
 - `ArrowLeft`: previous slide
-- `d` or `Home`: return to `/`
+- `Home`: jump back to `/slides/title`
 - `r`: trigger the current slide demo run
 - `R`: reset the current slide demo
 - `n`: toggle speaker notes
 
+The bottom-right nav shows only the slide arrows and counter — the old standalone "Demo" link has been removed now that the demo lives inside the deck.
+
 When a slide starts a workflow run, the layout can also show a debug drawer with run details and an optional Workflow Web UI link.
-
-## Local Development
-
-Install dependencies:
-
-```bash
-pnpm install
-```
-
-Start the app:
-
-```bash
-pnpm dev
-```
-
-Then open:
-
-- `http://localhost:3000/` for the main demo
-- `http://localhost:3000/slides/title` for the deck
-- `http://localhost:3000/variations` for the visual variations index
 
 ## Testing
 
@@ -94,7 +94,7 @@ pnpm test:e2e
 What the suite does:
 
 - Starts the real Next.js app with Playwright using `playwright.config.ts`
-- Verifies `/` renders the main demo controls
+- Verifies `/` redirects into the deck
 - Verifies every slide route in `SLIDES` renders successfully
 - Asserts route-specific content, slide numbering, and shared deck navigation
 
@@ -106,7 +106,7 @@ The slide tests are generated from `src/app/slides/config.ts`, so when you add o
 
 High-signal files:
 
-- `src/app/page.tsx`: main live demo
+- `src/app/page.tsx`: root redirect to `/slides/title`
 - `src/app/slides/config.ts`: deck registry, ordering, and speaker notes
 - `src/app/slides/layout.tsx`: slide shell, navigation, and keyboard controls
 - `src/app/slides/*/page.tsx`: individual slide routes
@@ -120,4 +120,4 @@ High-signal files:
 
 - This project uses `@workflow/next` via `withWorkflow(nextConfig)` in `next.config.ts`.
 - The repo also contains older visual experiments under `/v1` to `/v28`. They are useful for design exploration, but the primary presentation surface is the `/slides/*` deck.
-- The browser tests currently target the main demo and the `/slides/*` deck, not the `/v*` variations.
+- The browser tests currently target the `/slides/*` deck (via the `/` redirect), not the `/v*` variations.

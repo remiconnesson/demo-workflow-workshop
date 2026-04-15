@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
@@ -51,9 +50,9 @@ export default function SlidesLayout({
         e.preventDefault();
         router.push(`/slides/${prev.slug}`);
       }
-      if (e.key === "d" || e.key === "Home") {
+      if (e.key === "Home") {
         e.preventDefault();
-        router.push("/");
+        router.push("/slides/title");
       }
       if (e.key === "r") {
         e.preventDefault();
@@ -102,19 +101,11 @@ export default function SlidesLayout({
 
       {/* navigation bar */}
       <div className="fixed bottom-6 right-8 z-50 flex items-center gap-0 rounded-full border border-white/10 bg-zinc-950/80 backdrop-blur font-mono text-lg select-none">
-        {/* home */}
-        <Link
-          href="/"
-          className="px-4 py-2 rounded-l-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-        >
-          Demo
-        </Link>
-        <span className="w-px h-5 bg-white/10" />
         {/* left arrow (clickable) */}
         <button
           onClick={() => prev && router.push(`/slides/${prev.slug}`)}
           disabled={!prev}
-          className={`px-4 py-2 transition-colors ${
+          className={`px-4 py-2 rounded-l-full transition-colors ${
             prev
               ? "text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer"
               : "text-zinc-800 cursor-default"

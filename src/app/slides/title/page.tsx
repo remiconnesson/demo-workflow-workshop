@@ -22,7 +22,19 @@ export default function TitleSlide() {
         </span>
       </div>
 
-      <p className="mt-20 text-xl text-zinc-600 animate-pulse">
+      <div className="mt-16 flex flex-col items-center gap-4">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+          Follow along
+        </p>
+        <code className="rounded-xl border border-white/10 bg-white/5 px-6 py-3 font-mono text-2xl text-white">
+          github.com/vercel-labs/workflow-ga-slides
+        </code>
+        <p className="font-mono text-lg text-zinc-500">
+          git clone &amp;&amp; pnpm install &amp;&amp; pnpm dev
+        </p>
+      </div>
+
+      <p className="mt-12 text-xl text-zinc-600 animate-pulse">
         Press &rarr; to begin
       </p>
     </div>
