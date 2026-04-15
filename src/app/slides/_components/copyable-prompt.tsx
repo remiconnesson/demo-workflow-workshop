@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const BASE_PROMPT =
-  "Explain the most recent workflow run to me and help me brainstorm ideas of how I can use this pattern in my project.";
+  "Explain this workflow run and help brainstorm ideas of how I can use this pattern in my project.";
 
 export function CopyablePrompt() {
   const [runId, setRunId] = useState<string | null>(null);

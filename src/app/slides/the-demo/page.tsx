@@ -9,7 +9,7 @@ export default function TheDemoSlide() {
           The order
         </div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
-          Triangle Donuts #4271
+          Ordering Donuts Should Be Easy, Right?
         </h2>
         <p className="mt-3 text-2xl text-zinc-400">
           Six steps. End to end. Remember what this feels like when it works.

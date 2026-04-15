@@ -130,6 +130,24 @@ export async function placeOrderWorkflow(
       await e({ type: "log", message: "Prep window open" });
     }
 
+    if (input.demoMode === "naivePoll") {
+      for (let i = 1; i <= 10; i += 1) {
+        await naivePollTick(orderId, i);
+      }
+      await e({
+        type: "log",
+        message:
+          "naive poll exhausted — restaurant never answered, server held compute entire time",
+      });
+      await e({
+        type: "step_failed",
+        step: "notifyRestaurant",
+        label: "Notify restaurant",
+        error: "Naive poll gave up after 10 attempts",
+      });
+      throw new FatalError("Naive poll gave up after 10 attempts");
+    }
+
     // 3. Notify restaurant + wait for acceptance hook
     await notifyRestaurant(input, failAt === "notifyRestaurant");
     compensations.push({
@@ -332,6 +350,26 @@ export async function placeOrderWorkflow(
 
     await sendReceipt(input, paymentId, failAt === "sendReceipt");
 
+    if (input.demoMode === "fanOutSendReceipt") {
+      await Promise.allSettled([
+        sendEmail(input),
+        sendPush(input),
+        sendLoyalty(input),
+      ]);
+    } else if (input.demoMode === "naiveAllOrNothing") {
+      try {
+        await Promise.all([
+          sendEmail(input),
+          sendPush(input),
+          sendLoyalty(input),
+        ]);
+      } catch {
+        throw new FatalError(
+          "naive all-or-nothing: one channel failed the batch",
+        );
+      }
+    }
+
     // 7. Post-delivery dispute window (demo mode only — the
     //    failure-driver-refuses / "Dispute the Order" slide demonstrates
     //    compensation unwinding a fully-completed happy path. All six
@@ -412,6 +450,11 @@ export async function placeOrderWorkflow(
     };
   }
 }
+
+// Cross-attempt stash for naiveDoubleCharge: attempt 1's non-idempotent
+// paymentId is recorded here so attempt 2 can surface both IDs together
+// in the step's final output (visible via `npx workflow inspect steps -d`).
+const naiveAttempt1Ids = new Map<string, string>();
 
 // ---------- Steps ----------
 
@@ -636,13 +679,11 @@ async function chargePayment(
       throw new Error("Transient payment gateway outage");
     }
     if (input.demoMode === "naiveDoubleCharge") {
-      // Naive path: non-deterministic payment id per attempt (no idempotency key).
-      // Attempt 1 "charges" then crashes; attempt 2 "charges again" with a fresh id.
       const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
       const paymentId = `pay_${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
       await writeEvent(writer, {
         type: "log",
-        message: `naive: charged ${paymentId} (no idempotency key) attempt=${attempt}`,
+        message: `naive_pay_attempt_${attempt}=${paymentId} (no idempotency key)`,
       }, input.demoMode);
       console.info("[workflow] naive_double_charge", {
         orderId: input.orderId,
@@ -650,21 +691,36 @@ async function chargePayment(
         paymentId,
       });
       if (attempt === 1) {
+        naiveAttempt1Ids.set(input.orderId, paymentId);
         await writeEvent(writer, {
           type: "step_succeeded",
           step: "chargePayment",
           label: "Charge payment",
           detail: `naive charge #1 ${paymentId} (about to crash)`,
         }, input.demoMode);
-        throw new Error("Payment API 5xx");
+        // Embed attempt 1's paymentId in the error so it survives in
+        // step_failed / inspect steps `error.message`, making the double
+        // charge provable without relying on log chunks alone.
+        throw new Error(
+          `Payment API 5xx after charging naive_pay_attempt_1=${paymentId}`,
+        );
       }
+      const attempt1Id = naiveAttempt1Ids.get(input.orderId) ?? "pay_unknown";
+      naiveAttempt1Ids.delete(input.orderId);
+      await writeEvent(writer, {
+        type: "log",
+        message: `naive_double_charge_summary attempt1=${attempt1Id} attempt2=${paymentId}`,
+      }, input.demoMode);
       await writeEvent(writer, {
         type: "step_succeeded",
         step: "chargePayment",
         label: "Charge payment",
-        detail: `Charged twice: attempt1 vs ${paymentId} total=$${total.toFixed(2)}`,
+        detail: `Charged twice: naive_pay_attempt_1=${attempt1Id} naive_pay_attempt_2=${paymentId} total=$${total.toFixed(2)}`,
       }, input.demoMode);
-      return paymentId;
+      // Return both IDs encoded in the string so `inspect steps -d` surfaces
+      // them as the step's output. Downstream consumers (refund, receipt)
+      // treat this opaquely as a paymentId string.
+      return `${paymentId} | naive_pay_attempt_1=${attempt1Id} naive_pay_attempt_2=${paymentId}`;
     }
     await delay(600);
     if (input.failAt === "chargePaymentRetryable" && attempt === 1) {
@@ -705,8 +761,7 @@ async function notifyRestaurant(
 ): Promise<void> {
   "use step";
   const { attempt, stepId } = getStepMetadata();
-  let writer = getWritable<OrderEvent>().getWriter();
-  let released = false;
+  const writer = getWritable<OrderEvent>().getWriter();
   try {
     await writeEvent(writer, {
       type: "step_running",
@@ -736,21 +791,6 @@ async function notifyRestaurant(
         { retryAfter: "500ms" },
       );
     }
-    if (input.demoMode === "naivePoll") {
-      writer.releaseLock();
-      released = true;
-      for (let i = 1; i <= 10; i += 1) {
-        await naivePollTick(input.orderId, i);
-      }
-      writer = getWritable<OrderEvent>().getWriter();
-      released = false;
-      await writer.write({
-        type: "log",
-        message:
-          "naive poll exhausted — restaurant never answered, server held compute entire time",
-      });
-      throw new FatalError("Naive poll gave up after 10 attempts");
-    }
     await delay(500);
     if (shouldFail) {
       await writeEvent(writer, {
@@ -766,9 +806,7 @@ async function notifyRestaurant(
       message: "Restaurant ticket sent to kitchen; awaiting acceptance",
     }, input.demoMode);
   } finally {
-    if (!released) {
-      writer.releaseLock();
-    }
+    writer.releaseLock();
   }
 }
 
@@ -835,8 +873,7 @@ async function sendReceipt(
 ): Promise<void> {
   "use step";
   const { attempt, stepId } = getStepMetadata();
-  let writer = getWritable<OrderEvent>().getWriter();
-  let released = false;
+  const writer = getWritable<OrderEvent>().getWriter();
   try {
     await writeEvent(writer, {
       type: "step_running",
@@ -875,42 +912,6 @@ async function sendReceipt(
       }, input.demoMode);
       throw new FatalError(`sendReceipt failed for ${input.orderId}`);
     }
-    // Fan-out demo mode: actually dispatch three parallel child steps
-    // via Promise.allSettled. One channel (email) throws a RetryableError
-    // on its first attempt so the audience can see durability carry it
-    // to eventual success without the other channels re-running.
-    if (input.demoMode === "fanOutSendReceipt") {
-      writer.releaseLock();
-      released = true;
-      await Promise.allSettled([
-        sendEmail(input),
-        sendPush(input),
-        sendLoyalty(input),
-      ]);
-      writer = getWritable<OrderEvent>().getWriter();
-      released = false;
-      await writeEvent(writer, {
-        type: "log",
-        message: "fan-out → 3 of 3 eventually delivered",
-      }, input.demoMode);
-    }
-    if (input.demoMode === "naiveAllOrNothing") {
-      writer.releaseLock();
-      released = true;
-      // Promise.all: one rejection sinks the whole step; sibling results are discarded.
-      await Promise.all([
-        sendEmail(input),
-        sendPush(input),
-        sendLoyalty(input),
-      ]);
-      writer = getWritable<OrderEvent>().getWriter();
-      released = false;
-      await writer.write({
-        type: "log",
-        message: "naive all-or-nothing: unreachable (Promise.all rejected)",
-      });
-      throw new FatalError("naive all-or-nothing: one channel failed the batch");
-    }
     await writeEvent(writer, {
       type: "step_succeeded",
       step: "sendReceipt",
@@ -918,9 +919,7 @@ async function sendReceipt(
       detail: `Receipt for ${paymentId} emailed to ${input.customerName}`,
     }, input.demoMode);
   } finally {
-    if (!released) {
-      writer.releaseLock();
-    }
+    writer.releaseLock();
   }
 }
 
