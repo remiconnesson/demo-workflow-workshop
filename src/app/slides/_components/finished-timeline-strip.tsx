@@ -1,5 +1,6 @@
 import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import { ORDER_STEPS, type OrderStepId } from "@/lib/order-contract";
+import { isAgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
 import type { FailureGroupSlug } from "../_data/failure-groups";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
@@ -27,32 +28,16 @@ const AFFORDANCES: Record<FailureGroupSlug, Partial<Record<OrderStepId, Badge>>>
   "failure-retry": {
     chargePayment: { label: "×2", tone: "red" },
   },
-  "failure-crash": {
-    notifyRestaurant: { label: "💥 replayed", tone: "sky" },
-  },
   "failure-slow-restaurant": {
     notifyRestaurant: { label: "💸 burning $", tone: "red" },
-  },
-  "failure-prep-window": {
-    notifyRestaurant: { label: "20m sleep", tone: "amber" },
-  },
-  "failure-admin-cancel": {
-    notifyRestaurant: { label: "cancelled", tone: "fuchsia" },
-    assignDriver: { label: "cancelled", tone: "fuchsia" },
   },
   "failure-driver-refuses": {
     sendReceipt: { label: "disputed", tone: "fuchsia" },
   },
-  "failure-fan-out": {
-    sendReceipt: { label: "×3 parallel", tone: "sky" },
-  },
-  "failure-live-updates": {
-    trackDelivery: { label: "streaming", tone: "sky" },
-  },
 };
 
 type FinishedTimelineStripProps = {
-  slide: FailureGroupSlug;
+  slide: SlideGroupSlug;
   highlightSteps?: OrderStepId[];
 };
 
@@ -66,7 +51,14 @@ export function FinishedTimelineStrip({
   slide,
   highlightSteps,
 }: FinishedTimelineStripProps) {
-  const badges = AFFORDANCES[slide] ?? {};
+  // Agent-group slugs don't have a phone/order timeline — render a neutral
+  // spacer instead of crashing. Layouts normally skip this component for
+  // agent slugs; this is the defensive fallback.
+  if (isAgentGroupSlug(slide)) {
+    return <div aria-hidden className="min-h-[108px]" />;
+  }
+
+  const badges = AFFORDANCES[slide as FailureGroupSlug] ?? {};
 
   return (
     <div className="rounded-2xl border border-white/5 bg-zinc-950/60 px-8 py-5 opacity-60">

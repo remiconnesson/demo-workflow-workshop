@@ -11,13 +11,16 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@workflow/ai": "^4.1.1",
     "@workflow/next": "^4.0.1",
+    "ai": "^6.0.162",
     "lucide-react": "^1.8.0",
     "next": "16.2.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "shiki": "^4.0.2",
-    "workflow": "^4.2.0",
+    "streamdown": "^2.5.0",
+    "workflow": "^4.2.2",
     "zod": "^4.3.6"
   },
   "devDependencies": {

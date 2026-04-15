@@ -1,14 +1,9 @@
 import type { OrderStepId } from "@/lib/order-contract";
 
 export type FailureGroupSlug =
-  | "failure-crash"
   | "failure-retry"
   | "failure-slow-restaurant"
-  | "failure-prep-window"
-  | "failure-driver-refuses"
-  | "failure-admin-cancel"
-  | "failure-live-updates"
-  | "failure-fan-out";
+  | "failure-driver-refuses";
 
 export type FailureGroup = {
   headline: string;
@@ -17,11 +12,6 @@ export type FailureGroup = {
 };
 
 export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
-  "failure-crash": {
-    headline: "Unexpected Failures Happen Anywhere",
-    marker: ["chargePayment", "notifyRestaurant"],
-    markerLabel: "crash here",
-  },
   "failure-retry": {
     headline: "Accidentally Charging Twice",
     marker: "chargePayment",
@@ -32,29 +22,9 @@ export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
   },
-  "failure-prep-window": {
-    headline: "Scheduling Work Hours Into the Future",
-    marker: ["chargePayment", "notifyRestaurant"],
-    markerLabel: "20 min sleep",
-  },
   "failure-driver-refuses": {
     headline: "Dispute the Entire Order",
     marker: "sendReceipt",
     markerLabel: "post-delivery dispute",
-  },
-  "failure-admin-cancel": {
-    headline: "The User Hits Cancel",
-    marker: ["notifyRestaurant", "assignDriver"],
-    markerLabel: "interrupt from outside",
-  },
-  "failure-live-updates": {
-    headline: "Live Status Updates",
-    marker: "span",
-    markerLabel: "streamed end-to-end",
-  },
-  "failure-fan-out": {
-    headline: "Simultaneously Email, Push, and Loyalty with Confidence",
-    marker: "sendReceipt",
-    markerLabel: "parallel, still durable",
   },
 };

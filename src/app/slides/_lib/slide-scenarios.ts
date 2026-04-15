@@ -171,57 +171,6 @@ export const slideScenarios = {
       demoMode: "chargePaymentUnhandledOnce" as const,
     },
   },
-  failureCrash: {
-    scenarioId: "failure-crash",
-    title: "failure-crash",
-    subtitle:
-      "A crash mid-workflow forces the process to restart — and pick up where it left off.",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: true,
-      demoMode: "crashInjectable" as const,
-    },
-  },
-  failurePrepWindow: {
-    scenarioId: "failure-prep-window",
-    title: "failure-prep-window",
-    subtitle: "Sleep the workflow so your customer can pre-order",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: true,
-      demoMode: "prepWindowSleep" as const,
-    },
-  },
-  failureFanOut: {
-    scenarioId: "failure-fan-out",
-    title: "failure-fan-out",
-    subtitle:
-      "Parallelize notifications so each channel retries on its own",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: true,
-      demoMode: "fanOutSendReceipt" as const,
-    },
-  },
-  failureAdminCancel: {
-    scenarioId: "failure-admin-cancel",
-    title: "failure-admin-cancel",
-    subtitle: "Expose a hook so your customer can change their mind",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: true,
-      demoMode: "adminSleepBeforeDriver" as const,
-    },
-    silentWaitingSteps: ["notifyRestaurant"],
-  },
   naiveDoubleCharge: {
     scenarioId: "naive-double-charge",
     title: "naive-double-charge",

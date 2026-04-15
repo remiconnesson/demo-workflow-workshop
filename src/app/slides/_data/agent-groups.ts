@@ -1,0 +1,63 @@
+import type { FailureGroupSlug } from "./failure-groups";
+
+export type AgentGroupSlug = "agent-observer" | "agent-analyst";
+
+/**
+ * Unified slug type for every slide "group" the shared layouts accept.
+ * Burst 2 pages should import this when a page type could belong to
+ * either failure-group or agent-group families.
+ */
+export type SlideGroupSlug = FailureGroupSlug | AgentGroupSlug;
+
+export type AgentGroupPattern = {
+  name: string;
+  description: string;
+  apiPrimitive: string;
+  docUrl: string;
+  docSection: string;
+};
+
+export type AgentGroup = {
+  slug: AgentGroupSlug;
+  headline: string;
+  eyebrow: string;
+  pattern: AgentGroupPattern;
+};
+
+export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
+  "agent-observer": {
+    slug: "agent-observer",
+    headline: "Agents That Run While You Sleep",
+    eyebrow: "Durable agent · autonomous monitoring",
+    pattern: {
+      name: "DurableAgent",
+      description:
+        "A long-running agent loop that survives restarts, resumes from its last tool call, and reports back when it's done — no babysitting required.",
+      apiPrimitive: "new DurableAgent({ tools, model })",
+      docUrl: "useworkflow.dev/docs/ai/durable-agent",
+      docSection: "AI · Durable Agents",
+    },
+  },
+  "agent-analyst": {
+    slug: "agent-analyst",
+    headline: "Agents That Wait for You",
+    eyebrow: "Durable agent · human-in-the-loop",
+    pattern: {
+      name: "DurableAgent + defineHook",
+      description:
+        "Pair a durable agent loop with a hook so the agent can pause mid-task, hand control to a human for approval or input, and pick up exactly where it left off.",
+      apiPrimitive: "defineHook() + new DurableAgent({ tools })",
+      docUrl: "useworkflow.dev/docs/ai/human-in-the-loop",
+      docSection: "AI · Human-in-the-loop",
+    },
+  },
+};
+
+/**
+ * Type guard — returns true when the slug belongs to the agent-group family.
+ * Shared layouts use this to branch between phone/order affordances and
+ * agent-surface affordances without forking the template.
+ */
+export function isAgentGroupSlug(slug: string): slug is AgentGroupSlug {
+  return slug === "agent-observer" || slug === "agent-analyst";
+}

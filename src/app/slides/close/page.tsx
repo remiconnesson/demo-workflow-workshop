@@ -1,14 +1,11 @@
 import { WorkflowMark } from "../_components/workflow-mark";
 
 const RECAP_PILLS = [
-  { label: "durable", tone: "emerald" },
-  { label: "idempotent", tone: "emerald" },
+  { label: "steps", tone: "sky" },
   { label: "hooks", tone: "amber" },
-  { label: "timeouts", tone: "amber" },
-  { label: "sleep", tone: "amber" },
-  { label: "saga", tone: "fuchsia" },
+  { label: "compensation", tone: "fuchsia" },
+  { label: "durable state", tone: "emerald" },
   { label: "streaming", tone: "sky" },
-  { label: "parallel", tone: "sky" },
   { label: "agents", tone: "sky" },
 ] as const;
 
@@ -40,9 +37,9 @@ export default function CloseSlide() {
       </div>
 
       <p className="mt-8 font-mono text-2xl text-zinc-500">
-        npm i workflow
+        pnpm add workflow @workflow/ai
       </p>
-      <p className="font-mono text-3xl text-zinc-300">useworkflow.dev</p>
+      <p className="font-mono text-3xl text-zinc-300">workflow-sdk.dev</p>
 
       <p className="mt-12 text-xl text-zinc-600">
         Press <span className="font-mono">d</span> to return to demo

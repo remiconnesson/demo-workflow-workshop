@@ -178,55 +178,15 @@ export function LiveOrderConceptLab({
         return chargeCount >= 2
           ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
           : {};
-      case "failure-crash": {
-        const step = crashedStepRef.current ?? "notifyRestaurant";
-        if (controller.crashPhase === "crashed") {
-          return { [step]: { label: "💥 crashed", tone: "red", pulse: true } };
-        }
-        if (controller.crashPhase === "replaying") {
-          return { [step]: { label: "replaying", tone: "sky", pulse: true } };
-        }
-        if (crashedStepRef.current) {
-          return { [step]: { label: "replayed", tone: "sky" } };
-        }
-        return {};
-      }
       case "failure-slow-restaurant":
         if (controller.waitingOn === "notifyRestaurant") {
           const label = `💸 burning $${waitCost.toFixed(2)}`;
           return { notifyRestaurant: { label, tone: "red", pulse: true } };
         }
         return {};
-      case "failure-prep-window":
-        if (
-          state("chargePayment") === "success" &&
-          (state("notifyRestaurant") === "pending" ||
-            state("notifyRestaurant") === "running")
-        ) {
-          return { notifyRestaurant: { label: "20m sleep", tone: "amber", pulse: true } };
-        }
-        return {};
-      case "failure-admin-cancel":
-        if (compensationFired || phase === "rolled_back") {
-          return {
-            notifyRestaurant: { label: "cancelled", tone: "fuchsia" },
-            assignDriver: { label: "cancelled", tone: "fuchsia" },
-          };
-        }
-        return {};
       case "failure-driver-refuses":
         if (compensationFired || phase === "rolled_back") {
           return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
-        }
-        return {};
-      case "failure-fan-out":
-        if (state("sendReceipt") === "running" || state("sendReceipt") === "success") {
-          return { sendReceipt: { label: "×3 parallel", tone: "sky" } };
-        }
-        return {};
-      case "failure-live-updates":
-        if (phase === "running" && activeStep) {
-          return { [activeStep.id]: { label: "streaming", tone: "sky", pulse: true } };
         }
         return {};
       default:
