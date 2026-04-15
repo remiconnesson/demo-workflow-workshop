@@ -10,6 +10,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev` — start dev server
 - `pnpm build` — production build
 - `pnpm lint` — ESLint (flat config, next/core-web-vitals + typescript)
+- `pnpm typecheck` — `tsc --noEmit`
+- `pnpm test:e2e` — Playwright end-to-end tests (config in `playwright.config.ts`, specs in `tests/`)
 
 ## Architecture
 

@@ -15,11 +15,15 @@ async function placeOrder(input) {
   const order = await validateOrder(input)
   const payment = await chargePayment(order)
 
-  await sleep("20m") // wait for prep window
+  // production: "20m" — compressed to "3s" for stage
+  await sleep("20m")
 
   await notifyRestaurant(order)
   // ...
-}`,
+}
+
+// Verify the sleep landed in the trace:
+//   npx workflow inspect sleeps -r <runId>`,
       }}
     />
   );

@@ -120,14 +120,19 @@ export async function placeOrderWorkflow(
 
     // 2b. Prep-window sleep (demo mode only — visible pause between
     //     chargePayment and notifyRestaurant for the failure-prep-window
-    //     slide. Real 20 minutes compressed to a few seconds for stage.)
+    //     slide). In production this is `await sleep(PREP_WINDOW)` with
+    //     PREP_WINDOW = "20m". For stage we compress to 3s so the demo
+    //     fits in the 60-second slot. The sleep is recorded by the
+    //     workflow runtime either way — visible via:
+    //         npx workflow inspect sleeps -r <runId>
     if (input.demoMode === "prepWindowSleep") {
+      const PREP_WINDOW = "3s"; // production: "20m"
       await e({
         type: "log",
-        message: "Waiting for bakery prep window (20m compressed to ~3s)",
+        message: `Bakery prep window — sleeping ${PREP_WINDOW} (production: 20m)`,
       });
-      await sleep("3s");
-      await e({ type: "log", message: "Prep window open" });
+      await sleep(PREP_WINDOW);
+      await e({ type: "log", message: "Prep window elapsed, notifying bakery" });
     }
 
     if (input.demoMode === "naivePoll") {
@@ -458,10 +463,19 @@ const naiveAttempt1Ids = new Map<string, string>();
 
 // ---------- Steps ----------
 
-// naiveNoStream suppresses every stream chunk except the final `done`,
-// so the audience can see the frontend stall while the backend finishes.
+// naiveNoStream suppresses the visible progress events (step_*, log,
+// compensation_*) so the audience sees the frontend stall while the
+// backend finishes. Coordination events (waiting_for_hook, hook_resolved,
+// done) still pass through so the client can auto-ack hooks — otherwise
+// the workflow hangs waiting on a restaurant/driver/delivered hook that
+// nothing resumes and the demo never completes.
 function streamAllowed(mode: DemoMode | undefined, eventType: OrderEvent["type"]): boolean {
-  return mode !== "naiveNoStream" || eventType === "done";
+  if (mode !== "naiveNoStream") return true;
+  return (
+    eventType === "waiting_for_hook" ||
+    eventType === "hook_resolved" ||
+    eventType === "done"
+  );
 }
 
 async function emit(event: OrderEvent, mode?: DemoMode): Promise<void> {

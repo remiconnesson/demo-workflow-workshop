@@ -294,6 +294,8 @@ export function useOrderRun(
     [clearScheduledResume, scenario.scenarioId, source],
   );
 
+  const isNaiveNoStream = scenario.input.demoMode === "naiveNoStream";
+
   const applyDerivedState = useCallback(
     (event: OrderEvent) => {
       switch (event.type) {
@@ -340,8 +342,12 @@ export function useOrderRun(
         case "waiting_for_hook": {
           const step = event.step as HookStep;
           setAdminCancelReady(false);
-          setStepState((current) => ({ ...current, [step]: "waiting" }));
-          setWaitingOn(step);
+          // naiveNoStream: hide the waiting pill so the timeline stays
+          // gray — the teaching story is "frontend sees nothing until done".
+          if (!isNaiveNoStream) {
+            setStepState((current) => ({ ...current, [step]: "waiting" }));
+            setWaitingOn(step);
+          }
 
           const scripted = scenario.scriptedResumes?.find(
             (candidate) => candidate.step === step,
@@ -432,14 +438,18 @@ export function useOrderRun(
           clearScheduledResume("hook_resolved");
           setAdminCancelReady(false);
           setWaitStrategy(null);
-          setStepState((current) => ({
-            ...current,
-            [event.step as OrderStepId]: "success",
-          }));
-          setWaitingOn((current) =>
-            current === event.step ? null : current,
-          );
-          setResumeToast(event.detail ?? event.step);
+          // naiveNoStream: keep the step gray — the timeline only flips
+          // on `done` so the audience sees one big late update.
+          if (!isNaiveNoStream) {
+            setStepState((current) => ({
+              ...current,
+              [event.step as OrderStepId]: "success",
+            }));
+            setWaitingOn((current) =>
+              current === event.step ? null : current,
+            );
+            setResumeToast(event.detail ?? event.step);
+          }
           break;
         case "compensated":
           setCompensations((current) => [...current, event.action]);
@@ -452,6 +462,19 @@ export function useOrderRun(
           setDoneStatus(event.status);
           setRunning(false);
           setWaitingOn(null);
+          // naiveNoStream backfill: the timeline was intentionally held
+          // gray during the run. On a completed run, flip all six steps
+          // to success at once — the single late reveal is the story.
+          if (isNaiveNoStream && event.status === "completed") {
+            setStepState({
+              validateOrder: "success",
+              chargePayment: "success",
+              notifyRestaurant: "success",
+              assignDriver: "success",
+              trackDelivery: "success",
+              sendReceipt: "success",
+            });
+          }
           break;
         case "log":
           if (
@@ -480,6 +503,7 @@ export function useOrderRun(
     },
     [
       clearScheduledResume,
+      isNaiveNoStream,
       resume,
       scenario.input.autoAck,
       scenario.input.driverTimeout,
