@@ -10,6 +10,7 @@ export default function AgentObserverDemoSlide() {
       slide={group.slug}
       eyebrow={group.eyebrow}
       headline="The agent that's been watching the whole time."
+      subcopy="While the workflow runs, the agent tails the event stream and surfaces a live report the moment anything looks off."
       rightPanel={<ObserverReportPane />}
     />
   );

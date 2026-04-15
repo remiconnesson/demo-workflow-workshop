@@ -36,6 +36,23 @@ export default function AgentAnalystFixSlide() {
       eyebrow={group.eyebrow}
       headline="Hooks turn the agent into an employee."
       marker="span"
+      filename="analystAgent.ts"
+      statusTone="amber"
+      statusLabel="human-in-the-loop"
+      steps={[
+        {
+          label: "Wrap tools as steps",
+          detail: "every tool call is durable",
+        },
+        {
+          label: "Suspend on approval hook",
+          detail: "agent parks, waits for a verdict",
+        },
+        {
+          label: "Resume with the decision",
+          detail: "apply or rollback — one call away",
+        },
+      ]}
       workflowFix={{ code: FIX_CODE }}
     />
   );

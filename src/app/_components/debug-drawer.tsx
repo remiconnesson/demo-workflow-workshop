@@ -75,7 +75,7 @@ export function DebugDrawer({
   const webUiUrl = `http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`;
 
   return (
-    <div className="rounded-lg border border-white/10 bg-zinc-950/95 px-5 py-3 backdrop-blur w-full max-w-3xl">
+    <div className="rounded-lg border border-white/10 bg-zinc-950/95 px-5 py-3 backdrop-blur w-[48rem]">
       <div className="flex items-center gap-4">
         <a
           href={webUiUrl}

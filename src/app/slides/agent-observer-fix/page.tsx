@@ -30,6 +30,23 @@ export default function AgentObserverFixSlide() {
       eyebrow={group.eyebrow}
       headline="Same loop. Durable substrate."
       marker="span"
+      filename="observerAgent.ts"
+      statusTone="sky"
+      statusLabel="autonomous loop"
+      steps={[
+        {
+          label: "Mark fetches as steps",
+          detail: "durable boundary around side effects",
+        },
+        {
+          label: "Run the agent in a loop",
+          detail: "same while-loop you'd write today",
+        },
+        {
+          label: "Sleep between passes",
+          detail: "durable sleep — no cron, no worker",
+        },
+      ]}
       workflowFix={{ code: FIX_CODE }}
     />
   );

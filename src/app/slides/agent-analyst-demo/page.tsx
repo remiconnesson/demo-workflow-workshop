@@ -23,6 +23,7 @@ export default function AgentAnalystDemoSlide() {
       slide="agent-analyst"
       eyebrow={group.eyebrow}
       headline="Ask the ops question. Watch the agent answer."
+      subcopy="Every tool call streams through an approval hook before the agent touches anything that costs money or writes to production."
       rightPanel={<AnalystDemoSurface />}
     />
   );

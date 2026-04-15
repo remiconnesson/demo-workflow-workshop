@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-const BASE_PROMPT =
-  "Explain this workflow run and help brainstorm ideas of how I can use this pattern in my project.";
+const RUN_ID_TOKEN = "<run_id>";
 
-export function CopyablePrompt() {
+export function CopyablePrompt({ prompt }: { prompt: string }) {
   const [runId, setRunId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -18,7 +17,7 @@ export function CopyablePrompt() {
         const data = (await res.json()) as { runId: string | null };
         if (!cancelled) setRunId(data.runId);
       } catch {
-        // leave runId null — placeholder will render
+        // leave runId null — placeholder token stays in the prompt
       }
     }
     load();
@@ -29,13 +28,11 @@ export function CopyablePrompt() {
     };
   }, []);
 
-  const runIdDisplay = runId ?? "<run_id>";
-  const inspectCommand = `npx workflow inspect run ${runIdDisplay}`;
-  const fullPrompt = `${BASE_PROMPT}\n\n${inspectCommand}`;
+  const resolved = prompt.replaceAll(RUN_ID_TOKEN, runId ?? RUN_ID_TOKEN);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(fullPrompt);
+      await navigator.clipboard.writeText(resolved);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -44,7 +41,7 @@ export function CopyablePrompt() {
   }
 
   return (
-    <div className="w-full max-w-5xl rounded-2xl border border-white/10 bg-zinc-950 px-10 py-6 text-left">
+    <div className="flex h-[320px] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 px-10 py-6 text-left">
       <div className="mb-3 flex items-center justify-between gap-6">
         <div className="text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">
           Paste into your AI agent
@@ -61,20 +58,9 @@ export function CopyablePrompt() {
           </span>
         </button>
       </div>
-      <p className="font-mono text-lg leading-relaxed text-zinc-300">
-        {BASE_PROMPT}
-      </p>
-      <p className="mt-4 font-mono text-xl text-emerald-300">
-        {inspectCommand}
-      </p>
-      <p
-        className={`mt-2 text-base leading-relaxed text-zinc-500 transition-opacity duration-300 ${
-          runId ? "opacity-0" : "opacity-100"
-        }`}
-        aria-hidden={runId ? true : undefined}
-      >
-        Waiting for a workflow run — kick one off from any demo slide and this updates live.
-      </p>
+      <pre className="flex-1 overflow-y-auto whitespace-pre-wrap font-mono text-base leading-relaxed text-zinc-300">
+        {resolved}
+      </pre>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
 import { getSlideNav } from "./config";
+import { WorkflowMark } from "./_components/workflow-mark";
 
 export default function SlidesLayout({
   children,
@@ -78,6 +79,12 @@ export default function SlidesLayout({
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {children}
+
+      {slug !== "title" && (
+        <div className="pointer-events-none fixed top-8 right-8 z-50">
+          <WorkflowMark size={32} className="text-white/70" />
+        </div>
+      )}
 
       {/* speaker notes overlay */}
       {showNotes && current?.notes && (

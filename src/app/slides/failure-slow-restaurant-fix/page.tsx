@@ -5,8 +5,24 @@ export default function FailureSlowRestaurantFixSlide() {
   return (
     <FixSlideLayout
       slide="failure-slow-restaurant"
-      eyebrow="06c · The slow restaurant — workflow code"
+      eyebrow="06c / workflow code"
       {...failureGroups["failure-slow-restaurant"]}
+      filename="placeOrder.ts"
+      statusTone="amber"
+      steps={[
+        {
+          label: "Open a restaurant-accept hook",
+          detail: "tokenized, durable, no worker",
+        },
+        {
+          label: "Race hook vs 24h sleep",
+          detail: "whichever resolves first",
+        },
+        {
+          label: "Throw if the sleep wins",
+          detail: "compensation triggers the refund",
+        },
+      ]}
       workflowFix={{
         code: `async function placeOrder(orderId: string) {
   "use workflow"

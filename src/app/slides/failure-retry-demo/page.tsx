@@ -8,6 +8,7 @@ export default function FailureRetryDemoSlide() {
       slide="failure-retry"
       eyebrow="05a · The retry — watch it break"
       {...failureGroups["failure-retry"]}
+      subcopy="A flaky charge is where idempotency earns its keep — the workflow retries the step without double-billing the customer."
       scenario={slideScenarios.naiveDoubleCharge}
       highlightSteps={["chargePayment"]}
     />

@@ -5,8 +5,24 @@ export default function FailureRetryFixSlide() {
   return (
     <FixSlideLayout
       slide="failure-retry"
-      eyebrow="05c · The retry — workflow code"
+      eyebrow="05c / workflow code"
       {...failureGroups["failure-retry"]}
+      filename="chargePayment.ts"
+      statusTone="red"
+      steps={[
+        {
+          label: "Mark the durable boundary",
+          detail: '"use step" wraps the side effect',
+        },
+        {
+          label: "Grab a stable id",
+          detail: "getStepMetadata().stepId survives retries",
+        },
+        {
+          label: "Hand it to Stripe",
+          detail: "idempotencyKey dedupes at the API",
+        },
+      ]}
       workflowFix={{
         code: `// if this fails, it runs again
 async function chargePayment(order) {

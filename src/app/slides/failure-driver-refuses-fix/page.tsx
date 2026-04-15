@@ -5,8 +5,24 @@ export default function FailureDriverRefusesFixSlide() {
   return (
     <FixSlideLayout
       slide="failure-driver-refuses"
-      eyebrow="12c · The dispute — workflow code"
+      eyebrow="12c / workflow code"
       {...failureGroups["failure-driver-refuses"]}
+      filename="placeOrder.ts"
+      statusTone="fuchsia"
+      steps={[
+        {
+          label: "Open a dispute hook",
+          detail: "tokenized by orderId",
+        },
+        {
+          label: "Race hook vs 24h sleep",
+          detail: "whichever resolves first",
+        },
+        {
+          label: "Throw on disputed verdict",
+          detail: "saga unwinds in reverse",
+        },
+      ]}
       workflowFix={{
         code: `async function placeOrder(orderId: string) {
   "use workflow"
