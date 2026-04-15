@@ -184,22 +184,6 @@ export const slideScenarios = {
       demoMode: "crashInjectable" as const,
     },
   },
-  ghostRestaurant: {
-    scenarioId: "ghost-restaurant",
-    title: "ghost-restaurant",
-    subtitle:
-      "Give the restaurant a deadline so your customer isn't left hanging",
-    autoStart: false,
-    input: {
-      ...BASE_INPUT,
-      failAt: null,
-      autoAck: false,
-      restaurantTimeout: "2s",
-    },
-    // No scripted restaurant resume — the hook never resolves, the sleep
-    // wins the race, the workflow routes to a fatal + compensations.
-    silentWaitingSteps: ["notifyRestaurant"],
-  },
   failurePrepWindow: {
     scenarioId: "failure-prep-window",
     title: "failure-prep-window",

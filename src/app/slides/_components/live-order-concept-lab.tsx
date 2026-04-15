@@ -197,14 +197,6 @@ export function LiveOrderConceptLab({
           return { notifyRestaurant: { label, tone: "red", pulse: true } };
         }
         return {};
-      case "failure-ghost-restaurant":
-        if (state("notifyRestaurant") === "failed" || phase === "rolled_back") {
-          return { notifyRestaurant: { label: "timeout", tone: "red" } };
-        }
-        if (controller.waitingOn === "notifyRestaurant") {
-          return { notifyRestaurant: { label: "no-ack", tone: "amber", pulse: true } };
-        }
-        return {};
       case "failure-prep-window":
         if (
           state("chargePayment") === "success" &&

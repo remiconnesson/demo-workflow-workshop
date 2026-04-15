@@ -4,7 +4,6 @@ export type FailureGroupSlug =
   | "failure-crash"
   | "failure-retry"
   | "failure-slow-restaurant"
-  | "failure-ghost-restaurant"
   | "failure-prep-window"
   | "failure-driver-refuses"
   | "failure-admin-cancel"
@@ -29,14 +28,9 @@ export const failureGroups: Record<FailureGroupSlug, FailureGroup> = {
     markerLabel: "payment flaked",
   },
   "failure-slow-restaurant": {
-    headline: "Burning Money on Wasted Compute",
+    headline: "Wait for Humans",
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
-  },
-  "failure-ghost-restaurant": {
-    headline: "Sometimes No One Responds",
-    marker: "notifyRestaurant",
-    markerLabel: "timeout wins the race",
   },
   "failure-prep-window": {
     headline: "Scheduling Work Hours Into the Future",

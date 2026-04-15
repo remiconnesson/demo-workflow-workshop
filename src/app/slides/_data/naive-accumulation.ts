@@ -129,34 +129,6 @@ pipelineQueue.process(async (job) => {
 })`,
 };
 
-const FILE_TIMEOUT_SCANNER: NaiveFile = {
-  name: "timeout-scanner.ts",
-  lines: 36,
-  addedOnSlide: "failure-ghost-restaurant",
-  code: `// deadline per waiting state
-const TIMEOUTS = {
-  awaiting_restaurant: 2 * 60_000,
-  awaiting_driver: 2 * 60_000,
-} as const
-
-// scan every 10s for stuck orders
-setInterval(async () => {
-  for (const [status, deadline] of Object.entries(TIMEOUTS)) {
-    const stuck = await db.orders.findMany({
-      where: { status, updatedAt: { lt: new Date(Date.now() - deadline) } },
-    })
-    for (const order of stuck) {
-      // flip to timeout state, then kick a reroute worker you also have to build
-      await db.orders.update({
-        where: { id: order.id },
-        data: { status: "timed_out" },
-      })
-      await rerouteQueue.enqueue({ orderId: order.id })
-    }
-  }
-}, 10_000)`,
-};
-
 const FILE_SLEEP_SCHEDULER: NaiveFile = {
   name: "sleep-scheduler.ts",
   lines: 44,
@@ -364,10 +336,7 @@ function buildAccumulation(): Record<string, NaiveAccumulationEntry> {
     afterSlowRestaurant,
   );
 
-  const afterGhost = [...afterSlowRestaurant, FILE_TIMEOUT_SCANNER];
-  addSlide("failure-ghost-restaurant", FILE_TIMEOUT_SCANNER.name, afterGhost);
-
-  const afterPrepWindow = [...afterGhost, FILE_SLEEP_SCHEDULER];
+  const afterPrepWindow = [...afterSlowRestaurant, FILE_SLEEP_SCHEDULER];
   addSlide("failure-prep-window", FILE_SLEEP_SCHEDULER.name, afterPrepWindow);
 
   // New ordering matches the slide deck: admin cancel, live updates,

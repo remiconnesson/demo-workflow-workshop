@@ -33,9 +33,6 @@ const AFFORDANCES: Record<FailureGroupSlug, Partial<Record<OrderStepId, Badge>>>
   "failure-slow-restaurant": {
     notifyRestaurant: { label: "💸 burning $", tone: "red" },
   },
-  "failure-ghost-restaurant": {
-    notifyRestaurant: { label: "timeout", tone: "red" },
-  },
   "failure-prep-window": {
     notifyRestaurant: { label: "20m sleep", tone: "amber" },
   },

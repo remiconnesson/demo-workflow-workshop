@@ -103,7 +103,7 @@ This is the canonical mapping. Every concept has a Title Case headline (the "wha
 |---|---|---|
 | Crash | **Unexpected Failures Happen Anywhere** | Automatically retry when errors pop up |
 | Retry | **Accidentally Charging Twice** | Guard payments with an idempotency key to save your customer's credit card |
-| Slow Restaurant | **Burning Money on Wasted Compute** | Avoid polling with a hook to avoid racking up the server costs |
+| Slow Restaurant | **Wait for Humans** | Avoid polling with a hook to avoid racking up the server costs |
 | Ghost Restaurant | **Sometimes No One Responds** | Give the restaurant a deadline so your customer isn't left hanging |
 | Prep Window | **Scheduling Work Hours Into the Future** | Sleep the workflow so your customer can pre-order |
 | User Cancel | **The User Hits Cancel** | Expose a hook so your customer can change their mind |
