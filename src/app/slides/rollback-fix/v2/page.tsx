@@ -6,7 +6,7 @@ import { DISPUTE_CODE } from "../_shared";
 export default function V2() {
   return (
     <div className="flex h-full w-full flex-col gap-6 px-14 py-8">
-      <FinishedTimelineStrip slide="dispute" />
+      <FinishedTimelineStrip slide="rollback" />
 
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_320px] gap-12">
         <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">

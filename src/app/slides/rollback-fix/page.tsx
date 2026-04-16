@@ -1,12 +1,12 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
 import { scenarioGroups } from "../_data/scenario-groups";
 
-export default function DisputeFixSlide() {
+export default function RollbackFixSlide() {
   return (
     <FixSlideLayout
-      slide="dispute"
+      slide="rollback"
       eyebrow="12c / workflow code"
-      {...scenarioGroups["dispute"]}
+      {...scenarioGroups["rollback"]}
       filename="placeOrder.ts"
       statusTone="fuchsia"
       steps={[

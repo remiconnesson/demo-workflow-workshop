@@ -178,13 +178,13 @@ export function LiveOrderConceptLab({
         return chargeCount >= 2
           ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
           : {};
-      case "slow-restaurant":
+      case "suspend":
         if (controller.waitingOn === "notifyRestaurant") {
           const label = `💸 burning $${waitCost.toFixed(2)}`;
           return { notifyRestaurant: { label, tone: "red", pulse: true } };
         }
         return {};
-      case "dispute":
+      case "rollback":
         if (compensationFired || phase === "rolled_back") {
           return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
         }

@@ -28,10 +28,10 @@ const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>
   "retry": {
     chargePayment: { label: "×2", tone: "red" },
   },
-  "slow-restaurant": {
+  "suspend": {
     notifyRestaurant: { label: "💸 burning $", tone: "red" },
   },
-  "dispute": {
+  "rollback": {
     sendReceipt: { label: "disputed", tone: "fuchsia" },
   },
 };

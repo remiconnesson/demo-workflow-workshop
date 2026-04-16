@@ -2,14 +2,14 @@ import { CodeBlock } from "../../_components/code-block";
 import { FinishedTimelineStrip } from "../../_components/finished-timeline-strip";
 import { DISPUTE_CODE } from "../_shared";
 
-// v3 — Geist split with enumerated saga steps in the rail.
-// Numbered list replaces the metadata grid; feels like documentation.
-export default function V3() {
+// v7 — Annotated split. Left rail maps directly to three key code lines
+// via dashed connectors. Feels like a Geist docs page.
+export default function V7() {
   return (
     <div className="flex h-full w-full flex-col gap-6 px-14 py-8">
-      <FinishedTimelineStrip slide="dispute" />
+      <FinishedTimelineStrip slide="rollback" />
 
-      <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
+      <div className="grid min-h-0 flex-1 grid-cols-[320px_1fr] gap-12">
         <div className="flex flex-col">
           <div className="font-mono text-[11px] font-medium uppercase tracking-[0.24em] text-zinc-500">
             12c / workflow code
@@ -21,11 +21,23 @@ export default function V3() {
             Dispute the Entire Order
           </h2>
 
-          <ol className="mt-8 flex flex-col gap-4">
-            <Step n="01" label="Open a dispute hook" detail="tokenized by orderId" />
-            <Step n="02" label="Race hook vs 24h sleep" detail="whichever resolves first" />
-            <Step n="03" label="Throw on disputed verdict" detail="saga unwinds in reverse" />
-          </ol>
+          <div className="mt-8 flex flex-col gap-5">
+            <Callout
+              tag="createHook"
+              line="L5"
+              text="Durable listener — survives process death, resolves when the customer disputes."
+            />
+            <Callout
+              tag="Promise.race"
+              line="L10"
+              text="Race the hook against a 24-hour paid sleep. First resolver wins."
+            />
+            <Callout
+              tag="throw"
+              line="L15"
+              text="Workflow catches it; every pushed compensation runs in reverse."
+            />
+          </div>
 
           <div className="mt-auto flex items-center gap-2 border-t border-white/10 pt-6">
             <span
@@ -33,7 +45,7 @@ export default function V3() {
               style={{ boxShadow: "0 0 10px rgba(232,121,249,0.6)" }}
             />
             <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-400">
-              post-delivery dispute
+              saga unwind
             </span>
           </div>
         </div>
@@ -54,16 +66,16 @@ export default function V3() {
   );
 }
 
-function Step({ n, label, detail }: { n: string; label: string; detail: string }) {
+function Callout({ tag, line, text }: { tag: string; line: string; text: string }) {
   return (
-    <li className="flex gap-4">
-      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-500 pt-1">
-        {n}
-      </span>
-      <div className="flex flex-col gap-1">
-        <span className="text-[15px] font-medium text-zinc-100">{label}</span>
-        <span className="font-mono text-[12px] text-zinc-500">{detail}</span>
+    <div className="flex flex-col gap-1.5 border-l border-white/10 pl-4">
+      <div className="flex items-baseline gap-3">
+        <span className="font-mono text-[13px] text-emerald-400/90">{tag}</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-600">
+          {line}
+        </span>
       </div>
-    </li>
+      <span className="text-[13px] leading-[18px] text-zinc-400">{text}</span>
+    </div>
   );
 }

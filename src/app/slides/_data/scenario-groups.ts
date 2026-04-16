@@ -2,8 +2,8 @@ import type { OrderStepId } from "@/lib/order-contract";
 
 export type ScenarioGroupSlug =
   | "retry"
-  | "slow-restaurant"
-  | "dispute";
+  | "suspend"
+  | "rollback";
 
 export type ScenarioGroup = {
   headline: string;
@@ -17,12 +17,12 @@ export const scenarioGroups: Record<ScenarioGroupSlug, ScenarioGroup> = {
     marker: "chargePayment",
     markerLabel: "payment flaked",
   },
-  "slow-restaurant": {
+  "suspend": {
     headline: "Wait for Humans",
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
   },
-  "dispute": {
+  "rollback": {
     headline: "Dispute the Entire Order",
     marker: "sendReceipt",
     markerLabel: "post-delivery dispute",

@@ -72,19 +72,19 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Slow restaurant ---
   {
-    slug: "slow-restaurant-demo",
+    slug: "suspend-demo",
     title: "Slow Restaurant · Demo",
     number: 9,
     notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
   },
   {
-    slug: "slow-restaurant-fix",
+    slug: "suspend-fix",
     title: "Slow Restaurant · Workflow Code",
     number: 10,
     notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
   },
   {
-    slug: "slow-restaurant-pattern",
+    slug: "suspend-pattern",
     title: "Slow Restaurant · Pattern",
     number: 11,
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
@@ -92,19 +92,19 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Dispute (driver refuses) ---
   {
-    slug: "dispute-demo",
+    slug: "rollback-demo",
     title: "Dispute · Demo",
     number: 12,
     notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
   },
   {
-    slug: "dispute-fix",
+    slug: "rollback-fix",
     title: "Dispute · Workflow Code",
     number: 13,
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
-    slug: "dispute-pattern",
+    slug: "rollback-pattern",
     title: "Dispute · Pattern",
     number: 14,
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",

@@ -38,7 +38,7 @@ const FILE_IDEMPOTENCY_KEYS: NaiveFile = {
 const FILE_RESTAURANT_WEBHOOK: NaiveFile = {
   name: "restaurant-webhook.ts",
   lines: 54,
-  addedOnSlide: "slow-restaurant",
+  addedOnSlide: "suspend",
   code: `// place-order returned 202 — the restaurant answers back here
 export async function POST(req: Request) {
   const sig = req.headers.get("x-restaurant-signature")
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 const FILE_PIPELINE_RESUME_WORKER: NaiveFile = {
   name: "pipeline-resume-worker.ts",
   lines: 62,
-  addedOnSlide: "slow-restaurant",
+  addedOnSlide: "suspend",
   code: `// a second copy of the pipeline, keyed off which step to resume at
 pipelineQueue.process(async (job) => {
   const { orderId, resumeAt } = job.data
@@ -87,7 +87,7 @@ pipelineQueue.process(async (job) => {
 const FILE_COMPENSATION_COORDINATOR: NaiveFile = {
   name: "dispute-coordinator.ts",
   lines: 88,
-  addedOnSlide: "dispute",
+  addedOnSlide: "rollback",
   code: `// Customer disputes AFTER the happy path finished.
 // Every step already succeeded — status is "completed".
 // Now unwind all six of them, in reverse, by hand.
@@ -148,14 +148,14 @@ function buildAccumulation(): Record<string, NaiveAccumulationEntry> {
     FILE_PIPELINE_RESUME_WORKER,
   ];
   addSlide(
-    "slow-restaurant",
+    "suspend",
     FILE_RESTAURANT_WEBHOOK.name,
     afterSlowRestaurant,
   );
 
   const afterDispute = [...afterSlowRestaurant, FILE_COMPENSATION_COORDINATOR];
   addSlide(
-    "dispute",
+    "rollback",
     FILE_COMPENSATION_COORDINATOR.name,
     afterDispute,
   );
@@ -170,7 +170,7 @@ export function getNaiveAccumulation(slide: string): NaiveAccumulationEntry | nu
 }
 
 export function getFullNaiveCatalog(): NaiveFile[] {
-  return NAIVE_ACCUMULATION["dispute"]?.allFiles ?? [];
+  return NAIVE_ACCUMULATION["rollback"]?.allFiles ?? [];
 }
 
 export function getFocusCode(slide: string): string {

@@ -1,12 +1,12 @@
 import { FixSlideLayout } from "../_components/fix-slide-layout";
 import { scenarioGroups } from "../_data/scenario-groups";
 
-export default function SlowRestaurantFixSlide() {
+export default function SuspendFixSlide() {
   return (
     <FixSlideLayout
-      slide="slow-restaurant"
+      slide="suspend"
       eyebrow="06c / workflow code"
-      {...scenarioGroups["slow-restaurant"]}
+      {...scenarioGroups["suspend"]}
       filename="placeOrder.ts"
       statusTone="amber"
       steps={[

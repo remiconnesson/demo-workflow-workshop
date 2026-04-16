@@ -1,9 +1,9 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
 import { scenarioGroups } from "../_data/scenario-groups";
 
-const { marker, markerLabel } = scenarioGroups["slow-restaurant"];
+const { marker, markerLabel } = scenarioGroups["suspend"];
 
-export default function SlowRestaurantPatternSlide() {
+export default function SuspendPatternSlide() {
   return (
     <PatternSlideLayout
       eyebrow="06d · The slow restaurant — concept / pattern"

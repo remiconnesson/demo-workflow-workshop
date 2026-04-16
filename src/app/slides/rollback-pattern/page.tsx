@@ -1,9 +1,9 @@
 import { PatternSlideLayout } from "../_components/pattern-slide-layout";
 import { scenarioGroups } from "../_data/scenario-groups";
 
-const { marker, markerLabel } = scenarioGroups["dispute"];
+const { marker, markerLabel } = scenarioGroups["rollback"];
 
-export default function DisputePatternSlide() {
+export default function RollbackPatternSlide() {
   return (
     <PatternSlideLayout
       eyebrow="12d · The dispute — concept / pattern"

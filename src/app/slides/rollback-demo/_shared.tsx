@@ -6,7 +6,7 @@ import { slideScenarios } from "../_lib/slide-scenarios";
 export function DisputeLab() {
   return (
     <LiveOrderConceptLab
-      slide="dispute"
+      slide="rollback"
       scenario={{ ...slideScenarios.saga, subtitle: "" }}
       allowDispute
     />
