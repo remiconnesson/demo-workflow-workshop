@@ -29,11 +29,6 @@ export function FirstAgentDemoPane() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       setActiveRunId(stored);
-      window.dispatchEvent(
-        new CustomEvent("slide:workflow-started", {
-          detail: { runId: stored, orderId: "ord-8842" },
-        }),
-      );
     }
   }, []);
 
@@ -46,12 +41,6 @@ export function FirstAgentDemoPane() {
           if (runId) {
             localStorage.setItem(STORAGE_KEY, runId);
             setActiveRunId(runId);
-            // Broadcast to slide layout so the debug drawer appears
-            window.dispatchEvent(
-              new CustomEvent("slide:workflow-started", {
-                detail: { runId, orderId: "ord-8842" },
-              }),
-            );
           }
         },
         onChatEnd: () => {
@@ -173,11 +162,26 @@ export function FirstAgentDemoPane() {
           </p>
         </div>
 
-        <p className="mt-auto text-sm leading-relaxed text-zinc-600">
-          Debug drawer appears at the bottom with the run id and{" "}
-          <span className="font-mono text-zinc-500">npx workflow web</span>{" "}
-          command.
-        </p>
+        <div
+          className={`mt-auto rounded-lg border bg-zinc-950/95 px-5 py-3 transition-opacity duration-300 ${
+            mounted && activeRunId
+              ? "border-white/10 opacity-100"
+              : "border-transparent opacity-0"
+          }`}
+          style={{ minHeight: 48 }}
+        >
+          {mounted && activeRunId && (
+            <a
+              href={`http://localhost:3456/run/${activeRunId}`}
+              target="_blank"
+              rel="noreferrer"
+              className="font-mono text-lg text-zinc-400 transition-colors hover:text-white"
+            >
+              <span className="text-zinc-600">$</span> npx workflow web{" "}
+              {activeRunId}
+            </a>
+          )}
+        </div>
       </aside>
     </div>
   );
