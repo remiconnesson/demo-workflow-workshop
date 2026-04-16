@@ -148,7 +148,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "agent-observer-demo",
     title: "Observer · Demo",
     number: 19,
-    notes: "PRESS r. Let the observer agent run autonomously. Watch tool calls land as durable steps.\n\nSAY: \"An agent that monitors the system while you sleep. Long-running. Survives restarts. Resumes from its last tool call.\"",
+    notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"Same retry primitive you already learned. Every tool call is a step. The event log replays them. Zero re-execution.\"",
   },
   {
     slug: "agent-observer-fix",

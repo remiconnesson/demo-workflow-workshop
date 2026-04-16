@@ -23,12 +23,14 @@ const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
 export function FirstAgentDemoPane() {
   const [mounted, setMounted] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | undefined>(undefined);
+  const [wasResumed, setWasResumed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       setActiveRunId(stored);
+      setWasResumed(true);
     }
   }, []);
 
@@ -77,6 +79,7 @@ export function FirstAgentDemoPane() {
         continue;
       }
       for (const part of m.parts) {
+        if (!part) continue;
         if (typeof part.type === "string" && part.type.startsWith("tool-")) {
           const toolName = part.type.slice("tool-".length);
           const state = (part as { state?: string }).state ?? "calling";
@@ -150,7 +153,7 @@ export function FirstAgentDemoPane() {
           )}
 
           {hasMessages && (
-            <ChatScroll messages={messages} isWorking={isWorking} />
+            <ChatScroll messages={messages} isWorking={isWorking} wasResumed={wasResumed} />
           )}
         </div>
 

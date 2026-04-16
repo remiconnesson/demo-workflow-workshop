@@ -9,9 +9,9 @@ export default function AgentObserverDemoSlide() {
     <DemoSlideLayout
       slide={group.slug}
       eyebrow={group.eyebrow}
-      headline="The agent that's been watching the whole time."
-      subcopy="While the workflow runs, the agent tails the event stream and surfaces a live report the moment anything looks off."
-      rightPanel={<ObserverReportPane />}
+      headline="An agent that runs while you sleep."
+      subcopy="Three tool calls per loop, each a durable step. Kill the server mid-tool-call — the agent replays from the event log and picks up where it left off."
+      rightPanel={<ObserverReportPane slug={group.slug} />}
     />
   );
 }
