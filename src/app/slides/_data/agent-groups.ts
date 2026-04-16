@@ -34,7 +34,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
       description:
         "A DurableAgent whose chat stream survives page refreshes, network drops, and serverless timeouts. The client reconnects to the same run — no re-prompt, no lost tokens.",
       apiPrimitive: "new DurableAgent({ tools }) + WorkflowChatTransport",
-      docUrl: "useworkflow.dev/docs/ai/resumable-streams",
+      docUrl: "workflow-sdk.dev/docs/ai/resumable-streams",
       docSection: "AI · Resumable Streams",
     },
   },
@@ -47,7 +47,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
       description:
         "A long-running agent loop that survives restarts, resumes from its last tool call, and reports back when it's done — no babysitting required.",
       apiPrimitive: "new DurableAgent({ tools, model })",
-      docUrl: "useworkflow.dev/docs/ai/durable-agent",
+      docUrl: "workflow-sdk.dev/docs/api-reference/workflow-ai/durable-agent",
       docSection: "AI · Durable Agents",
     },
   },
@@ -60,7 +60,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
       description:
         "Pair a durable agent loop with a hook so the agent can pause mid-task, hand control to a human for approval or input, and pick up exactly where it left off.",
       apiPrimitive: "defineHook() + new DurableAgent({ tools })",
-      docUrl: "useworkflow.dev/docs/ai/human-in-the-loop",
+      docUrl: "workflow-sdk.dev/docs/ai/human-in-the-loop",
       docSection: "AI · Human-in-the-loop",
     },
   },

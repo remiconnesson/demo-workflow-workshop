@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Search, BarChart3, FileText } from "lucide-react";
+import { AgentDebugDrawer, type DebugEvent } from "./agent-debug-drawer";
 
 // ---------------------------------------------------------------------------
 // Tool-call timeline — same visual language as the 6-step order timeline
@@ -186,6 +187,56 @@ export function ObserverReportPane({ slug = "agent-observer" }: { slug?: string 
     };
   }, [slug, handleStart, handleReset]);
 
+  // Fire-and-forget kickoff of the real durable run so the debug drawer
+  // shows a real run ID. We don't depend on the run output — the timeline
+  // is scripted for stage reliability.
+  const [runId, setRunId] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    if (fi !== 1) return; // only on first start
+    let cancelled = false;
+    fetch("/api/agent/observer/start", { method: "POST" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json: { runId?: string } | null) => {
+        if (!cancelled && json?.runId) setRunId(json.runId);
+      })
+      .catch(() => null);
+    return () => { cancelled = true; };
+  }, [fi === 1]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Derive debug events from frame transitions
+  const debugEvents: DebugEvent[] = useMemo(() => {
+    const out: DebugEvent[] = [];
+    // Walk frames 0..fi and emit events for each state change
+    for (let i = 1; i <= fi; i++) {
+      const f = FRAMES[i];
+      if (!f) break;
+      if (f.crashPhase === "crashed") {
+        out.push({ kind: "ERR", msg: "server down — process killed" });
+        continue;
+      }
+      if (f.crashPhase === "replaying" && FRAMES[i - 1]?.crashPhase === "crashed") {
+        out.push({ kind: "RPL", msg: "replaying event log…" });
+        continue;
+      }
+      if (f.sleeping) {
+        out.push({ kind: "SLP", msg: "sleep(\"30s\")" });
+        continue;
+      }
+      for (const tool of TOOLS) {
+        const prev = FRAMES[i - 1]?.tools[tool.id];
+        const curr = f.tools[tool.id];
+        if (prev === curr) continue;
+        if (curr === "running") out.push({ kind: "RUN", msg: `${tool.label} · ${f.statusText}` });
+        if (curr === "success" && prev === "running") out.push({ kind: "OK ", msg: tool.label });
+        if (curr === "replayed") out.push({ kind: "RPL", msg: `${tool.label} · cached` });
+      }
+    }
+    if (fi === FRAMES.length - 1) {
+      out.push({ kind: "END", msg: "resumed · 0 steps re-executed" });
+    }
+    return out;
+  }, [fi]);
+
   // Derived state
   const isIdle = fi === 0;
   const isDone = fi === FRAMES.length - 1;
@@ -247,9 +298,13 @@ export function ObserverReportPane({ slug = "agent-observer" }: { slug?: string 
             <button
               onClick={handleStart}
               disabled={!isIdle}
-              className="rounded-lg border border-white/10 px-4 py-2 text-sm transition-colors hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+              className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+                !isIdle
+                  ? "border border-white/10 text-zinc-500 cursor-not-allowed"
+                  : "bg-white text-black hover:bg-zinc-200"
+              }`}
             >
-              Run
+              ▶ Run
             </button>
             <button
               onClick={handleReset}
@@ -444,7 +499,7 @@ export function ObserverReportPane({ slug = "agent-observer" }: { slug?: string 
 
         {/* durability stats card */}
         <div
-          className={`flex flex-1 flex-col gap-5 rounded-2xl border p-8 transition-all duration-500 ${
+          className={`shrink-0 flex flex-col gap-5 rounded-2xl border p-8 transition-all duration-500 ${
             frame.crashPhase === "resumed"
               ? "border-emerald-500/20 bg-emerald-500/5 opacity-100"
               : fi > 0
@@ -478,6 +533,9 @@ export function ObserverReportPane({ slug = "agent-observer" }: { slug?: string 
             highlight={frame.crashPhase === "resumed"}
           />
         </div>
+
+        {/* debug drawer — inline, not overlapping */}
+        <AgentDebugDrawer runId={runId} events={debugEvents} />
       </aside>
     </div>
   );

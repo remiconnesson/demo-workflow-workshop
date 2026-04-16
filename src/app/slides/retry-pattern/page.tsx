@@ -12,7 +12,7 @@ payments, messaging, webhooks, queues, LLM calls — and propose diffs
 that wrap each call in a "use step" function and pass
 getStepMetadata().stepId as the idempotency key.
 
-Docs: https://useworkflow.dev/docs/cookbook/common-patterns/idempotency`;
+Docs: https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency`;
 
 export default function RetryPatternSlide() {
   return (
@@ -22,7 +22,7 @@ export default function RetryPatternSlide() {
       description="Every step gets a stable, deterministic ID that doesn't change across retries. Pass it to external APIs as a deduplication key."
       apiPrimitive="getStepMetadata().stepId"
       docSection="Cookbook · Common Patterns"
-      docUrl="useworkflow.dev/docs/cookbook/common-patterns/idempotency"
+      docUrl="workflow-sdk.dev/docs/cookbook/common-patterns/idempotency"
       prompt={PROMPT}
       marker={marker}
       markerLabel={markerLabel}

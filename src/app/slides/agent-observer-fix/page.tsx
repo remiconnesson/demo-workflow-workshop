@@ -11,6 +11,7 @@ const FIX_CODE = `async function fetchRecentOrders({ limit }) {
 export async function observerAgentWorkflow() {
   "use workflow"
 
+  const writable = getWritable()
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
     instructions: "Watch orders. Report anomalies.",
@@ -18,7 +19,11 @@ export async function observerAgentWorkflow() {
   })
 
   for (let i = 0; i < 20; i++) {
-    await agent.stream({ messages, maxSteps: 6 })
+    await agent.stream({
+      messages: [{ role: "user", content: \`Loop \${i + 1}: check recent orders.\` }],
+      writable,
+      maxSteps: 6,
+    })
     await sleep("30s")
   }
 }`;

@@ -321,18 +321,95 @@ export function LiveOrderConceptLab({
 
   return (
     <div className="relative rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
-            {scenario.subtitle ?? scenario.title}
+      <div className="flex items-center justify-between gap-4 min-h-[88px]">
+        {/* hook controls on the left — only visible when actively waiting */}
+        {showManualControls ? (
+          <div className="flex items-center gap-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3">
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300 whitespace-nowrap">
+              Waiting on Restaurant
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {controller.waitingOn === "notifyRestaurant" ? (
+                <>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "restaurant-accept",
+                        accepted: true,
+                      })
+                    }
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "restaurant-accept",
+                        accepted: false,
+                        reason: "closed",
+                      })
+                    }
+                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : null}
+              {controller.waitingOn === "assignDriver" ? (
+                <>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "driver-accept",
+                        accepted: true,
+                      })
+                    }
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    Driver accept
+                  </button>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "driver-accept",
+                        accepted: false,
+                      })
+                    }
+                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                  >
+                    Driver reject
+                  </button>
+                </>
+              ) : null}
+              {controller.waitingOn === "trackDelivery" ? (
+                <button
+                  onClick={() => void manualResume({ kind: "delivered" })}
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                >
+                  Mark delivered
+                </button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1">
+            <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
+              {scenario.subtitle ?? scenario.title}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2">
           <button
             onClick={() => void controller.start()}
-            className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:border-white/30 hover:text-white transition-colors"
+            disabled={controller.running}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              controller.running
+                ? "border border-white/10 text-zinc-500 cursor-not-allowed"
+                : "bg-white text-black hover:bg-zinc-200"
+            }`}
           >
-            Run
+            ▶ Run
           </button>
           {allowCrash ? (
             <button
@@ -561,82 +638,6 @@ export function LiveOrderConceptLab({
           </span>
         </div>
       </div>
-
-      {/* manual hook controls — always rendered when scenario uses manual hooks, visibility via opacity */}
-      {!scenario.input.autoAck ? (
-        <div className={`mt-6 rounded-xl border p-5 min-h-[100px] transition-all duration-300 ${
-          showManualControls
-            ? "border-amber-500/30 bg-amber-500/5 opacity-100"
-            : "border-white/5 bg-transparent opacity-30"
-        }`}>
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-            {showManualControls ? `Waiting on ${controller.waitingOn}` : "Hook controls"}
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {controller.waitingOn === "notifyRestaurant" ? (
-              <>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "restaurant-accept",
-                      accepted: true,
-                    })
-                  }
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-                >
-                  Restaurant accept
-                </button>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "restaurant-accept",
-                      accepted: false,
-                      reason: "closed",
-                    })
-                  }
-                  className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
-                >
-                  Restaurant reject
-                </button>
-              </>
-            ) : null}
-            {controller.waitingOn === "assignDriver" ? (
-              <>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "driver-accept",
-                      accepted: true,
-                    })
-                  }
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-                >
-                  Driver accept
-                </button>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "driver-accept",
-                      accepted: false,
-                    })
-                  }
-                  className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
-                >
-                  Driver reject
-                </button>
-              </>
-            ) : null}
-            {controller.waitingOn === "trackDelivery" ? (
-              <button
-                onClick={() => void manualResume({ kind: "delivered" })}
-                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-              >
-                Mark delivered
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
 
       {/* event feed removed — events broadcast to debug drawer via slide:workflow-events */}
 

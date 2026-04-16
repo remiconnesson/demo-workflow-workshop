@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { WorkflowChatTransport } from "@workflow/ai";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AgentDebugDrawer, type DebugEvent } from "./agent-debug-drawer";
 
 const STORAGE_KEY = "slides:first-agent:run-id";
 const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
@@ -69,10 +70,9 @@ export function FirstAgentDemoPane() {
   const isWorking = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
 
-  // Derive debug events from the chat stream — same shape as the other
-  // slides' DebugDrawer so the presenter sees a familiar event log.
-  const debugEvents = useMemo(() => {
-    const out: { kind: string; msg: string }[] = [];
+  // Derive debug events from the chat stream.
+  const debugEvents: DebugEvent[] = useMemo(() => {
+    const out: DebugEvent[] = [];
     for (const m of messages) {
       if (m.role === "user") {
         out.push({ kind: "LOG", msg: `user · ${m.parts.find((p) => p.type === "text")?.text?.slice(0, 60) ?? "…"}` });
@@ -165,7 +165,11 @@ export function FirstAgentDemoPane() {
             type="button"
             onClick={handleSend}
             disabled={isWorking || hasMessages}
-            className="rounded-xl bg-white px-8 py-4 text-lg font-semibold text-black disabled:cursor-not-allowed disabled:opacity-40"
+            className={`rounded-xl px-8 py-4 text-lg font-semibold transition-all ${
+              isWorking || hasMessages
+                ? "bg-white/60 text-black/60 cursor-not-allowed opacity-40"
+                : "bg-white text-black hover:bg-zinc-200"
+            }`}
           >
             Open ticket
           </button>
@@ -175,27 +179,52 @@ export function FirstAgentDemoPane() {
       {/* RIGHT — the F5 hint + under-the-hood */}
       <aside className="flex min-h-0 flex-col gap-6 overflow-hidden">
         <div
-          className={`flex flex-col gap-3 rounded-2xl border p-8 transition-colors duration-300 ${
-            isWorking
-              ? "border-sky-500/40 bg-sky-500/10"
-              : "border-white/10 bg-zinc-950"
+          className={`flex flex-col gap-4 rounded-2xl border p-8 transition-colors duration-300 ${
+            wasResumed && hasMessages
+              ? "border-emerald-500/40 bg-emerald-500/10"
+              : isWorking
+                ? "border-sky-500/40 bg-sky-500/10"
+                : "border-white/10 bg-zinc-950"
           }`}
         >
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            The demo
+            {wasResumed && hasMessages ? "The proof" : "The demo"}
           </p>
-          <p className="text-4xl font-semibold leading-[1.05] tracking-tight">
-            Hit{" "}
-            <kbd className="rounded-lg border border-white/20 bg-white/10 px-3 py-1 font-mono text-3xl">
-              F5
-            </kbd>
-            <br />
-            mid-response.
-          </p>
-          <p className="text-lg leading-relaxed text-zinc-400">
-            The stream reconnects. The sentence finishes itself. The
-            tool call that was already running doesn&apos;t re-fire.
-          </p>
+
+          {/* Pre-F5 prompt */}
+          <div
+            className={`transition-all duration-500 ${
+              wasResumed && hasMessages ? "h-0 overflow-hidden opacity-0" : "opacity-100"
+            }`}
+          >
+            <p className="text-4xl font-semibold leading-[1.05] tracking-tight">
+              Hit{" "}
+              <kbd className="rounded-lg border border-white/20 bg-white/10 px-3 py-1 font-mono text-3xl">
+                F5
+              </kbd>
+              <br />
+              mid-response.
+            </p>
+            <p className="mt-3 text-lg leading-relaxed text-zinc-400">
+              The stream reconnects. The sentence finishes itself. The
+              tool call that was already running doesn&apos;t re-fire.
+            </p>
+          </div>
+
+          {/* Post-F5 proof */}
+          <div
+            className={`transition-all duration-500 ${
+              wasResumed && hasMessages ? "opacity-100" : "h-0 overflow-hidden opacity-0"
+            }`}
+          >
+            <p className="text-4xl font-semibold leading-[1.05] tracking-tight text-emerald-300">
+              Stream reconnected.
+            </p>
+            <p className="mt-3 text-lg leading-relaxed text-zinc-400">
+              Same run ID. Same sentence. The tool call that was
+              running didn&apos;t re-fire.
+            </p>
+          </div>
         </div>
 
         <AgentDebugDrawer
@@ -212,9 +241,10 @@ export function FirstAgentDemoPane() {
 type ChatScrollProps = {
   messages: ReturnType<typeof useChat>["messages"];
   isWorking: boolean;
+  wasResumed: boolean;
 };
 
-function ChatScroll({ messages, isWorking }: ChatScrollProps) {
+function ChatScroll({ messages, isWorking, wasResumed }: ChatScrollProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -226,76 +256,9 @@ function ChatScroll({ messages, isWorking }: ChatScrollProps) {
       {messages.map((m) => (
         <MessageCard key={m.id} message={m} />
       ))}
-      {isWorking && <WorkingPulse />}
+      {isWorking && !wasResumed && <WorkingPulse />}
+      {isWorking && wasResumed && <ReconnectedBanner />}
       <div ref={bottomRef} />
-    </div>
-  );
-}
-
-/* ---------- debug drawer ---------- */
-
-function kindColor(kind: string): string {
-  switch (kind) {
-    case "OK ": return "text-emerald-400";
-    case "ERR": return "text-red-400";
-    case "WAI": case "HOK": return "text-amber-400";
-    case "CMP": return "text-fuchsia-400";
-    case "RUN": return "text-sky-400";
-    case "END": return "text-white";
-    default: return "text-zinc-500";
-  }
-}
-
-function AgentDebugDrawer({
-  runId,
-  events,
-}: {
-  runId: string | undefined;
-  events: { kind: string; msg: string }[];
-}) {
-  const feedRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight });
-  }, [events.length]);
-
-  return (
-    <div
-      className={`flex min-h-[48px] flex-1 flex-col rounded-lg border bg-zinc-950/95 px-5 py-3 transition-opacity duration-300 ${
-        runId ? "border-white/10 opacity-100" : "border-transparent opacity-0"
-      }`}
-    >
-      {runId && (
-        <>
-          <a
-            href={`http://localhost:3456/run/${runId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="truncate font-mono text-sm text-zinc-400 transition-colors hover:text-white"
-          >
-            <span className="text-zinc-600">$</span> npx workflow web{" "}
-            {runId}
-          </a>
-
-          {events.length > 0 && (
-            <div
-              ref={feedRef}
-              className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-sm"
-            >
-              {events.map((ev, i) => (
-                <div key={i} className="flex gap-3 py-0.5">
-                  <span
-                    className={`w-8 shrink-0 font-semibold ${kindColor(ev.kind)}`}
-                  >
-                    {ev.kind}
-                  </span>
-                  <span className="truncate text-zinc-400">{ev.msg}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      )}
     </div>
   );
 }
@@ -308,6 +271,17 @@ function WorkingPulse() {
       <span className="h-3 w-3 animate-pulse rounded-full bg-sky-400" />
       <span className="font-mono text-lg uppercase tracking-[0.2em] text-sky-200">
         agent working — reload safe
+      </span>
+    </div>
+  );
+}
+
+function ReconnectedBanner() {
+  return (
+    <div className="flex items-center gap-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-5 shadow-[0_0_30px_rgba(52,211,153,0.25)]">
+      <span className="h-3 w-3 rounded-full bg-emerald-400" />
+      <span className="font-mono text-lg uppercase tracking-[0.2em] text-emerald-200">
+        stream reconnected — same run
       </span>
     </div>
   );

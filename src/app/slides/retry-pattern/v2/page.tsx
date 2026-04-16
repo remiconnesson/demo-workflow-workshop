@@ -11,7 +11,7 @@ idempotency key.
 Context from the run I just watched:
 npx workflow inspect run <run_id>
 
-Docs: https://useworkflow.dev/docs/cookbook/common-patterns/idempotency`;
+Docs: https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency`;
 
 export default function V2() {
   return (
@@ -27,12 +27,12 @@ export default function V2() {
       </div>
       <CopyablePrompt prompt={PROMPT} />
       <a
-        href="https://useworkflow.dev/docs/cookbook/common-patterns/idempotency"
+        href="https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency"
         target="_blank"
         rel="noreferrer"
         className="font-mono text-base text-zinc-500 underline decoration-zinc-800 underline-offset-4 hover:text-white"
       >
-        useworkflow.dev/docs/cookbook/common-patterns/idempotency
+        workflow-sdk.dev/docs/cookbook/common-patterns/idempotency
       </a>
     </div>
   );

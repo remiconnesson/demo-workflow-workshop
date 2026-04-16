@@ -31,10 +31,10 @@ async function chargePayment(order) {
   // ...and getStepMetadata hands you its identity
   const { stepId } = getStepMetadata()
   // lock it down with a stable id
-  return stripe.charges.create({
-    amount: order.total,
-    idempotencyKey: stepId,
-  })
+  return stripe.charges.create(
+    { amount: order.total },
+    { idempotencyKey: stepId },
+  )
 }`,
       }}
     />

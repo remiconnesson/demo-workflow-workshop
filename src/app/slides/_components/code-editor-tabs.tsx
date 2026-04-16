@@ -6,22 +6,12 @@ export type CodeEditorTab = {
   filename: string;
   /** Pre-rendered Shiki HTML (inline token spans). */
   html: string;
-  /** Small right-aligned directive label, e.g. "use workflow". */
-  directive?: string;
-  /** Tone applied to the directive label. */
-  directiveTone?: "emerald" | "fuchsia" | "zinc";
 };
 
 type Props = {
   tabs: CodeEditorTab[];
   textClass?: string;
 };
-
-const DIRECTIVE_COLOR = {
-  emerald: "text-emerald-400/80",
-  fuchsia: "text-fuchsia-400/80",
-  zinc: "text-zinc-400/80",
-} as const;
 
 export function CodeEditorTabs({ tabs, textClass = "text-[26px]" }: Props) {
   const [active, setActive] = useState(0);
@@ -49,13 +39,6 @@ export function CodeEditorTabs({ tabs, textClass = "text-[26px]" }: Props) {
             );
           })}
         </div>
-        {current.directive ? (
-          <span
-            className={`px-6 py-3 font-mono text-[11px] uppercase tracking-[0.22em] ${DIRECTIVE_COLOR[current.directiveTone ?? "emerald"]}`}
-          >
-            {current.directive}
-          </span>
-        ) : null}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
         <pre

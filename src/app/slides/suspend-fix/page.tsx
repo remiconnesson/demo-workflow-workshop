@@ -11,11 +11,11 @@ export default function SuspendFixSlide() {
       statusTone="amber"
       steps={[
         {
-          label: "Open a restaurant-accept hook",
-          detail: "tokenized, durable, no worker",
+          label: "Create a webhook URL",
+          detail: "one line, no custom route",
         },
         {
-          label: "Race hook vs 24h sleep",
+          label: "Race webhook vs 24h sleep",
           detail: "whichever resolves first",
         },
         {
@@ -27,19 +27,20 @@ export default function SuspendFixSlide() {
         code: `async function placeOrder(orderId: string) {
   "use workflow"
 
-  // createHook suspends the workflow.
-  // No webhook. No worker. No polling.
-  const hook = createHook<{ accepted: boolean }>({
-    token: \`order:\${orderId}:restaurant-accept\`,
-  })
+  // createWebhook suspends the workflow.
+  // One URL. No route. No polling.
+  using webhook = createWebhook()
 
-  // Race the hook against a 24h sleep.
-  const result = await Promise.race([
-    hook,
-    sleep("24h").then(() => ({ accepted: false })),
+  // Send the accept link to the restaurant
+  await notifyRestaurant(orderId, webhook.url)
+
+  // Race: restaurant taps accept vs 24h timeout
+  const accepted = await Promise.race([
+    webhook.then(() => true),
+    sleep("24h").then(() => false),
   ])
 
-  if (!result.accepted) {
+  if (!accepted) {
     throw new Error("Restaurant never accepted")
   }
 }`,

@@ -66,13 +66,20 @@ export default function AgentFirstFixSlide() {
             filename: "page.tsx",
             directive: "client",
             directiveTone: "zinc",
-            code: `const { messages, sendMessage } = useChat({
+            code: `const activeRunId = localStorage.getItem("run-id")
+
+const { messages, sendMessage } = useChat({
   resume: Boolean(activeRunId),
   transport: new WorkflowChatTransport({
     api: "/api/chat",
+    onChatSendMessage: (res) => {
+      const id = res.headers.get("x-workflow-run-id")
+      if (id) localStorage.setItem("run-id", id)
+    },
+    onChatEnd: () => localStorage.removeItem("run-id"),
     prepareReconnectToStreamRequest: ({ ...rest }) => ({
       ...rest,
-      api: \`/api/chat/\${runId}/stream\`,
+      api: \`/api/chat/\${activeRunId}/stream\`,
     }),
   }),
 })`,

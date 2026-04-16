@@ -150,7 +150,7 @@ export function TheDemoPhoneLab() {
     <div className="flex h-full w-full items-stretch gap-14 px-14 py-10">
       {/* ─────────────────── Phone ─────────────────── */}
       <div className="flex shrink-0 items-center justify-center">
-        <div className="relative h-[980px] w-[490px] overflow-hidden rounded-[48px] border-[12px] border-zinc-900 bg-white text-black shadow-[0_60px_120px_-20px_rgba(0,0,0,0.8)]">
+        <div className="relative h-[min(980px,calc(100vh-120px))] w-[min(490px,calc((100vh-120px)*0.5))] overflow-hidden rounded-[48px] border-[12px] border-zinc-900 bg-white text-black shadow-[0_60px_120px_-20px_rgba(0,0,0,0.8)]">
           {/* dynamic island */}
           <div className="absolute left-1/2 top-3 z-20 h-8 w-40 -translate-x-1/2 rounded-full bg-black" />
 
@@ -305,7 +305,7 @@ export function TheDemoPhoneLab() {
                       state === "success"
                         ? "border-black bg-black text-white"
                         : state === "running"
-                          ? "border-black bg-white text-black animate-pulse"
+                          ? "border-black bg-white text-black"
                           : state === "waiting"
                             ? "border-amber-500 bg-amber-50 text-amber-600"
                             : state === "failed"
@@ -364,7 +364,7 @@ export function TheDemoPhoneLab() {
           <span className="text-zinc-500">should be easy, right?</span>
         </h2>
 
-        <section className="rounded-2xl border border-white/10 bg-zinc-950 p-10">
+        <section className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 p-10">
           <div className="flex items-end justify-end gap-8">
             <div
               className={`${geistMono.className} text-6xl font-semibold ${
@@ -392,7 +392,7 @@ export function TheDemoPhoneLab() {
                 return (
                   <div
                     key={s.id}
-                    className="flex min-w-[140px] flex-1 flex-col items-center"
+                    className="flex min-w-0 flex-1 flex-col items-center"
                   >
                     <div className="relative flex w-full items-center justify-center">
                       <div

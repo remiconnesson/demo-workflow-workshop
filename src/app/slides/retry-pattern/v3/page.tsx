@@ -11,7 +11,7 @@ idempotency key.
 Context from the run I just watched:
 npx workflow inspect run <run_id>
 
-Docs: https://useworkflow.dev/docs/cookbook/common-patterns/idempotency`;
+Docs: https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency`;
 
 export default function V3() {
   return (

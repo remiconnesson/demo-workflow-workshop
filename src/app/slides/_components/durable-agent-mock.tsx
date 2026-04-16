@@ -162,9 +162,13 @@ export function DurableAgentMock() {
           </div>
           <button
             onClick={() => (playing ? stop() : play())}
-            className="rounded-lg border border-sky-400/40 bg-sky-500/10 px-4 py-1.5 font-mono text-sm text-sky-200 hover:border-sky-300 hover:text-sky-100 transition-colors"
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              playing
+                ? "border border-white/10 text-zinc-500 cursor-not-allowed"
+                : "bg-white text-black hover:bg-zinc-200"
+            }`}
           >
-            {playing ? "Stop" : playhead >= TOTAL_DURATION ? "Replay" : "Run"}
+            {playing ? "Stop" : playhead >= TOTAL_DURATION ? "▶ Replay" : "▶ Run"}
           </button>
         </div>
 

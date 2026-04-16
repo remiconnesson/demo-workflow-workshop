@@ -11,7 +11,7 @@ export default function RollbackPatternSlide() {
       description="Every step pushes an undo as it succeeds. A post-delivery dispute hook throws an error, and the workflow's catch unwinds compensations in reverse — even after the happy path finished."
       apiPrimitive="try/catch  ·  compensations[]  ·  reverse unwind"
       docSection="Cookbook · Common Patterns"
-      docUrl="useworkflow.dev/docs/cookbook/common-patterns/saga"
+      docUrl="workflow-sdk.dev/docs/cookbook/common-patterns/saga"
       marker={marker}
       markerLabel={markerLabel}
     />

@@ -29,7 +29,7 @@ const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>
     chargePayment: { label: "×2", tone: "red" },
   },
   "suspend": {
-    notifyRestaurant: { label: "💸 burning $", tone: "red" },
+    notifyRestaurant: { label: "waiting…", tone: "amber" },
   },
   "rollback": {
     sendReceipt: { label: "disputed", tone: "fuchsia" },

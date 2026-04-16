@@ -43,7 +43,11 @@ export function AnalystApprovalPhone() {
     <div className="flex h-full w-full items-center justify-center">
       {/* Phone frame */}
       <div
-        className="relative flex flex-col overflow-hidden rounded-[56px] border-[14px] border-black bg-white"
+        className={`relative flex flex-col overflow-hidden rounded-[56px] border-[14px] border-black bg-white transition-shadow duration-500 ${
+          pending
+            ? "shadow-[0_0_50px_rgba(251,191,36,0.5)]"
+            : ""
+        }`}
         style={{ width: 280, height: 560 }}
       >
         {/* Dynamic island */}
@@ -57,7 +61,7 @@ export function AnalystApprovalPhone() {
           {/* Empty state */}
           <div
             className={`absolute inset-0 flex flex-col items-center justify-center px-6 text-center transition-opacity duration-200 ${
-              pending ? "opacity-0" : "opacity-100"
+              pending ? "pointer-events-none opacity-0" : "opacity-100"
             }`}
             aria-hidden={pending ? true : undefined}
           >

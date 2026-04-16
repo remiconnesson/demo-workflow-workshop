@@ -11,7 +11,7 @@ export default function SuspendPatternSlide() {
       description="Suspend a workflow and resume it later with external data. A hook generates a unique token for any external system to send data back in."
       apiPrimitive="createHook()"
       docSection="Cookbook · Agent Patterns"
-      docUrl="useworkflow.dev/docs/cookbook/agent-patterns/human-in-the-loop"
+      docUrl="workflow-sdk.dev/docs/cookbook/agent-patterns/human-in-the-loop"
       marker={marker}
       markerLabel={markerLabel}
     />

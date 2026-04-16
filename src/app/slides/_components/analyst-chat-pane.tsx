@@ -120,7 +120,15 @@ function savePersisted(p: Persisted) {
   }
 }
 
-export function AnalystChatPane() {
+export type AnalystDebugEvent = { kind: string; msg: string };
+
+export function AnalystChatPane({
+  onRunIdChange,
+  onEventsChange,
+}: {
+  onRunIdChange?: (runId: string | null) => void;
+  onEventsChange?: (events: AnalystDebugEvent[]) => void;
+} = {}) {
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -140,6 +148,34 @@ export function AnalystChatPane() {
         content: i.role === "user" ? i.text : i.text,
       }));
   }, [items]);
+
+  // Derive debug events from tool calls and notify parent
+  const debugEvents: AnalystDebugEvent[] = useMemo(() => {
+    const out: AnalystDebugEvent[] = [];
+    for (const item of items) {
+      if (item.role === "user") {
+        out.push({ kind: "LOG", msg: `user · ${item.text.slice(0, 60)}` });
+      } else if (item.role === "assistant") {
+        for (const t of item.toolCalls) {
+          if (t.status === "running") {
+            out.push({ kind: "RUN", msg: t.summary });
+          } else if (t.status === "done") {
+            out.push({ kind: "OK ", msg: t.summary });
+          } else if (t.status === "error") {
+            out.push({ kind: "ERR", msg: t.summary });
+          }
+        }
+      }
+    }
+    if (items.length > 0 && !isStreaming) {
+      out.push({ kind: "END", msg: "agent complete" });
+    }
+    return out;
+  }, [items, isStreaming]);
+
+  useEffect(() => {
+    onEventsChange?.(debugEvents);
+  }, [debugEvents, onEventsChange]);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -327,6 +363,7 @@ export function AnalystChatPane() {
         const runId = res.headers.get("X-Run-Id");
         if (runId) {
           activeRunIdRef.current = runId;
+          onRunIdChange?.(runId);
         }
 
         await consumeStream(res.body, assistantId);
@@ -336,9 +373,10 @@ export function AnalystChatPane() {
         setPendingApproval(null);
         activeRunIdRef.current = null;
         activeAssistantIdRef.current = null;
+        onRunIdChange?.(null);
       }
     },
-    [consumeStream, isStreaming, messagesForApi],
+    [consumeStream, isStreaming, messagesForApi, onRunIdChange],
   );
 
   // Rehydrate from localStorage on mount; reconnect to any in-flight run.
@@ -353,14 +391,22 @@ export function AnalystChatPane() {
     const assistantId = persisted?.activeAssistantId ?? null;
     if (!runId || !assistantId) return;
 
+    // Clear the persisted run pointer immediately so a subsequent
+    // navigation doesn't try to reconnect to the same dead run.
+    savePersisted({ items: persisted?.items ?? [], activeRunId: null, activeAssistantId: null });
+
     let cancelled = false;
+    const abort = new AbortController();
     (async () => {
       try {
         setIsStreaming(true);
         activeRunIdRef.current = runId;
         activeAssistantIdRef.current = assistantId;
+        onRunIdChange?.(runId);
 
-        const res = await fetch(`/api/agent/analyst/chat/${runId}`);
+        const res = await fetch(`/api/agent/analyst/chat/${runId}`, {
+          signal: abort.signal,
+        });
         if (cancelled || !res.body) return;
         await consumeStream(res.body, assistantId);
       } catch {
@@ -372,14 +418,20 @@ export function AnalystChatPane() {
           setPendingApproval(null);
           activeRunIdRef.current = null;
           activeAssistantIdRef.current = null;
+          onRunIdChange?.(null);
         }
       }
     })();
 
+    // Abort the reconnection attempt after 5s so stale runs don't block the UI.
+    const timeout = setTimeout(() => abort.abort(), 5000);
+
     return () => {
       cancelled = true;
+      abort.abort();
+      clearTimeout(timeout);
     };
-  }, [consumeStream]);
+  }, [consumeStream, onRunIdChange]);
 
   const reset = useCallback(() => {
     if (isStreaming) return;
@@ -409,7 +461,11 @@ export function AnalystChatPane() {
   };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
+    <div className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-zinc-950 transition-all duration-500 ${
+      awaitingApproval
+        ? "border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)]"
+        : "border-white/10"
+    }`}>
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
@@ -448,6 +504,20 @@ export function AnalystChatPane() {
             Reset
           </button>
         </div>
+      </div>
+
+      {/* Suspension bar — CLS-safe via opacity, always in DOM */}
+      <div
+        className={`flex items-center gap-4 border-b px-8 py-4 transition-all duration-500 ${
+          awaitingApproval
+            ? "border-amber-400/30 bg-amber-500/10 opacity-100"
+            : "h-0 overflow-hidden border-transparent opacity-0 py-0"
+        }`}
+      >
+        <span className="h-3 w-3 animate-pulse rounded-full bg-amber-400" />
+        <span className="font-mono text-lg uppercase tracking-[0.2em] text-amber-200">
+          agent suspended — waiting for human
+        </span>
       </div>
 
       {/* Messages */}

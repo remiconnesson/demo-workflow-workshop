@@ -82,7 +82,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "suspend-fix",
     title: "Slow Restaurant · Workflow Code",
     number: 10,
-    notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
+    notes: "SAY: \"createWebhook. One line gives you a URL. That URL goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom route, no resume worker.\"",
   },
   {
     slug: "suspend-pattern",

@@ -37,11 +37,8 @@ export default function V4() {
         </div>
 
         <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">
-          <div className="flex items-center justify-between border-b border-white/10 px-6 py-3">
+          <div className="flex items-center border-b border-white/10 px-6 py-3">
             <span className="font-mono text-[12px] text-zinc-500">placeOrder.ts</span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-400/80">
-              use workflow
-            </span>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
             <CodeBlock code={DISPUTE_CODE} lang="ts" textClass="text-[26px]" />
