@@ -359,9 +359,9 @@ export function TheDemoPhoneLab() {
       {/* ─────────────────── Right: V5 · question-only ─────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-12">
         <h2 className="text-7xl font-semibold leading-[0.95] tracking-tight">
-          Ordering donuts
+          Software that finishes
           <br />
-          <span className="text-zinc-500">should be easy, right?</span>
+          <span className="text-zinc-500">what it starts</span>
         </h2>
 
         <section className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 p-10">

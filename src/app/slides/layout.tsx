@@ -13,7 +13,7 @@ export default function SlidesLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const slug = pathname.split("/").pop() ?? "";
+  const slug = pathname.replace(/^\/slides\//, "");
   const { current, prev, next, total } = getSlideNav(slug);
 
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
@@ -54,6 +54,13 @@ export default function SlidesLayout({
     return () => window.removeEventListener("mousedown", onClick);
   }, [pickerOpen]);
 
+  // Prefetch all slide routes on mount so dev server compiles them eagerly
+  useEffect(() => {
+    for (const slide of SLIDES) {
+      router.prefetch(`/slides/${slide.slug}`);
+    }
+  }, [router]);
+
   useEffect(() => {
     console.info("[slides] open", { slug });
   }, [slug]);
@@ -86,7 +93,8 @@ export default function SlidesLayout({
           new CustomEvent("slide:reset", { detail: { slug } }),
         );
       }
-      if (e.key === "g") {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (e.key === "g" && tag !== "INPUT" && tag !== "TEXTAREA" && !(e.target as HTMLElement)?.isContentEditable) {
         e.preventDefault();
         setPickerOpen((v) => !v);
       }
@@ -105,6 +113,14 @@ export default function SlidesLayout({
       {slug !== "title" && (
         <div className="pointer-events-none fixed top-8 right-8 z-50">
           <WorkflowMark size={32} className="text-white/70" />
+        </div>
+      )}
+
+      {current?.breadcrumb && (
+        <div className="pointer-events-none fixed top-8 left-8 z-50">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            {current.breadcrumb}
+          </span>
         </div>
       )}
 
@@ -175,10 +191,6 @@ export default function SlidesLayout({
         </button>
       </div>
 
-      {/* slide title */}
-      <div className="fixed bottom-6 left-8 z-50 flex items-center gap-4 font-mono text-lg select-none">
-        <span className="text-zinc-600">{current?.title}</span>
-      </div>
 
       {/* debug drawer — always open when a run is active */}
       {runInfo && (

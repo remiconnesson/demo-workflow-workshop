@@ -1,16 +1,18 @@
+import type { ReactNode } from "react";
 import type { OrderStepId } from "@/lib/order-contract";
 import { CopyablePrompt } from "./copyable-prompt";
 
 type PatternSlideLayoutProps = {
   eyebrow: string;
   patternName: string;
-  description: string;
+  description: ReactNode;
   docUrl: string;
   docSection: string;
   apiPrimitive: string;
   prompt?: string;
   marker?: OrderStepId | OrderStepId[] | "span";
   markerLabel?: string;
+  realWorldExamples?: string[];
 };
 
 /**
@@ -25,9 +27,14 @@ export function PatternSlideLayout({
   docUrl,
   apiPrimitive,
   prompt,
+  realWorldExamples,
 }: PatternSlideLayoutProps) {
   const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
-  const agentPrompt =
+  const examplesBlock =
+    realWorldExamples && realWorldExamples.length > 0
+      ? `\n\nReal-world scenarios to brainstorm around:\n${realWorldExamples.map((ex) => `- ${ex}`).join("\n")}\n\nUse these as starting points to find similar patterns in my codebase.`
+      : "";
+  const basePrompt =
     prompt ??
     `npx workflow inspect run <run_id>
 
@@ -37,6 +44,7 @@ project, cd there, then audit it for places this pattern would apply
 and propose concrete diffs.
 
 Docs: ${docHref}`;
+  const agentPrompt = basePrompt + examplesBlock;
 
   return (
     <div className="flex h-full w-full items-center justify-center px-14">
@@ -50,6 +58,23 @@ Docs: ${docHref}`;
           </span>
         </div>
         <p className="text-xl leading-relaxed text-zinc-400">{description}</p>
+        {realWorldExamples && realWorldExamples.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Where you&apos;ll see this
+            </p>
+            <ul className="flex flex-wrap gap-3">
+              {realWorldExamples.map((ex) => (
+                <li
+                  key={ex}
+                  className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-lg text-zinc-300"
+                >
+                  {ex}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <CopyablePrompt prompt={agentPrompt} />
         <a
           href={docHref}

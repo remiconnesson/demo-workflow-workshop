@@ -1,49 +1,50 @@
+import { Geist_Mono } from "next/font/google";
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
 const PRIMITIVES = [
   {
     verb: "RETRY",
     verbClass: "text-sky-400",
-    tileAccent: "border-sky-500/30 bg-sky-500/5",
-    consequence: "Transient failures shouldn't reach the customer.",
+    pillAccent: "border-sky-500/30 bg-sky-500/5",
+    consequence: "When a step fails, try again without duplicating work.",
   },
   {
     verb: "SUSPEND",
     verbClass: "text-amber-400",
-    tileAccent: "border-amber-500/30 bg-amber-500/5",
-    consequence: "Some steps wait days for a human, a webhook, a signal.",
+    pillAccent: "border-amber-500/30 bg-amber-500/5",
+    consequence: "Pause for hours or days without losing progress.",
   },
   {
     verb: "ROLLBACK",
     verbClass: "text-fuchsia-400",
-    tileAccent: "border-fuchsia-500/30 bg-fuchsia-500/5",
-    consequence: "When step five fails, steps one through four must unwind.",
+    pillAccent: "border-fuchsia-500/30 bg-fuchsia-500/5",
+    consequence: "When something breaks, undo everything that already happened.",
   },
 ] as const;
 
 export default function ThreeVerbsSlide() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center gap-14 px-20">
-      <div className="flex flex-col gap-3">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-          The workshop vocabulary
-        </p>
-        <h2 className="text-7xl font-semibold tracking-tight text-white">
-          Three verbs.
-        </h2>
-      </div>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-20 p-10 text-center">
+      <h2 className="text-6xl font-medium tracking-tighter text-zinc-200">
+        Reliable software must be able to
+      </h2>
 
-      <div className="grid grid-cols-3 gap-8">
-        {PRIMITIVES.map((primitive) => (
-          <div
-            key={primitive.verb}
-            className={`flex min-h-[220px] flex-col justify-between rounded-2xl border p-10 ${primitive.tileAccent}`}
-          >
+      <div className="flex w-full max-w-7xl flex-row items-start justify-center gap-10">
+        {PRIMITIVES.map((p) => (
+          <div key={p.verb} className="flex flex-1 flex-col items-center gap-6">
             <div
-              className={`font-mono text-7xl font-semibold tracking-tight ${primitive.verbClass}`}
+              className={`flex items-center justify-center rounded-full border px-10 py-4 ${p.pillAccent} ${geistMono.className}`}
             >
-              {primitive.verb}
+              <span className={`text-3xl tracking-tighter ${p.verbClass}`}>
+                {p.verb}
+              </span>
             </div>
-            <p className="text-xl leading-snug text-zinc-300">
-              {primitive.consequence}
+            <p className="max-w-xs text-lg text-zinc-400">
+              {p.consequence}
             </p>
           </div>
         ))}

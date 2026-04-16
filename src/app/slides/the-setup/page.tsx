@@ -1,6 +1,6 @@
 import { CodeBlock } from "../_components/code-block";
 
-const PLACE_ORDER_CODE = `// placeOrder.ts — the version we're about to break
+const PLACE_ORDER_CODE = `// placeOrder.ts — the starting point
 async function placeOrder(input) {
   const order    = await validateOrder(input)
   const payment  = await chargePayment(order)
@@ -16,8 +16,8 @@ export default async function TheSetupSlide() {
     <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center gap-10 px-20">
       <div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
-          Nine lines. Six awaits.
-          <span className="text-zinc-500"> What could go wrong?</span>
+          Wouldn&apos;t it be nice
+          <span className="text-zinc-500"> if it was this simple?</span>
         </h2>
       </div>
 

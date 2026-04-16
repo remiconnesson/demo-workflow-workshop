@@ -31,19 +31,22 @@ When a slide starts a run, the on-screen debug drawer surfaces the `runId` and a
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts` — a 23-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into two durable-agent demos. The arc:
+The deck is defined in `src/app/slides/config.ts` — a 26-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into three durable-agent demos. The arc:
 
-- **Act I · Setup** (1–5) — cold open, happy-path demo, the naive code, the three verbs, workshop map.
+- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code, the three verbs, workshop map.
 - **Act II · Three scenarios × three beats** (6–14) — each scenario runs the same three-beat rhythm:
   1. **Demo** — a real run fires, the scenario plays out on stage.
-  2. **Workflow Code** — the Workflow SDK version. Directives, hooks, compensations. Short and obvious.
-  3. **Pattern** — names the SDK pattern and links to the cookbook/docs URL.
+  2. **Solution** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
+  3. **Pattern** — names the SDK pattern, shows real-world examples, and links to docs.
 
-  The three scenarios: **Retry** (idempotency), **Slow Restaurant** (suspend / hooks), **Dispute** (rollback / saga).
+  The three scenarios: **Retry** (idempotency), **Suspend** (hooks), **Rollback** (saga).
 - **Act III · The Pivot** (15) — same primitives, new surface: agents.
-- **Act IV · Observer agent** (16–18) — demo / code / pattern for a long-running durable agent.
-- **Act V · Analyst agent** (19–21) — demo / code / pattern for a human-in-the-loop durable agent.
-- **Act VI · Close** (22–23) — **The Mirror** (workflow ↔ agent side-by-side) and ship-it.
+- **Act IV · First Agent** (16–18) — demo / solution / pattern for resumable streams (F5 proof).
+- **Act V · Observer agent** (19–21) — demo / solution / pattern for a long-running durable agent.
+- **Act VI · Analyst agent** (22–24) — demo / solution / pattern for a human-in-the-loop durable agent.
+- **Act VII · Close** (25–26) — **The Mirror** (workflow ↔ agent side-by-side) and ship-it.
+
+Routes use nested paths that mirror the concept groupings (e.g., `/slides/retry/demo`, `/slides/retry/solution`, `/slides/retry/pattern`).
 
 ## Routes
 
@@ -53,8 +56,14 @@ Important routes:
 - `/slides/title` opening slide — Workshop intro
 - `/slides/the-demo` slide 2 — happy-path order demo
 - `/slides/three-verbs` slide 4 — introduces the retry / suspend / rollback framing
+- `/slides/retry/demo` ... `/slides/retry/pattern` — retry scenario group
+- `/slides/suspend/demo` ... `/slides/suspend/pattern` — suspend scenario group
+- `/slides/rollback/demo` ... `/slides/rollback/pattern` — rollback scenario group
 - `/slides/the-pivot` slide 15 — the workflows-to-agents hinge
-- `/slides/the-mirror` slide 22 — workflow/agent side-by-side payoff
+- `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — first agent group
+- `/slides/observer/demo` ... `/slides/observer/pattern` — observer agent group
+- `/slides/analyst/demo` ... `/slides/analyst/pattern` — analyst agent group
+- `/slides/the-mirror` slide 25 — workflow/agent side-by-side payoff
 - `/slides/close` final slide
 - `/experiments` 21 DurableAgent experiment demos (7 per verb) for narrative exploration
 - `/variations` index of older visual experiments

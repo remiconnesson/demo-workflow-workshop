@@ -3,6 +3,7 @@ export type SlideInfo = {
   title: string;
   number: number;
   notes: string;
+  breadcrumb?: string;
 };
 
 /**
@@ -53,61 +54,70 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Retry ---
   {
-    slug: "retry-demo",
+    slug: "retry/demo",
     title: "The Retry · Demo",
     number: 6,
+    breadcrumb: "retry / demo",
     notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
   },
   {
-    slug: "retry-fix",
+    slug: "retry/solution",
     title: "The Retry · Workflow Code",
     number: 7,
+    breadcrumb: "retry / solution",
     notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
   },
   {
-    slug: "retry-pattern",
+    slug: "retry/pattern",
     title: "The Retry · Pattern",
     number: 8,
+    breadcrumb: "retry / pattern",
     notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
   },
 
   // --- Slow restaurant ---
   {
-    slug: "suspend-demo",
+    slug: "suspend/demo",
     title: "Slow Restaurant · Demo",
     number: 9,
+    breadcrumb: "suspend / demo",
     notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
   },
   {
-    slug: "suspend-fix",
+    slug: "suspend/solution",
     title: "Slow Restaurant · Workflow Code",
     number: 10,
+    breadcrumb: "suspend / solution",
     notes: "SAY: \"createWebhook. One line gives you a URL. That URL goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom route, no resume worker.\"",
   },
   {
-    slug: "suspend-pattern",
+    slug: "suspend/pattern",
     title: "Slow Restaurant · Pattern",
     number: 11,
+    breadcrumb: "suspend / pattern",
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
   },
 
   // --- Dispute (driver refuses) ---
   {
-    slug: "rollback-demo",
+    slug: "rollback/demo",
     title: "Dispute · Demo",
     number: 12,
+    breadcrumb: "rollback / demo",
     notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
   },
   {
-    slug: "rollback-fix",
+    slug: "rollback/solution",
     title: "Dispute · Workflow Code",
     number: 13,
+    breadcrumb: "rollback / solution",
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
-    slug: "rollback-pattern",
+    slug: "rollback/pattern",
     title: "Dispute · Pattern",
     number: 14,
+    breadcrumb: "rollback / pattern",
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
 
@@ -123,21 +133,24 @@ export const SLIDES: SlideInfo[] = [
 
   // --- First agent (the F5 proof) ---
   {
-    slug: "agent-first-demo",
+    slug: "first-agent/demo",
     title: "Our First Agent · Demo",
     number: 16,
+    breadcrumb: "first agent / demo",
     notes: "PRESS 'Open ticket'. Let the agent stream its acknowledgement and start the tool call. While the sky-blue 'agent working — reload safe' card is pulsing, HIT F5.\n\nSAY: \"Every chat you've ever built loses the response on refresh. This one doesn't. Same run id. Same sentence. Same tool call. The stream just reconnects.\"",
   },
   {
-    slug: "agent-first-fix",
+    slug: "first-agent/solution",
     title: "Our First Agent · Workflow Code",
     number: 17,
+    breadcrumb: "first agent / solution",
     notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.\n\nIF ASKED about idempotency: DurableAgent handles replay automatically — no caller-supplied idempotency key needed. Run-level: start() auto-generates a runId, returned via x-workflow-run-id header. Step-level: each 'use step' tool call is cached in the event log — on reconnect the SDK replays results without re-executing. For outbound side effects (e.g. charging a card), you should still pass getStepMetadata().stepId as an idempotency key to the external API.",
   },
   {
-    slug: "agent-first-pattern",
+    slug: "first-agent/pattern",
     title: "Our First Agent · Pattern",
     number: 18,
+    breadcrumb: "first agent / pattern",
     notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we add three verbs.\"",
   },
 
@@ -145,41 +158,47 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Observer agent ---
   {
-    slug: "agent-observer-demo",
+    slug: "observer/demo",
     title: "Observer · Demo",
     number: 19,
+    breadcrumb: "observer / demo",
     notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"Same retry primitive you already learned. Step-backed tools are durable — the event log replays them. Zero re-execution.\"",
   },
   {
-    slug: "agent-observer-fix",
+    slug: "observer/solution",
     title: "Observer · Workflow Code",
     number: 20,
+    breadcrumb: "observer / solution",
     notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow. Restarts resume mid-thought from the last tool call.\"",
   },
   {
-    slug: "agent-observer-pattern",
+    slug: "observer/pattern",
     title: "Observer · Pattern",
     number: 21,
+    breadcrumb: "observer / pattern",
     notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
   },
 
   // ─── Act VI · Analyst agent ─────────────────────────────────
   {
-    slug: "agent-analyst-demo",
+    slug: "analyst/demo",
     title: "Analyst · Demo",
     number: 22,
+    breadcrumb: "analyst / demo",
     notes: "PRESS r. The analyst reaches a decision point and pauses for human approval.\n\nSAY: \"An agent that waits for you. Mid-task, it asks a human. Then picks up exactly where it left off.\"",
   },
   {
-    slug: "agent-analyst-fix",
+    slug: "analyst/solution",
     title: "Analyst · Workflow Code",
     number: 23,
+    breadcrumb: "analyst / solution",
     notes: "SAY: \"Define the hook once, call .create() inside a workflow-level tool. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
   },
   {
-    slug: "agent-analyst-pattern",
+    slug: "analyst/pattern",
     title: "Analyst · Pattern",
     number: 24,
+    breadcrumb: "analyst / pattern",
     notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with a hook defined via defineHook — create and await it in a workflow-level tool. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
   },
 
