@@ -13,6 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm test:e2e` — Playwright end-to-end tests (config in `playwright.config.ts`, specs in `tests/`)
 
+## Deck Shape
+
+The deck is a 23-slide, ~1-hour workshop organized around **three verbs**: `retry`, `suspend`, `rollback`. Each scenario runs a three-beat rhythm (demo → workflow code → pattern). Acts IV–V then reuse the same verbs for two durable-agent demos (Observer, Analyst), and Act VI closes on `the-mirror` — workflow and agent side-by-side. See `STORY.md` for the narrative and `src/app/slides/config.ts` for the authoritative slide list. Do not reintroduce "four failures", "naive-slide", or "nine concepts" framing — that terminology was retired.
+
 ## Architecture
 
 - **Next.js 16** with App Router. Read `node_modules/next/dist/docs/` before writing any Next.js code — APIs have breaking changes from earlier versions.

@@ -25,6 +25,26 @@ export default function ExperimentsIndexPage() {
           </p>
         </header>
 
+        <Link
+          href="/experiments/our-first-agent"
+          className="mb-6 block rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 transition hover:bg-emerald-500/10"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
+            Start here · zeroth demo
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight">
+            Our first agent
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+            A DurableAgent with one slow tool. Hit F5 while it&apos;s
+            streaming — the same sentence finishes itself. The quick
+            win before the three verbs.
+          </p>
+          <p className="mt-3 font-mono text-xs text-zinc-500">
+            /experiments/our-first-agent
+          </p>
+        </Link>
+
         <div className="flex flex-col gap-6">
           {THEMES.map((theme) => (
             <section

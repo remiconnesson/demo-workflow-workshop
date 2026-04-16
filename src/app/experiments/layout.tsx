@@ -28,6 +28,19 @@ export default function ExperimentsLayout({
         </Link>
 
         <div className="flex-1 overflow-y-auto">
+          <div className="border-b border-white/5 px-6 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Zeroth demo
+            </p>
+            <Link
+              href="/experiments/our-first-agent"
+              className="mt-2 flex items-center justify-between rounded-md px-2 py-1.5 font-mono text-sm hover:bg-white/5"
+            >
+              <span className="text-emerald-400">our first agent</span>
+              <span className="text-xs text-zinc-600">F5 proof</span>
+            </Link>
+          </div>
+
           {THEMES.map((theme) => (
             <div
               key={theme.id}

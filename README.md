@@ -13,7 +13,7 @@ Then open `http://localhost:3000/`.
 
 ### Observing runs
 
-Every failure slide fires a real Workflow run. Two CLI tools, used throughout the demo, let you watch and poke at those runs from another terminal while `pnpm dev` is up:
+Every scenario slide fires a real Workflow run. Two CLI tools, used throughout the demo, let you watch and poke at those runs from another terminal while `pnpm dev` is up:
 
 ```bash
 # Live, browser-based dashboard — timeline, step state, payloads, streams
@@ -31,35 +31,32 @@ When a slide starts a run, the on-screen debug drawer surfaces the `runId` and a
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts`. Act 1 is cold open + happy-path demo + setup. Act 2 is a series of **failure groups** — each group is four slides in a fixed rhythm:
+The deck is defined in `src/app/slides/config.ts` — a 23-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into two durable-agent demos. The arc:
 
-1. **User story** — the failure plays out visibly on stage. A real run fires, something breaks, audience sees what goes wrong.
-2. **Before** — the ad-hoc, no-framework code you'd otherwise write to cope with it (reconciliation workers, scheduler tables, idempotency tables, custom resume workers).
-3. **After** — the same behaviour in Workflow SDK code: directives, hooks, sleeps, sagas, streaming. Short, durable, obvious.
-4. **Agent Exploration** — names the SDK pattern and points to the cookbook/docs URL, so attendees (and their coding agents) can go explore further.
+- **Act I · Setup** (1–5) — cold open, happy-path demo, the naive code, the three verbs, workshop map.
+- **Act II · Three scenarios × three beats** (6–14) — each scenario runs the same three-beat rhythm:
+  1. **Demo** — a real run fires, the scenario plays out on stage.
+  2. **Workflow Code** — the Workflow SDK version. Directives, hooks, compensations. Short and obvious.
+  3. **Pattern** — names the SDK pattern and links to the cookbook/docs URL.
 
-Act 3+ closes with the reveal, DurableAgent, and the ship-it slide.
-
-The failure groups, in order:
-
-- Crash / replay
-- Retry / idempotency
-- Slow restaurant / hooks
-- Ghost restaurant / timeout race
-- Prep window / sleep
-- Driver refusal / saga rollback
-- Admin cancel / wake-up
-- Live updates / streaming
-- Fan-out / parallel delivery
+  The three scenarios: **Retry** (idempotency), **Slow Restaurant** (suspend / hooks), **Dispute** (rollback / saga).
+- **Act III · The Pivot** (15) — same primitives, new surface: agents.
+- **Act IV · Observer agent** (16–18) — demo / code / pattern for a long-running durable agent.
+- **Act V · Analyst agent** (19–21) — demo / code / pattern for a human-in-the-loop durable agent.
+- **Act VI · Close** (22–23) — **The Mirror** (workflow ↔ agent side-by-side) and ship-it.
 
 ## Routes
 
 Important routes:
 
 - `/` redirects to `/slides/title`
-- `/slides/title` opening slide — Workflow SDK intro with the follow-along repo URL (`github.com/vercel-labs/workflow-workshop`) and clone/install instructions
+- `/slides/title` opening slide — Workshop intro
 - `/slides/the-demo` slide 2 — happy-path order demo
+- `/slides/three-verbs` slide 4 — introduces the retry / suspend / rollback framing
+- `/slides/the-pivot` slide 15 — the workflows-to-agents hinge
+- `/slides/the-mirror` slide 22 — workflow/agent side-by-side payoff
 - `/slides/close` final slide
+- `/experiments` 21 DurableAgent experiment demos (7 per verb) for narrative exploration
 - `/variations` index of older visual experiments
 
 The demo slides use the Workflow runtime through Next route handlers under `src/app/api/*` and the workflow in `src/workflows/place-order.ts`.
