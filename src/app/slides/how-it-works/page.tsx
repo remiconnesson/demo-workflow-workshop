@@ -2,7 +2,7 @@ const BEATS = [
   {
     label: "Demo",
     tagline: "Define the Problem",
-    description: "The lab runs. The failure happens live.",
+    description: "The lab runs. The scenario plays live.",
     accent: "border-red-500/40 bg-red-500/5",
     numberColor: "text-red-400",
     taglineColor: "text-red-200",

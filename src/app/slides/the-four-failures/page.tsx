@@ -17,12 +17,6 @@ const PRIMITIVES = [
     tileAccent: "border-fuchsia-500/30 bg-fuchsia-500/5",
     consequence: "When step five fails, steps one through four must unwind.",
   },
-  {
-    verb: "DURABLE",
-    verbClass: "text-emerald-400",
-    tileAccent: "border-emerald-500/30 bg-emerald-500/5",
-    consequence: "State survives restarts, deploys, and crashes. Always.",
-  },
 ] as const;
 
 export default function TheFourFailuresSlide() {
@@ -33,11 +27,11 @@ export default function TheFourFailuresSlide() {
           The workshop vocabulary
         </p>
         <h2 className="text-7xl font-semibold tracking-tight text-white">
-          How to write reliable code.
+          Three verbs.
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-3 gap-8">
         {PRIMITIVES.map((primitive) => (
           <div
             key={primitive.verb}

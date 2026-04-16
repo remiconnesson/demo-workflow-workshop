@@ -8,8 +8,8 @@ export type SlideInfo = {
 /**
  * The 23-slide workshop arc (~1 hour).
  *
- * Act I — Setup (1–5): cold open, happy-path demo, code, the four failures, workshop map.
- * Act II — Three workflow failures × 3 beats each (6–14): retry, slow restaurant, dispute.
+ * Act I — Setup (1–5): cold open, happy-path demo, code, three verbs, workshop map.
+ * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
  * Act III — Pivot (15): workflows → agents.
  * Act IV — Observer agent (16–18): demo, fix, pattern.
  * Act V — Analyst agent (19–21): demo, fix, pattern.
@@ -37,15 +37,15 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "the-four-failures",
-    title: "The Four Failures",
+    title: "Three Verbs",
     number: 4,
-    notes: "POINT at the four failure modes: \"For each one, I'm going to ask — what do you do now?\"",
+    notes: "POINT at the three verbs: \"For each one, I'm going to ask — what do you do now?\"",
   },
   {
     slug: "how-it-works",
     title: "How This Workshop Works",
     number: 5,
-    notes: "SAY: \"Here's the shape of the next hour. A handful of failures. Each one gets three beats: demo, workflow code, pattern. See it break, see the fix, learn the name. Then we pivot to agents.\"",
+    notes: "SAY: \"Here's the shape of the next hour. Three scenarios, three verbs. Each one gets three beats: demo, workflow code, pattern. See it break, see the fix, learn the name. Then we pivot to agents.\"",
   },
 
   // ─── Act II · Three workflow failures × 3 beats ────────────

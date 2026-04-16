@@ -14,11 +14,6 @@ const ROWS = [
     leftClass: "text-fuchsia-400",
     right: "Agent rolls back its own decision",
   },
-  {
-    left: "Durable state",
-    leftClass: "text-emerald-400",
-    right: "Agent resumes mid-conversation",
-  },
 ] as const;
 
 export default function TheMirrorSlide() {
