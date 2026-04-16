@@ -180,8 +180,7 @@ export function LiveOrderConceptLab({
           : {};
       case "suspend":
         if (controller.waitingOn === "notifyRestaurant") {
-          const label = `💸 burning $${waitCost.toFixed(2)}`;
-          return { notifyRestaurant: { label, tone: "red", pulse: true } };
+          return { notifyRestaurant: { label: "waiting", tone: "amber", pulse: true } };
         }
         return {};
       case "rollback":

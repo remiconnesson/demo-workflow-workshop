@@ -1,10 +1,26 @@
+import { codeToHtml } from "shiki";
 import type { OrderStepId } from "@/lib/order-contract";
 import { isAgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
 import { CodeBlock } from "./code-block";
+import { CodeEditorTabs, type CodeEditorTab } from "./code-editor-tabs";
 import { FinishedTimelineStrip } from "./finished-timeline-strip";
+
+export type WorkflowFixTab = {
+  filename: string;
+  code: string;
+  lang?: "ts" | "tsx" | "js" | "jsx";
+  directive?: string;
+  directiveTone?: "emerald" | "fuchsia" | "zinc";
+};
 
 export type WorkflowFix = {
   code: string;
+  /**
+   * Optional additional tabs. When provided, the code pane renders as a
+   * tabbed editor with the primary `code` as the first tab (labelled
+   * `filename` with the `use workflow` directive) and these as extras.
+   */
+  tabs?: WorkflowFixTab[];
 };
 
 export type FixStep = { label: string; detail: string };
@@ -24,6 +40,35 @@ type FixSlideLayoutProps = {
   statusLabel?: string;
   statusTone?: StatusTone;
 };
+
+async function highlight(code: string, lang: "ts" | "tsx" | "js" | "jsx" = "ts") {
+  return codeToHtml(code, {
+    lang,
+    theme: "github-dark-default",
+    structure: "inline",
+  });
+}
+
+async function buildTabs(
+  primaryFilename: string,
+  workflowFix: WorkflowFix,
+): Promise<CodeEditorTab[]> {
+  const primary: CodeEditorTab = {
+    filename: primaryFilename,
+    html: await highlight(workflowFix.code, "ts"),
+    directive: "use workflow",
+    directiveTone: "emerald",
+  };
+  const extras = await Promise.all(
+    (workflowFix.tabs ?? []).map(async (tab) => ({
+      filename: tab.filename,
+      html: await highlight(tab.code, tab.lang ?? "ts"),
+      directive: tab.directive,
+      directiveTone: tab.directiveTone,
+    })),
+  );
+  return [primary, ...extras];
+}
 
 const DOT_COLOR: Record<StatusTone, string> = {
   fuchsia: "bg-fuchsia-400",
@@ -112,17 +157,24 @@ export async function FixSlideLayout({
           ) : null}
         </div>
 
-        <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">
-          <div className="flex items-center justify-between border-b border-white/10 px-6 py-3">
-            <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
-            <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-400/80">
-              use workflow
-            </span>
+        {workflowFix.tabs && workflowFix.tabs.length > 0 ? (
+          <CodeEditorTabs
+            tabs={await buildTabs(filename, workflowFix)}
+            textClass="text-[26px]"
+          />
+        ) : (
+          <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-3">
+              <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
+              <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-emerald-400/80">
+                use workflow
+              </span>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+              <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" />
+            </div>
           </div>
-          <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
-            <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -6,14 +6,14 @@ export type SlideInfo = {
 };
 
 /**
- * The 23-slide workshop arc (~1 hour).
+ * The 24-slide workshop arc (~1 hour).
  *
  * Act I — Setup (1–5): cold open, happy-path demo, code, three verbs, workshop map.
  * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
  * Act III — Pivot (15): workflows → agents.
- * Act IV — Observer agent (16–18): demo, fix, pattern.
- * Act V — Analyst agent (19–21): demo, fix, pattern.
- * Act VI — Close (22–23): the mirror, ship it.
+ * Act IV — Agents (16–19): first agent (F5 proof), then observer (demo, fix, pattern).
+ * Act V — Analyst agent (20–22): demo, fix, pattern.
+ * Act VI — Close (23–24): the mirror, ship it.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act I · Setup ─────────────────────────────────────────
@@ -118,23 +118,33 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"Same primitives — steps, hooks, compensations — now power something that looks completely different. Agents.\"\n\nPAUSE. Let the audience re-orient.",
   },
 
-  // ─── Act IV · Observer agent ───────────────────────────────
+  // ─── Act IV · Agents ───────────────────────────────────────
+
+  // --- First agent (the F5 proof) ---
+  {
+    slug: "agent-first-demo",
+    title: "Our First Agent",
+    number: 16,
+    notes: "PRESS 'Open ticket'. Let the agent stream its acknowledgement and start the tool call. While the sky-blue 'agent working — reload safe' card is pulsing, HIT F5.\n\nSAY: \"Every chat you've ever built loses the response on refresh. This one doesn't. Same run id. Same sentence. Same tool call. The stream just reconnects.\"\n\nPAUSE. Then: \"This is our first durable agent. From here we add three verbs.\"",
+  },
+
+  // --- Observer agent ---
   {
     slug: "agent-observer-demo",
     title: "Observer · Demo",
-    number: 16,
+    number: 17,
     notes: "PRESS r. Let the observer agent run autonomously. Watch tool calls land as durable steps.\n\nSAY: \"An agent that monitors the system while you sleep. Long-running. Survives restarts. Resumes from its last tool call.\"",
   },
   {
     slug: "agent-observer-fix",
     title: "Observer · Workflow Code",
-    number: 17,
+    number: 18,
     notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow. Restarts resume mid-thought from the last tool call.\"",
   },
   {
     slug: "agent-observer-pattern",
     title: "Observer · Pattern",
-    number: 18,
+    number: 19,
     notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
   },
 
@@ -142,19 +152,19 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "agent-analyst-demo",
     title: "Analyst · Demo",
-    number: 19,
+    number: 20,
     notes: "PRESS r. The analyst reaches a decision point and pauses for human approval.\n\nSAY: \"An agent that waits for you. Mid-task, it asks a human. Then picks up exactly where it left off.\"",
   },
   {
     slug: "agent-analyst-fix",
     title: "Analyst · Workflow Code",
-    number: 20,
+    number: 21,
     notes: "SAY: \"defineHook inside the agent loop. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
   },
   {
     slug: "agent-analyst-pattern",
     title: "Analyst · Pattern",
-    number: 21,
+    number: 22,
     notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with defineHook. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
   },
 
@@ -162,13 +172,13 @@ export const SLIDES: SlideInfo[] = [
   {
     slug: "the-mirror",
     title: "The Mirror",
-    number: 22,
+    number: 23,
     notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"Left side: a workflow. Right side: an agent. Same primitives. Same durability model. One mental model for every long-running thing you build.\"\n\nPAUSE.",
   },
   {
     slug: "close",
     title: "Ship It",
-    number: 23,
+    number: 24,
     notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
   },
 ];

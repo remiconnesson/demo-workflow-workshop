@@ -44,6 +44,34 @@ export default function RollbackFixSlide() {
     throw new Error(\`Disputed: \${verdict.reason}\`)
   }
 }`,
+        tabs: [
+          {
+            filename: "saga.ts",
+            directive: "catch → unwind",
+            directiveTone: "fuchsia",
+            code: `// Each prior step pushed its undo onto the stack:
+//   [ refundPayment, cancelRestaurantOrder, releaseDriver ]
+
+try {
+  await placeOrderSteps(input) // throws "Disputed: cold, bag torn"
+} catch (error) {
+  console.error(error)
+  // → Error: Disputed: cold, bag torn
+
+  // Pop the saga in reverse (LIFO) and run each undo.
+  while (compensations.length > 0) {
+    const { action, undo } = compensations.pop()!
+    await undo()
+    console.info("[saga] compensated", { action })
+  }
+  // → [saga] compensated { action: "releaseDriver" }
+  // → [saga] compensated { action: "cancelRestaurantOrder" }
+  // → [saga] compensated { action: "refundPayment" }
+
+  throw error // re-throw so the run is marked rolled_back
+}`,
+          },
+        ],
       }}
     />
   );
