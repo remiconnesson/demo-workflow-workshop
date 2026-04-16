@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { codeToHtml } from "shiki";
 import type { OrderStepId } from "@/lib/order-contract";
 import { isAgentGroupSlug, type AgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
@@ -22,7 +23,7 @@ export type WorkflowFix = {
   tabs?: WorkflowFixTab[];
 };
 
-export type FixStep = { label: string; detail: string };
+export type FixStep = { label: ReactNode; detail: ReactNode };
 
 type StatusTone = "fuchsia" | "red" | "amber" | "sky" | "emerald";
 
@@ -123,7 +124,7 @@ export async function FixSlideLayout({
 
           <ol className="mt-8 flex flex-col gap-4">
             {steps.map((step, i) => (
-              <li key={step.label} className="flex gap-4">
+              <li key={i} className="flex gap-4">
                 <span className="pt-1 font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-500">
                   {String(i + 1).padStart(2, "0")}
                 </span>

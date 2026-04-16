@@ -13,17 +13,17 @@ export type ScenarioGroup = {
 
 export const scenarioGroups: Record<ScenarioGroupSlug, ScenarioGroup> = {
   "retry": {
-    headline: "Never Charge Twice",
+    headline: "What happens when a payment retries?",
     marker: "chargePayment",
     markerLabel: "payment flaked",
   },
   "suspend": {
-    headline: "Wait for Humans",
+    headline: "What happens when you're waiting on a restaurant?",
     marker: "notifyRestaurant",
     markerLabel: "suspended on a hook",
   },
   "rollback": {
-    headline: "Dispute the Entire Order",
+    headline: "What happens when a customer disputes?",
     marker: "sendReceipt",
     markerLabel: "post-delivery dispute",
   },

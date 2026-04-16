@@ -1,23 +1,25 @@
-const ROWS = [
+import type { ReactNode } from "react";
+
+const ROWS: { verb: string; verbClass: string; workflow: ReactNode; agent: ReactNode }[] = [
   {
     verb: "Retry",
     verbClass: "text-sky-400",
-    workflow: "Charge didn't double.",
-    agent: "Observer replayed without re-executing.",
+    workflow: <>Charge didn&apos;t double — <code className="font-mono text-zinc-100">stepId</code> deduped.</>,
+    agent: <>Observer <code className="font-mono text-zinc-100">replayed</code> without re-executing.</>,
   },
   {
     verb: "Suspend",
     verbClass: "text-amber-400",
-    workflow: "Waited for the restaurant.",
-    agent: "Analyst paused for a human.",
+    workflow: <>Waited for the restaurant via <code className="font-mono text-zinc-100">hook</code>.</>,
+    agent: <>Analyst <code className="font-mono text-zinc-100">paused</code> for a human.</>,
   },
   {
     verb: "Rollback",
     verbClass: "text-fuchsia-400",
-    workflow: "Unwound the dispute.",
-    agent: "Agent reversed its own decision.",
+    workflow: <><code className="font-mono text-zinc-100">catch</code> unwound the dispute.</>,
+    agent: <>Agent <code className="font-mono text-zinc-100">reversed</code> its own decision.</>,
   },
-] as const;
+];
 
 export default function TheMirrorSlide() {
   return (

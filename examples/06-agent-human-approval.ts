@@ -61,7 +61,7 @@ export async function analystWorkflow(messages: UIMessage[]) {
   });
 
   await agent.stream({
-    messages: await convertToModelMessages(messages),
+    messages: convertToModelMessages(messages),
     writable,
   });
 }
