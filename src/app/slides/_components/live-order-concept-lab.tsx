@@ -97,10 +97,6 @@ export function LiveOrderConceptLab({
   showSleepCost?: boolean;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
-  const [displayedPill, setDisplayedPill] = useState<{
-    stepId: OrderStepId;
-    state: "running" | "waiting";
-  } | null>(null);
 
   const phase = getDemoPhase({
     running: controller.running,
@@ -118,10 +114,14 @@ export function LiveOrderConceptLab({
     (n, e) => (e.type === "step_succeeded" && e.step === "chargePayment" ? n + 1 : n),
     0,
   );
+  // Count chargePayment failures — naiveDoubleCharge emits step_failed on attempt 1.
+  const chargeFailed = controller.events.some(
+    (e) => e.type === "step_failed" && e.step === "chargePayment",
+  );
 
   const compensationFired = controller.compensations.length > 0;
 
-  type BadgeTone = "red" | "amber" | "fuchsia" | "sky";
+  type BadgeTone = "red" | "amber" | "fuchsia" | "sky" | "emerald";
   type Badge = { label: string; tone: BadgeTone; pulse?: boolean };
 
   const toneClass: Record<BadgeTone, string> = {
@@ -129,6 +129,7 @@ export function LiveOrderConceptLab({
     amber: "border-amber-300 bg-amber-400 text-black shadow-[0_0_24px_rgba(252,211,77,0.55)]",
     fuchsia: "border-fuchsia-400 bg-fuchsia-500 text-white shadow-[0_0_24px_rgba(232,121,249,0.55)]",
     sky: "border-sky-400 bg-sky-500 text-white shadow-[0_0_24px_rgba(56,189,248,0.6)]",
+    emerald: "border-emerald-400 bg-emerald-500 text-white shadow-[0_0_24px_rgba(52,211,153,0.6)]",
   };
 
   // Derive active step for the status pill
@@ -171,41 +172,28 @@ export function LiveOrderConceptLab({
     }
   }, [controller.crashPhase, activeStep, phase, isResetState]);
 
-  const stepBadges: Partial<Record<OrderStepId, Badge>> = (() => {
-    const state = (id: OrderStepId) => controller.stepState[id];
+  const stepBadges: Partial<Record<OrderStepId, Badge[]>> = (() => {
     switch (slide) {
-      case "retry":
-        return chargeCount >= 2
-          ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
-          : {};
+      case "retry": {
+        const badges: Badge[] = [];
+        if (chargeFailed) badges.push({ label: "$", tone: "red" });
+        if (chargeCount >= 2) badges.push({ label: "$", tone: "emerald" });
+        return badges.length > 0 ? { chargePayment: badges } : {};
+      }
       case "suspend":
         if (controller.waitingOn === "notifyRestaurant") {
-          return { notifyRestaurant: { label: "waiting", tone: "amber", pulse: true } };
+          return { notifyRestaurant: [{ label: "waiting", tone: "amber", pulse: true }] };
         }
         return {};
       case "rollback":
         if (compensationFired || phase === "rolled_back") {
-          return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
+          return { sendReceipt: [{ label: "disputed", tone: "fuchsia", pulse: true }] };
         }
         return {};
       default:
         return {};
     }
   })();
-
-  useEffect(() => {
-    if (!activeStep) {
-      if (phase === "idle" && isResetState) {
-        setDisplayedPill(null);
-      }
-      return;
-    }
-
-    const state = controller.stepState[activeStep.id];
-    if (state === "running" || state === "waiting") {
-      setDisplayedPill({ stepId: activeStep.id, state });
-    }
-  }, [activeStep, controller.stepState, isResetState, phase]);
 
   // phase transition logging (signature-guarded to avoid noise)
   const lastPhaseSignatureRef = useRef("");
@@ -550,16 +538,28 @@ export function LiveOrderConceptLab({
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
-                {/* Scenario affordance badge — opacity-gated to avoid CLS */}
+                {/* Scenario affordance badges — opacity-gated to avoid CLS */}
                 {(() => {
-                  const badge = stepBadges[step.id];
+                  const badges = stepBadges[step.id];
+                  const hasBadges = badges && badges.length > 0;
                   return (
                     <div
-                      className={`pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold transition-opacity duration-500 ${
-                        badge ? toneClass[badge.tone] : "border-transparent bg-transparent text-transparent"
-                      } ${badge ? "opacity-100" : "opacity-0"} ${badge?.pulse ? "animate-pulse" : ""}`}
+                      className={`pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 flex gap-1.5 transition-opacity duration-500 ${
+                        hasBadges ? "opacity-100" : "opacity-0"
+                      }`}
                     >
-                      {badge?.label ?? "·"}
+                      {hasBadges ? badges.map((badge) => (
+                        <div
+                          key={badge.tone}
+                          className={`whitespace-nowrap rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold ${
+                            toneClass[badge.tone]
+                          } ${badge.pulse ? "animate-pulse" : ""}`}
+                        >
+                          {badge.label}
+                        </div>
+                      )) : (
+                        <div className="border-transparent bg-transparent text-transparent rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold">·</div>
+                      )}
                     </div>
                   );
                 })()}
@@ -583,61 +583,12 @@ export function LiveOrderConceptLab({
                 </div>
               </div>
               <div className="mt-3 text-lg font-semibold">{step.label}</div>
-              <div className="text-sm uppercase tracking-[0.12em] text-zinc-500">
-                {state}
-              </div>
             </div>
           );
         })}
       </div>
       )}
 
-      {/* status pill — fixed size, content swaps instantly without cross-fade */}
-      <div className="mt-6 flex justify-center">
-        <div className={`relative h-[52px] min-w-[420px] rounded-full border transition-colors duration-500 ${
-          phase === "idle" ? "border-transparent" :
-          phase === "running" ? "border-sky-400/30" :
-          phase === "waiting" ? "border-amber-400/30" :
-          phase === "completed" ? "border-emerald-400/30" :
-          phase === "rolled_back" ? "border-fuchsia-400/30" :
-          phase === "error" ? "border-red-400/30" :
-          "border-white/10"
-        }`}>
-          {/* Each label is absolutely positioned so swapping never shifts layout */}
-          {ORDER_STEPS.map((step) => {
-            const isDisplayed =
-              displayedPill?.stepId === step.id &&
-              phase !== "completed" &&
-              phase !== "rolled_back" &&
-              phase !== "error";
-            const isWaiting = isDisplayed && displayedPill.state === "waiting";
-            return (
-              <span
-                key={step.id}
-                className={`absolute inset-0 flex items-center justify-center whitespace-nowrap font-mono text-2xl ${
-                  isDisplayed
-                    ? isWaiting
-                      ? "opacity-100 text-amber-300"
-                      : "opacity-100 text-sky-300"
-                    :
-                  "opacity-0"
-                }`}
-              >
-                {step.label}{isWaiting ? <span className="text-zinc-500 ml-2">· waiting</span> : null}
-              </span>
-            );
-          })}
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-emerald-300 ${phase === "completed" ? "opacity-100" : "opacity-0"}`}>
-            Complete
-          </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-fuchsia-300 ${phase === "rolled_back" ? "opacity-100" : "opacity-0"}`}>
-            Rolled back
-          </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-red-300 ${phase === "error" ? "opacity-100" : "opacity-0"}`}>
-            Error
-          </span>
-        </div>
-      </div>
 
       {/* event feed removed — events broadcast to debug drawer via slide:workflow-events */}
 

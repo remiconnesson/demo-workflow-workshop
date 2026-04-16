@@ -54,7 +54,16 @@ export default function AgentAnalystFixSlide() {
           detail: <><span className="text-zinc-300">return decision</span> — apply or rollback</>,
         },
       ]}
-      workflowFix={{ code: FIX_CODE }}
+      workflowFix={{
+        code: FIX_CODE,
+        highlightLines: {
+          2: "The agent conversation is a [durable workflow](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — survives restarts",
+          5: "Tools with [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) are durable steps — others run at [workflow level](https://workflow-sdk.dev/docs/ai/defining-tools)",
+          13: "Creates a unique [approval gate](https://workflow-sdk.dev/docs/ai/human-in-the-loop) — the workflow [suspends](https://workflow-sdk.dev/docs/foundations/hooks) when this hook is awaited",
+          16: "The agent [pauses](https://workflow-sdk.dev/docs/ai/human-in-the-loop) until a human **approves or rejects**",
+          18: "Returns the human's **verdict** — the agent [resumes with full context](https://workflow-sdk.dev/docs/ai/human-in-the-loop) intact",
+        },
+      }}
     />
   );
 }

@@ -60,6 +60,24 @@ function fmtElapsed(ms: number) {
   return `${s}.${dec}s`;
 }
 
+function PhoneClock() {
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    return now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  });
+
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setTime(now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }));
+    };
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return <>{time}</>;
+}
+
 export function TheDemoPhoneLab() {
   const [cart, setCart] = useState<MenuItem[]>(
     MENU.map((m) => ({ ...m, qty: m.id === "deployer" ? 1 : 0 })),
@@ -145,26 +163,56 @@ export function TheDemoPhoneLab() {
   const successCount = Object.values(stepState).filter(
     (s) => s === "success",
   ).length;
+  const allDone = doneStatus === "completed";
 
   return (
     <div className="flex h-full w-full items-stretch gap-14 px-14 py-10">
       {/* ─────────────────── Phone ─────────────────── */}
       <div className="flex shrink-0 items-center justify-center">
         <div className="relative h-[min(980px,calc(100vh-120px))] w-[min(490px,calc((100vh-120px)*0.5))] overflow-hidden rounded-[48px] border-[12px] border-zinc-900 bg-white text-black shadow-[0_60px_120px_-20px_rgba(0,0,0,0.8)]">
-          {/* dynamic island */}
-          <div className="absolute left-1/2 top-3 z-20 h-8 w-40 -translate-x-1/2 rounded-full bg-black" />
+          {/* ── iPhone 15 Pro status bar ── */}
+          {/* 59px safe-area top: 12px gap, 37px island, 10px below island */}
+          <div className="relative z-30 h-[59px]">
+            {/* dynamic island — 32% width, 12px from top */}
+            <div className="absolute left-1/2 top-[12px] z-20 h-[37px] w-[32%] -translate-x-1/2 rounded-full bg-black" />
 
-          {/* status bar */}
-          <div className="flex h-14 items-center justify-between px-8 pt-3 text-base font-medium">
-            <span>9:41</span>
-            <span className="flex items-center gap-2">
-              <span>●●●●</span>
-              <span>100%</span>
-            </span>
+            {/* status indicators — vertically centered with island (12 + 37/2 = 30.5px from top) */}
+            <div className="absolute inset-x-0 top-0 flex h-full items-center px-[7%]" style={{ paddingTop: "12px", paddingBottom: "10px" }}>
+              {/* time — left of island */}
+              <span className="relative z-30 text-[15px] font-semibold leading-none tracking-[-0.01em]">
+                <PhoneClock />
+              </span>
+
+              <span className="flex-1" />
+
+              {/* signal + wifi + battery — right of island */}
+              <span className="relative z-30 flex items-center gap-[5px]">
+                {/* cellular — 4 ascending bars */}
+                <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="text-black">
+                  <rect x="0" y="9" width="3.2" height="3" rx="0.7" fill="currentColor" />
+                  <rect x="4.8" y="6" width="3.2" height="6" rx="0.7" fill="currentColor" />
+                  <rect x="9.6" y="3" width="3.2" height="9" rx="0.7" fill="currentColor" />
+                  <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill="currentColor" />
+                </svg>
+                {/* wifi — three arcs + dot */}
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-black">
+                  <circle cx="8" cy="10.75" r="1.25" fill="currentColor" />
+                  <path d="M4.93 7.7a4.37 4.37 0 0 1 6.14 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M2.34 5.1a7.87 7.87 0 0 1 11.32 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M0 2.3a11.5 11.5 0 0 1 16 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+                {/* battery — outline + fill + cap */}
+                <svg width="28" height="13" viewBox="0 0 28 13" fill="none" className="text-black">
+                  <rect x="0.5" y="0.5" width="23" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.1" />
+                  <rect x="2" y="2" width="20" height="9" rx="1.5" fill="currentColor" />
+                  <path d="M25 4.5v4a2 2 0 0 0 0-4Z" fill="currentColor" opacity="0.4" />
+                </svg>
+              </span>
+            </div>
           </div>
 
           {phoneView === "menu" && (
-            <div className="flex h-[calc(100%-3.5rem)] flex-col">
+            <div className="flex h-[calc(100%-59px)] flex-col">
               <div className="flex items-center gap-3 border-b border-zinc-100 px-8 py-5">
                 <WorkflowMark size={22} className="text-black" />
                 <span className="text-xl font-semibold tracking-tight">
@@ -271,7 +319,7 @@ export function TheDemoPhoneLab() {
           )}
 
           {phoneView === "tracking" && (
-            <div className="flex h-[calc(100%-3.5rem)] flex-col">
+            <div className="flex h-[calc(100%-59px)] flex-col">
               <div className="flex items-center gap-3 border-b border-zinc-100 px-8 py-5">
                 <WorkflowMark size={22} className="text-black" />
                 <span className="text-xl font-semibold tracking-tight">
@@ -359,17 +407,21 @@ export function TheDemoPhoneLab() {
       {/* ─────────────────── Right: V5 · question-only ─────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-12">
         <h2 className="text-7xl font-semibold leading-[0.95] tracking-tight">
-          Software that finishes
+          <span className={`transition-colors duration-700 ${allDone ? "text-emerald-400" : ""}`}>
+            Software that finishes
+          </span>
           <br />
-          <span className="text-zinc-500">what it starts</span>
+          <span className={`transition-colors duration-700 ${allDone ? "text-emerald-300" : "text-zinc-500"}`}>
+            what it starts
+          </span>
         </h2>
 
-        <section className="overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 p-10">
+        <section className={`overflow-hidden rounded-2xl border bg-zinc-950 p-10 transition-colors duration-700 ${allDone ? "border-emerald-500/40" : "border-white/10"}`}>
           <div className="flex items-end justify-end gap-8">
             <div
-              className={`${geistMono.className} text-6xl font-semibold ${
-                doneStatus === "completed"
-                  ? "text-white"
+              className={`${geistMono.className} text-6xl font-semibold transition-colors duration-700 ${
+                allDone
+                  ? "text-emerald-400"
                   : doneStatus === "rolled_back"
                     ? "text-fuchsia-300"
                     : running
@@ -396,17 +448,27 @@ export function TheDemoPhoneLab() {
                   >
                     <div className="relative flex w-full items-center justify-center">
                       <div
-                        className={`relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 bg-black transition-colors ${NODE_STYLE[state]}`}
+                        className={`relative z-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 transition-colors duration-700 ${
+                          allDone && state === "success"
+                            ? "border-emerald-400 bg-emerald-400 text-black"
+                            : `bg-black ${NODE_STYLE[state]}`
+                        }`}
                       >
                         {STEP_ICON[s.id]}
                       </div>
                       {!isLast && (
                         <div
-                          className={`absolute left-1/2 top-1/2 -z-0 h-[2px] w-full -translate-y-1/2 ${LINE_STYLE[state]}`}
+                          className={`absolute left-1/2 top-1/2 -z-0 h-[2px] w-full -translate-y-1/2 transition-colors duration-700 ${
+                            allDone && state === "success"
+                              ? "bg-emerald-400"
+                              : LINE_STYLE[state]
+                          }`}
                         />
                       )}
                     </div>
-                    <div className="mt-4 text-center text-base font-semibold text-zinc-300">
+                    <div className={`mt-4 text-center text-base font-semibold transition-colors duration-700 ${
+                      allDone && state === "success" ? "text-emerald-400" : "text-zinc-300"
+                    }`}>
                       {s.label}
                     </div>
                   </div>

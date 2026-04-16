@@ -24,6 +24,16 @@ export default function RollbackFixSlide() {
         },
       ]}
       workflowFix={{
+        highlightLines: {
+          7: "Opens a [dispute window](https://workflow-sdk.dev/docs/api-reference/workflow/create-hook) — any external system can [trigger it](https://workflow-sdk.dev/docs/foundations/hooks) via this token",
+          8: "",
+          9: "",
+          11: "**Race**: customer disputes within 24 hours, or the window **closes cleanly**",
+          12: "",
+          13: "",
+          14: "",
+          19: "This **throw** triggers the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) → every pushed compensation [runs in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
+        },
         code: `async function placeOrder(orderId: string) {
   "use workflow"
 
@@ -47,6 +57,12 @@ export default function RollbackFixSlide() {
         tabs: [
           {
             filename: "saga.ts",
+            highlightLines: {
+              5: "Each successful step [pushes its own undo](https://workflow-sdk.dev/docs/foundations/common-patterns) — if anything fails later, **this runs**",
+              8: "",
+              11: "",
+              17: "Unwind in [reverse order](https://workflow-sdk.dev/docs/foundations/common-patterns) — last step undone first, like **popping a stack**",
+            },
             code: `const rollbacks: Array<() => Promise<void>> = []
 
 try {

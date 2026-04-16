@@ -24,6 +24,11 @@ export default function RetryFixSlide() {
         },
       ]}
       workflowFix={{
+        highlightLines: {
+          4: "Marks this function as a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — if it crashes, the SDK [retries it automatically](https://workflow-sdk.dev/docs/foundations/errors-and-retries)",
+          6: "A [stable ID](https://workflow-sdk.dev/docs/foundations/idempotency) that never changes across retries — your [deduplication key](https://workflow-sdk.dev/docs/foundations/idempotency)",
+          10: "Stripe sees the [same key](https://workflow-sdk.dev/docs/foundations/idempotency) on retry → returns the original charge, **no double-billing**",
+        },
         code: `// if this fails, it runs again
 async function chargePayment(order) {
   // "use step" marks the durable boundary...

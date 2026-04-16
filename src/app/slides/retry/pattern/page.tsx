@@ -3,15 +3,21 @@ import { scenarioGroups } from "../../_data/scenario-groups";
 
 const { marker, markerLabel } = scenarioGroups["retry"];
 
-const PROMPT = `npx workflow inspect run <run_id>
+const INSPECT_PROMPT = `npx workflow inspect run <run_id>
 
-I just watched a demo of the Workflow SDK's Idempotency pattern, and the
-run above is the one I saw. Ask me for the absolute path to my project,
-cd there, then find external side effects that can't safely run twice —
-payments, messaging, webhooks, queues, LLM calls — and propose diffs
-that wrap each call in a "use step" function and pass
-getStepMetadata().stepId as the idempotency key.
+Explain this run to me in detail. Walk me through each step that
+executed, which ones were retried, and how the idempotency keys
+ensured no duplicate side effects. Show me exactly how
+getStepMetadata().stepId stayed stable across retries.`;
 
+const COMPARE_PROMPT = `Compare my current code to what it might look like if I was using
+the Workflow SDK's Idempotency pattern. Ask me for the absolute path
+to my project, cd there, then find external side effects that can't
+safely run twice — payments, messaging, webhooks, queues, LLM calls —
+and show me before/after diffs that wrap each call in a "use step"
+function and pass getStepMetadata().stepId as the idempotency key.
+
+API primitive: getStepMetadata().stepId
 Docs: https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency`;
 
 export default function RetryPatternSlide() {
@@ -23,7 +29,8 @@ export default function RetryPatternSlide() {
       apiPrimitive="getStepMetadata().stepId"
       docSection="Cookbook · Common Patterns"
       docUrl="workflow-sdk.dev/docs/cookbook/common-patterns/idempotency"
-      prompt={PROMPT}
+      inspectPrompt={INSPECT_PROMPT}
+      comparePrompt={COMPARE_PROMPT}
       marker={marker}
       markerLabel={markerLabel}
       realWorldExamples={[

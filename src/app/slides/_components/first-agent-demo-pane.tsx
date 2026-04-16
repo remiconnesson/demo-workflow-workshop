@@ -47,8 +47,8 @@ export function FirstAgentDemoPane() {
           }
         },
         onChatEnd: () => {
-          localStorage.removeItem(STORAGE_KEY);
-          // Keep activeRunId in state so the debug drawer stays visible
+          // Keep run ID in localStorage so the chat survives refresh
+          // even after the stream ends. Only cleared on explicit "Reset".
         },
         prepareReconnectToStreamRequest: ({ api: _api, ...rest }) => {
           const runId = localStorage.getItem(STORAGE_KEY);

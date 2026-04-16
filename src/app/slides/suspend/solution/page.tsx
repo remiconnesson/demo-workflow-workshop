@@ -24,6 +24,13 @@ export default function SuspendFixSlide() {
         },
       ]}
       workflowFix={{
+        highlightLines: {
+          6: "Creates a [unique URL](https://workflow-sdk.dev/docs/api-reference/workflow/create-webhook) that [wakes this workflow up](https://workflow-sdk.dev/docs/foundations/hooks) — no custom API route needed",
+          12: "**First one wins**: restaurant taps accept, or 24 hours pass",
+          13: "",
+          14: "[Durable sleep](https://workflow-sdk.dev/docs/api-reference/workflow/sleep) — the process can shut down and restart; the **timer survives**",
+          18: "Throwing enters the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) — your rollback steps [run in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
+        },
         code: `async function placeOrder(orderId: string) {
   "use workflow"
 

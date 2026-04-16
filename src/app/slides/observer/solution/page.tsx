@@ -52,7 +52,16 @@ export default function AgentObserverFixSlide() {
           detail: <>durable <span className="text-zinc-300">sleep(&quot;30s&quot;)</span> — no cron, no worker</>,
         },
       ]}
-      workflowFix={{ code: FIX_CODE }}
+      workflowFix={{
+        code: FIX_CODE,
+        highlightLines: {
+          2: "Makes this fetch [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — on replay, returns the **cached result** instead of re-executing",
+          7: "The entire agent loop is a [single durable workflow](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) run",
+          10: "Tools marked [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) are durable — the event log [replays them](https://workflow-sdk.dev/docs/how-it-works/event-sourcing) on restart without re-executing",
+          16: "A plain **for-loop** — the SDK makes it durable, not a framework abstraction",
+          22: "[Durable sleep](https://workflow-sdk.dev/docs/api-reference/workflow/sleep) — the process can shut down; the **timer survives** across restarts",
+        },
+      }}
     />
   );
 }

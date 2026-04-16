@@ -3,18 +3,22 @@ import { AGENT_GROUPS } from "../../_data/agent-groups";
 
 const group = AGENT_GROUPS["agent-first"];
 
-const PROMPT = `I just watched a demo of the Workflow SDK's Resumable Streams pattern
-with DurableAgent and WorkflowChatTransport.
+const INSPECT_PROMPT = `npx workflow inspect run <run_id>
 
-Ask me for the absolute path to my project, cd there, then find any
-AI chat or streaming endpoint that would lose progress on a page
-refresh or serverless timeout — and propose diffs that wrap the agent
-in a "use workflow" function, stream through getWritable(), and
-reconnect on the client via WorkflowChatTransport.
+Explain this run to me in detail. Walk me through how the DurableAgent
+maintained its chat stream across the workflow lifecycle — what tool
+calls happened, how the stream was persisted, and what would happen
+if the page refreshed mid-conversation.`;
 
-Context from the run I just watched:
-npx workflow inspect run <run_id>
+const COMPARE_PROMPT = `Compare my current code to what it might look like if I was using
+the Workflow SDK's Resumable Streams pattern. Ask me for the absolute
+path to my project, cd there, then find any AI chat or streaming
+endpoint that would lose progress on a page refresh or serverless
+timeout — and show me before/after diffs that wrap the agent in a
+"use workflow" function, stream through getWritable(), and reconnect
+on the client via WorkflowChatTransport.
 
+API primitive: new DurableAgent({ tools }) + WorkflowChatTransport
 Docs: https://workflow-sdk.dev/docs/ai/resumable-streams`;
 
 export default function AgentFirstPatternSlide() {
@@ -26,7 +30,8 @@ export default function AgentFirstPatternSlide() {
       apiPrimitive={group.pattern.apiPrimitive}
       docSection={group.pattern.docSection}
       docUrl={group.pattern.docUrl}
-      prompt={PROMPT}
+      inspectPrompt={INSPECT_PROMPT}
+      comparePrompt={COMPARE_PROMPT}
       realWorldExamples={[
         "AI customer support chats",
         "Long-running code generation",

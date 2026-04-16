@@ -392,7 +392,7 @@ export async function placeOrderWorkflow(
     //    compensation unwinding a fully-completed happy path. All six
     //    steps are green; we open a short race between a durable
     //    disputeHook (resumed by the /api/orders/[orderId]/dispute
-    //    route) and a short sleep (5s compressed from 24h). If the
+    //    route) and a short sleep (60s compressed from 24h). If the
     //    hook fires, the thrown Error cascades every compensation in reverse.
     if (input.demoMode === "disputeWindow") {
       const disputeHook = createHook<{ reason: string }>({
@@ -400,14 +400,14 @@ export async function placeOrderWorkflow(
       });
       await e({
         type: "log",
-        message: "Dispute window open (5s compressed from 24h)",
+        message: "Dispute window open (60s compressed from 24h)",
       });
       const verdict = await Promise.race([
         disputeHook.then((r) => ({
           kind: "disputed" as const,
           reason: r.reason,
         })),
-        sleep("5s").then(() => ({ kind: "confirmed" as const })),
+        sleep("60s").then(() => ({ kind: "confirmed" as const })),
       ]);
       if (verdict.kind === "disputed") {
         await e({
@@ -711,11 +711,20 @@ async function chargePayment(
       });
       if (attempt === 1) {
         naiveAttempt1Ids.set(input.orderId, paymentId);
+        // Money moved — the charge went through on the provider side
         await writeEvent(writer, {
           type: "step_succeeded",
           step: "chargePayment",
           label: "Charge payment",
           detail: `naive charge #1 ${paymentId} (about to crash)`,
+        }, input.demoMode);
+        // But the API call itself fails (5xx after charging).
+        // Emit step_failed so the UI shows the failure state.
+        await writeEvent(writer, {
+          type: "step_failed",
+          step: "chargePayment",
+          label: "Charge payment",
+          error: `Payment API 5xx — money moved but call failed`,
         }, input.demoMode);
         // Embed attempt 1's paymentId in the error so it survives in
         // step_failed / inspect steps `error.message`, making the double

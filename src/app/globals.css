@@ -25,6 +25,82 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* ── Code line highlight callouts ─────────────────────────────── */
+
+/* Highlighted line — base */
+.code-hl {
+  position: relative;
+  background: rgba(255,255,255,0.06);
+  margin: 0 -2rem;
+  padding: 0 2rem;
+  border-left: 3px solid rgba(56,189,248,0.6);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Hover state — brighter background + solid border */
+.code-hl:hover {
+  background: rgba(56,189,248,0.10);
+  border-left-color: rgba(56,189,248,1);
+}
+
+/* Tooltip — real child element for reliable hover */
+.code-hl-tip {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 4px);
+  z-index: 50;
+  width: max-content;
+  max-width: 620px;
+  padding: 20px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-left: 4px solid rgba(56,189,248,0.8);
+  background: rgba(9,9,11,0.97);
+  box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+  color: #d4d4d8;                    /* zinc-300 */
+  font-family: var(--font-sans);
+  font-size: 26px;                   /* projector-legible from the back row */
+  line-height: 1.4;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+/* Bold keywords inside tooltip */
+.code-hl-tip strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Doc links inside tooltip */
+.code-hl-tip a {
+  color: #38bdf8;                    /* sky-400 */
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(56,189,248,0.4);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.1s ease;
+}
+.code-hl-tip a:hover {
+  text-decoration-color: rgba(56,189,248,1);
+}
+
+/* Show on hover — tooltip is a child, so hovering it keeps parent :hover active */
+.code-hl:hover > .code-hl-tip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Allow tooltip to overflow the scroll container */
+.code-scroll-area:has(.code-hl:hover) {
+  overflow: visible !important;
+}
+
 /* hide all scrollbars globally — this is a projector presentation */
 * {
   -ms-overflow-style: none;

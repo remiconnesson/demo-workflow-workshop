@@ -38,7 +38,6 @@ type DemoSlideLayoutProps = {
  */
 export function DemoSlideLayout({
   slide,
-  eyebrow,
   headline,
   subcopy,
   scenario,
@@ -52,12 +51,9 @@ export function DemoSlideLayout({
   rightPanel,
 }: DemoSlideLayoutProps) {
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-8 px-10 py-12">
+    <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-8 px-10 pt-20 pb-12">
       <div className="flex items-start justify-between gap-10">
         <div className="flex flex-col gap-2">
-          <span className="font-mono text-base uppercase tracking-[0.22em] text-zinc-500 tabular-nums">
-            {eyebrow}
-          </span>
           <h2 className="text-[56px] font-semibold leading-[1.0] tracking-tight">
             {headline}
           </h2>

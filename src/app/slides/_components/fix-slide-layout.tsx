@@ -11,10 +11,14 @@ export type WorkflowFixTab = {
   filename: string;
   code: string;
   lang?: "ts" | "tsx" | "js" | "jsx";
+  /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
+  highlightLines?: Record<number, string>;
 };
 
 export type WorkflowFix = {
   code: string;
+  /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
+  highlightLines?: Record<number, string>;
   /**
    * Optional additional tabs. When provided, the code pane renders as a
    * tabbed editor with the primary `code` as the first tab (labelled
@@ -41,12 +45,37 @@ type FixSlideLayoutProps = {
   statusTone?: StatusTone;
 };
 
-async function highlight(code: string, lang: "ts" | "tsx" | "js" | "jsx" = "ts") {
-  return codeToHtml(code, {
+function formatTip(text: string): string {
+  let result = text.replace(
+    /\[(.+?)\]\((.+?)\)/g,
+    '<a href="$2" target="_blank" rel="noreferrer">$1</a>',
+  );
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong class="code-hl-keyword">$1</strong>');
+  return result;
+}
+
+function wrapLines(html: string, highlightLines?: Record<number, string>): string {
+  if (!highlightLines || Object.keys(highlightLines).length === 0) return html;
+  const lines = html.split("<br>");
+  return lines
+    .map((line, i) => {
+      const tooltip = highlightLines[i + 1];
+      if (tooltip === undefined) return `<div>${line}</div>`;
+      const tip = tooltip
+        ? `<div class="code-hl-tip">${formatTip(tooltip)}</div>`
+        : "";
+      return `<div class="code-hl">${line}${tip}</div>`;
+    })
+    .join("");
+}
+
+async function highlight(code: string, lang: "ts" | "tsx" | "js" | "jsx" = "ts", highlightLines?: Record<number, string>) {
+  const html = await codeToHtml(code, {
     lang,
     theme: "github-dark-default",
     structure: "inline",
   });
+  return wrapLines(html, highlightLines);
 }
 
 async function buildTabs(
@@ -55,12 +84,12 @@ async function buildTabs(
 ): Promise<CodeEditorTab[]> {
   const primary: CodeEditorTab = {
     filename: primaryFilename,
-    html: await highlight(workflowFix.code, "ts"),
+    html: await highlight(workflowFix.code, "ts", workflowFix.highlightLines),
   };
   const extras = await Promise.all(
     (workflowFix.tabs ?? []).map(async (tab) => ({
       filename: tab.filename,
-      html: await highlight(tab.code, tab.lang ?? "ts"),
+      html: await highlight(tab.code, tab.lang ?? "ts", tab.highlightLines),
     })),
   );
   return [primary, ...extras];
@@ -89,7 +118,6 @@ const DOT_GLOW: Record<StatusTone, string> = {
  */
 export async function FixSlideLayout({
   slide,
-  eyebrow,
   headline,
   highlightSteps,
   workflowFix,
@@ -103,7 +131,7 @@ export async function FixSlideLayout({
   const pillLabel = statusLabel ?? markerLabel;
 
   return (
-    <div className="flex h-full w-full flex-col gap-6 px-14 py-8">
+    <div className="flex h-full w-full flex-col gap-0 px-14 pt-14 pb-8">
       {isAgent ? (
         <AgentBeatStrip slug={slide as AgentGroupSlug} />
       ) : (
@@ -112,9 +140,6 @@ export async function FixSlideLayout({
 
       <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
         <div className="flex flex-col">
-          <div className="font-mono text-[11px] font-medium uppercase tracking-[0.24em] text-zinc-500">
-            {eyebrow}
-          </div>
           <h2
             className="mt-6 text-[44px] font-semibold text-white"
             style={{ lineHeight: "46px", letterSpacing: "-2.2px" }}
@@ -163,8 +188,8 @@ export async function FixSlideLayout({
             <div className="flex items-center border-b border-white/10 px-6 py-3">
               <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
-              <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" />
+            <div className="code-scroll-area min-h-0 flex-1 overflow-y-auto px-8 py-6">
+              <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" highlightLines={workflowFix.highlightLines} />
             </div>
           </div>
         )}

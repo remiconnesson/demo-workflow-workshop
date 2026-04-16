@@ -3,18 +3,21 @@ import { AGENT_GROUPS } from "../../_data/agent-groups";
 
 const group = AGENT_GROUPS["agent-observer"];
 
-const PROMPT = `I just watched a demo of the Workflow SDK's Autonomous Durable Agent
-pattern — a long-running agent loop that survives restarts and resumes
-from its last tool call.
+const INSPECT_PROMPT = `npx workflow inspect run <run_id>
 
-Ask me for the absolute path to my project, cd there, then find any
-cron job, polling loop, or scheduled task that runs an LLM repeatedly —
-and propose diffs that replace it with a DurableAgent loop inside a
-"use workflow" function with durable sleep() between passes.
+Explain this run to me in detail. Walk me through how the autonomous
+agent loop executed — what tool calls it made, how durable sleep()
+worked between passes, and how the agent would resume from its last
+tool call if the process restarted.`;
 
-Context from the run I just watched:
-npx workflow inspect run <run_id>
+const COMPARE_PROMPT = `Compare my current code to what it might look like if I was using
+the Workflow SDK's Autonomous Durable Agent pattern. Ask me for the
+absolute path to my project, cd there, then find any cron job,
+polling loop, or scheduled task that runs an LLM repeatedly — and
+show me before/after diffs that replace it with a DurableAgent loop
+inside a "use workflow" function with durable sleep() between passes.
 
+API primitive: new DurableAgent({ tools, model })
 Docs: https://workflow-sdk.dev/docs/api-reference/workflow-ai/durable-agent`;
 
 export default function AgentObserverPatternSlide() {
@@ -26,7 +29,8 @@ export default function AgentObserverPatternSlide() {
       apiPrimitive={group.pattern.apiPrimitive}
       docSection={group.pattern.docSection}
       docUrl={group.pattern.docUrl}
-      prompt={PROMPT}
+      inspectPrompt={INSPECT_PROMPT}
+      comparePrompt={COMPARE_PROMPT}
       realWorldExamples={[
         "Infrastructure monitoring",
         "Log anomaly detection",

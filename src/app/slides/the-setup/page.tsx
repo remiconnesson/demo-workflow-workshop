@@ -22,7 +22,19 @@ export default async function TheSetupSlide() {
       </div>
 
       <div className="rounded-2xl border border-white/10 bg-zinc-950 p-10">
-        <CodeBlock code={PLACE_ORDER_CODE} lang="ts" textClass="text-[26px]" />
+        <CodeBlock
+          code={PLACE_ORDER_CODE}
+          lang="ts"
+          textClass="text-[26px]"
+          highlightLines={{
+            3: "What if the input is **invalid** but the next step already ran?",
+            4: "What if this **fails halfway**? The customer gets **charged twice**.",
+            5: "What if the restaurant takes **10 minutes**? This function **times out**.",
+            6: "What if **no drivers** are available? The order is stuck **forever**.",
+            7: "What if the driver **cancels**? Who rolls back the restaurant?",
+            8: "What if the server **crashes** here? The customer never gets a receipt.",
+          }}
+        />
       </div>
     </div>
   );

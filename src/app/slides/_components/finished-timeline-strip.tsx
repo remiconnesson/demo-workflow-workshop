@@ -66,7 +66,7 @@ export function FinishedTimelineStrip({
         {/* Connecting line — behind nodes, clipped by node backgrounds */}
         <div className="pointer-events-none absolute left-8 right-8 top-[18px] h-px bg-white/15" />
         {ORDER_STEPS.map((step) => {
-          const dimmed = highlightSteps && !highlightSteps.includes(step.id);
+          const dimmed = highlightSteps && !highlightSteps.includes(step.id) && !badge;
           const badge = badges[step.id];
           return (
             <div

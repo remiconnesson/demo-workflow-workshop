@@ -1,18 +1,21 @@
 import { PatternSlideLayout } from "../../_components/pattern-slide-layout";
 import { AGENT_GROUPS } from "../../_data/agent-groups";
 
-const PROMPT = `I just watched a demo of the Workflow SDK's Human-in-the-Loop pattern
-— a durable agent that suspends mid-task for operator approval and
-resumes exactly where it left off.
+const INSPECT_PROMPT = `npx workflow inspect run <run_id>
 
-Ask me for the absolute path to my project, cd there, then find any
-agent or automation that makes consequential decisions without human
-review — and propose diffs that add a defineHook() approval gate the
-agent can await, pausing the workflow until a human responds.
+Explain this run to me in detail. Walk me through how the durable
+agent paused for operator approval — what state it was in when it
+suspended, how the hook delivered the human's response, and how
+the agent resumed exactly where it left off.`;
 
-Context from the run I just watched:
-npx workflow inspect run <run_id>
+const COMPARE_PROMPT = `Compare my current code to what it might look like if I was using
+the Workflow SDK's Human-in-the-Loop Agent pattern. Ask me for the
+absolute path to my project, cd there, then find any agent or
+automation that makes consequential decisions without human review —
+and show me before/after diffs that add a defineHook() approval gate
+the agent can await, pausing the workflow until a human responds.
 
+API primitive: defineHook() + new DurableAgent({ tools })
 Docs: https://workflow-sdk.dev/docs/ai/human-in-the-loop`;
 
 export default function AgentAnalystPatternSlide() {
@@ -25,7 +28,8 @@ export default function AgentAnalystPatternSlide() {
       apiPrimitive={group.pattern.apiPrimitive}
       docSection={group.pattern.docSection}
       docUrl={group.pattern.docUrl}
-      prompt={PROMPT}
+      inspectPrompt={INSPECT_PROMPT}
+      comparePrompt={COMPARE_PROMPT}
       realWorldExamples={[
         "PR merge approval gates",
         "Financial trade authorization",

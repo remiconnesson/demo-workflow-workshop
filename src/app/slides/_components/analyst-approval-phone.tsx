@@ -23,15 +23,13 @@ export function AnalystApprovalPhone() {
       approved,
     };
     if (!approved) body.reason = "Operator rejected on stage";
-    console.log("[approval-phone] POST /api/agent/approve", body);
     try {
       const res = await fetch("/api/agent/approve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      const json = await res.json().catch(() => ({}));
-      console.log("[approval-phone] response", res.status, json);
+      await res.json().catch(() => ({}));
     } catch (err) {
       console.error("[approval-phone] fetch threw", err);
     } finally {

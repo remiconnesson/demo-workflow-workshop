@@ -29,7 +29,7 @@ const PRIMITIVES = [
 export default function ThreeVerbsSlide() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-20 p-10 text-center">
-      <h2 className="text-6xl font-medium tracking-tighter text-zinc-200">
+      <h2 className="text-6xl font-semibold tracking-tight">
         Reliable software must be able to
       </h2>
 
@@ -37,13 +37,13 @@ export default function ThreeVerbsSlide() {
         {PRIMITIVES.map((p) => (
           <div key={p.verb} className="flex flex-1 flex-col items-center gap-6">
             <div
-              className={`flex items-center justify-center rounded-full border px-10 py-4 ${p.pillAccent} ${geistMono.className}`}
+              className={`flex items-center justify-center rounded-full border px-12 py-5 ${p.pillAccent} ${geistMono.className}`}
             >
-              <span className={`text-3xl tracking-tighter ${p.verbClass}`}>
+              <span className={`text-4xl font-medium tracking-tight ${p.verbClass}`}>
                 {p.verb}
               </span>
             </div>
-            <p className="max-w-xs text-lg text-zinc-400">
+            <p className="max-w-sm text-xl leading-snug text-zinc-400">
               {p.consequence}
             </p>
           </div>

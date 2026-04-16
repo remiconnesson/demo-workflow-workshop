@@ -44,10 +44,21 @@ export default function AgentFirstFixSlide() {
         },
       ]}
       workflowFix={{
+        highlightLines: {
+          2: "Makes this entire agent run [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — survives **server restarts** and deploys",
+          4: "A [durable output stream](https://workflow-sdk.dev/docs/foundations/streaming) — the client can [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) and pick up mid-sentence",
+          6: "Tools marked [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) become **durable** — their results replay from the event log on resume",
+          13: "",
+        },
         code: WORKFLOW_CODE,
         tabs: [
           {
             filename: "route.ts",
+            highlightLines: {
+              3: "[start()](https://workflow-sdk.dev/docs/api-reference/workflow-api/start) kicks off the workflow and returns a handle with a [readable stream](https://workflow-sdk.dev/docs/foundations/streaming) + **run ID**",
+              6: "Pipe the [durable stream](https://workflow-sdk.dev/docs/foundations/streaming) directly into the HTTP response",
+              8: "Client stores this **run ID** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to the **exact same run** after refresh",
+            },
             code: `export async function POST(req) {
   const { messages } = await req.json()
   const run = await start(supportAgent, [messages])
@@ -62,6 +73,11 @@ export default function AgentFirstFixSlide() {
           },
           {
             filename: "page.tsx",
+            highlightLines: {
+              2: "On page load, check if there's an **active run** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to",
+              3: "Handles [reconnection](https://workflow-sdk.dev/docs/api-reference/workflow-ai/workflow-chat-transport) — stores the run ID, [resumes the stream](https://workflow-sdk.dev/docs/ai/resumable-streams) on refresh",
+              10: "On reconnect, redirect to the [run-specific stream endpoint](https://workflow-sdk.dev/docs/ai/resumable-streams)",
+            },
             code: `const { messages, sendMessage } = useChat({
   resume: Boolean(localStorage.getItem("run-id")),
   transport: new WorkflowChatTransport({
