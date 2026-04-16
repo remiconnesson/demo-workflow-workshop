@@ -10,11 +10,11 @@ const geistMono = Geist_Mono({ subsets: ["latin"] });
 type OrderItem = { id: string; name: string; price: number; qty: number; description: string };
 type FailStep =
   | "validateOrder"
-  | "chargePayment"
-  | "notifyRestaurant"
-  | "assignDriver"
+  | "chargeCard"
+  | "pingRestaurant"
+  | "findDriver"
   | "trackDelivery"
-  | "sendReceipt"
+  | "sendReceipts"
   | null;
 
 type OrderInput = {
@@ -54,11 +54,11 @@ const MENU: OrderItem[] = [
 
 const SAGA_STEPS = [
   { id: "validateOrder", label: "Validate" },
-  { id: "chargePayment", label: "Charge" },
-  { id: "notifyRestaurant", label: "Restaurant" },
-  { id: "assignDriver", label: "Driver" },
+  { id: "chargeCard", label: "Charge" },
+  { id: "pingRestaurant", label: "Restaurant" },
+  { id: "findDriver", label: "Driver" },
   { id: "trackDelivery", label: "Track" },
-  { id: "sendReceipt", label: "Receipt" },
+  { id: "sendReceipts", label: "Receipt" },
 ];
 
 export default function V25Page() {
@@ -180,8 +180,8 @@ export default function V25Page() {
       if (autoAck) {
         setTimeout(() => {
           let kind = "";
-          if (ev.step === "notifyRestaurant") kind = "restaurant-accept";
-          if (ev.step === "assignDriver") kind = "driver-accept";
+          if (ev.step === "pingRestaurant") kind = "restaurant-accept";
+          if (ev.step === "findDriver") kind = "driver-accept";
           if (ev.step === "trackDelivery") kind = "delivered";
           if (kind) {
             resumeHook(currentOrderId, kind, true);
@@ -467,11 +467,11 @@ export default function V25Page() {
                     let rejectAction = "";
                     let label = "";
 
-                    if (h.step === "notifyRestaurant") {
+                    if (h.step === "pingRestaurant") {
                       acceptAction = "restaurant-accept";
                       rejectAction = "restaurant-accept";
                       label = "Restaurant Acceptance";
-                    } else if (h.step === "assignDriver") {
+                    } else if (h.step === "findDriver") {
                       acceptAction = "driver-accept";
                       rejectAction = "driver-accept";
                       label = "Driver Assignment";

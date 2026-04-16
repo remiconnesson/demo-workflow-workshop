@@ -35,7 +35,7 @@ export default function AgentObserverPatternSlide() {
         "Infrastructure monitoring",
         "Log anomaly detection",
         "Scheduled report generation",
-        "Continuous compliance auditing",
+        "Compliance auditing",
       ]}
     />
   );

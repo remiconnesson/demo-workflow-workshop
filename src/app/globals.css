@@ -37,26 +37,34 @@ body {
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-/* Hover state — brighter background + solid border */
+/* Hover state — brighter background, solid border, and a sky-tinted glow
+ * so the annotated line itself reads as the focal point, not the popup. */
 .code-hl:hover {
-  background: rgba(56,189,248,0.10);
+  background: rgba(56,189,248,0.16);
   border-left-color: rgba(56,189,248,1);
+  box-shadow:
+    inset 0 0 0 1px rgba(56,189,248,0.28),
+    0 0 32px rgba(56,189,248,0.18);
 }
 
-/* Tooltip — real child element for reliable hover */
+/* Tooltip — annotation overlay, not a card. Lifted surface + sky ring +
+ * down-pointing notch anchor it visually to the highlighted line. */
 .code-hl-tip {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 36px);
   z-index: 50;
   width: max-content;
   max-width: 620px;
-  padding: 20px 24px;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.10);
-  border-left: 4px solid rgba(56,189,248,0.8);
-  background: rgba(9,9,11,0.97);
-  box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.05);
+  padding: 18px 24px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(56,189,248,0.22);
+  background:
+    linear-gradient(180deg, #1a1a1f 0%, #0d0d11 100%);
+  box-shadow:
+    0 0 0 1px rgba(56,189,248,0.08),
+    0 24px 64px rgba(0,0,0,0.85),
+    0 0 48px rgba(56,189,248,0.10);
   color: #d4d4d8;                    /* zinc-300 */
   font-family: var(--font-sans);
   font-size: 26px;                   /* projector-legible from the back row */
@@ -67,7 +75,87 @@ body {
   opacity: 0;
   pointer-events: none;
   transform: translateY(6px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease 0.1s, transform 0.15s ease 0.1s;
+}
+
+/* Eyebrow label — Vercel's signature small-caps pattern, sky-tinted to
+ * match the accent system. Renders only when a `LABEL::` prefix is present. */
+.code-hl-tip-eyebrow {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,0.35);
+  background: rgba(56,189,248,0.10);
+  color: #7dd3fc;                    /* sky-300 */
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.code-hl-tip-body {
+  /* intentionally empty — reserved for body-only targeting */
+}
+
+/* Down-pointing notch anchoring the tooltip to the highlighted line. */
+.code-hl-tip::before {
+  content: "";
+  position: absolute;
+  left: 28px;
+  top: 100%;
+  width: 0;
+  height: 0;
+  border-left: 9px solid transparent;
+  border-right: 9px solid transparent;
+  border-top: 9px solid #0d0d11;     /* matches gradient bottom */
+  filter: drop-shadow(0 1px 0 rgba(56,189,248,0.25));
+}
+
+/* Hover bridge + leader thread — invisible pointer-catching region across the
+ * full gap, with a thin sky-tinted vertical thread drawn over it that visually
+ * tethers the tooltip to the highlighted line below. */
+.code-hl-tip::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 38px;
+  background:
+    linear-gradient(180deg, rgba(56,189,248,0.55) 0%, rgba(56,189,248,0.05) 100%)
+      28px 0 / 2px 100% no-repeat;
+}
+
+/* ── Flipped variant: tooltip below the line ───────────────────────────
+ * Used when the highlighted line sits near the top of the code block so
+ * the popup would otherwise be clipped by the editor chrome. */
+.code-hl-tip--below {
+  bottom: auto;
+  top: calc(100% + 36px);
+  transform: translateY(-6px);
+}
+.code-hl:hover > .code-hl-tip--below {
+  transform: translateY(0);
+}
+/* Flip the notch to point upward at the highlighted line. */
+.code-hl-tip--below::before {
+  top: auto;
+  bottom: 100%;
+  border-top: none;
+  border-bottom: 9px solid #1a1a1f;  /* matches gradient top */
+  filter: drop-shadow(0 -1px 0 rgba(56,189,248,0.25));
+}
+/* Hover bridge + leader thread sit above the tooltip (between line and
+ * tooltip) when flipped. Gradient is flipped so the thread is brightest
+ * at the tooltip side and fades toward the line. */
+.code-hl-tip--below::after {
+  top: auto;
+  bottom: 100%;
+  background:
+    linear-gradient(0deg, rgba(56,189,248,0.55) 0%, rgba(56,189,248,0.05) 100%)
+      28px 0 / 2px 100% no-repeat;
 }
 
 /* Bold keywords inside tooltip */
@@ -89,11 +177,13 @@ body {
   text-decoration-color: rgba(56,189,248,1);
 }
 
-/* Show on hover — tooltip is a child, so hovering it keeps parent :hover active */
+/* Show on hover — tooltip is a child, so hovering it keeps parent :hover active.
+ * Zero delay on show, delay on hide comes from the base transition. */
 .code-hl:hover > .code-hl-tip {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+  transition: opacity 0.15s ease, transform 0.15s ease;
 }
 
 /* Allow tooltip to overflow the scroll container */

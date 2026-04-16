@@ -3,11 +3,11 @@ import { CodeBlock } from "../_components/code-block";
 const PLACE_ORDER_CODE = `// placeOrder.ts — the starting point
 async function placeOrder(input) {
   const order    = await validateOrder(input)
-  const payment  = await chargePayment(order)
-  const accepted = await notifyRestaurant(order)
-  const driver   = await assignDriver(order)
+  const payment  = await chargeCard(order)
+  const accepted = await pingRestaurant(order)
+  const driver   = await findDriver(order)
   const delivery = await trackDelivery(order, driver)
-  await sendReceipt(order, payment)
+  await sendReceipts(order, payment)
   return { ok: true }
 }`;
 
@@ -32,7 +32,7 @@ export default async function TheSetupSlide() {
             5: "What if the restaurant takes **10 minutes**? This function **times out**.",
             6: "What if **no drivers** are available? The order is stuck **forever**.",
             7: "What if the driver **cancels**? Who rolls back the restaurant?",
-            8: "What if the server **crashes** here? The customer never gets a receipt.",
+            8: "What if the server **crashes** here? The customer never gets receipts.",
           }}
         />
       </div>

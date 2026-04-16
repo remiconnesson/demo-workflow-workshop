@@ -39,7 +39,7 @@ export default function SuspendFixSlide() {
   using webhook = createWebhook()
 
   // Send the accept link to the restaurant
-  await notifyRestaurant(orderId, webhook.url)
+  await pingRestaurant(orderId, webhook.url)
 
   // Race: restaurant taps accept vs 24h timeout
   const accepted = await Promise.race([

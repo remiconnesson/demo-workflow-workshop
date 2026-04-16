@@ -19,7 +19,6 @@ export type AgentGroupPattern = {
 
 export type AgentGroup = {
   slug: AgentGroupSlug;
-  headline: string;
   eyebrow: string;
   pattern: AgentGroupPattern;
 };
@@ -27,7 +26,6 @@ export type AgentGroup = {
 export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   "agent-first": {
     slug: "agent-first",
-    headline: "Agents That Survive Reload",
     eyebrow: "Durable agent · resumable stream",
     pattern: {
       name: "DurableAgent + WorkflowChatTransport",
@@ -40,7 +38,6 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   },
   "agent-observer": {
     slug: "agent-observer",
-    headline: "Agents That Run While You Sleep",
     eyebrow: "Durable agent · autonomous monitoring",
     pattern: {
       name: "DurableAgent",
@@ -53,7 +50,6 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   },
   "agent-analyst": {
     slug: "agent-analyst",
-    headline: "Agents That Wait for You",
     eyebrow: "Durable agent · human-in-the-loop",
     pattern: {
       name: "DurableAgent + defineHook",

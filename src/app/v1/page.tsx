@@ -24,20 +24,20 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "VALIDATE ORDER" },
-  { key: "chargePayment", label: "CHARGE PAYMENT" },
-  { key: "notifyRestaurant", label: "NOTIFY KITCHEN" },
-  { key: "assignDriver", label: "ASSIGN RUNNER" },
+  { key: "chargeCard", label: "CHARGE PAYMENT" },
+  { key: "pingRestaurant", label: "NOTIFY KITCHEN" },
+  { key: "findDriver", label: "ASSIGN RUNNER" },
   { key: "trackDelivery", label: "TRACK DELIVERY" },
-  { key: "sendReceipt", label: "SEND RECEIPT" },
+  { key: "sendReceipts", label: "SEND RECEIPT" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "HAPPY PATH" },
   { value: "validateOrder", label: "FAIL @ VALIDATE" },
-  { value: "chargePayment", label: "FAIL @ PAYMENT" },
-  { value: "notifyRestaurant", label: "FAIL @ KITCHEN" },
-  { value: "assignDriver", label: "FAIL @ RUNNER" },
-  { value: "sendReceipt", label: "FAIL @ RECEIPT" },
+  { value: "chargeCard", label: "FAIL @ PAYMENT" },
+  { value: "pingRestaurant", label: "FAIL @ KITCHEN" },
+  { value: "findDriver", label: "FAIL @ RUNNER" },
+  { value: "sendReceipts", label: "FAIL @ RECEIPT" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -113,9 +113,9 @@ export default function ArcadeOrderPage() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

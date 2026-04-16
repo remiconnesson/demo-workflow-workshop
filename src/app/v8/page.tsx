@@ -20,20 +20,20 @@ const MENU: OrderItem[] = [
 
 const STEPS = [
   { key: "validateOrder", label: "Order received" },
-  { key: "chargePayment", label: "Payment confirmed" },
-  { key: "notifyRestaurant", label: "Preparing your order" },
-  { key: "assignDriver", label: "Courier assigned" },
+  { key: "chargeCard", label: "Payment confirmed" },
+  { key: "pingRestaurant", label: "Preparing your order" },
+  { key: "findDriver", label: "Courier assigned" },
   { key: "trackDelivery", label: "Heading your way" },
-  { key: "sendReceipt", label: "Delivered" },
+  { key: "sendReceipts", label: "Delivered" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "notifyRestaurant", label: "Fail at restaurant" },
-  { value: "assignDriver", label: "Fail at driver" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "pingRestaurant", label: "Fail at restaurant" },
+  { value: "findDriver", label: "Fail at driver" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -164,9 +164,9 @@ export default function UberEatsCloneDemo() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {
@@ -345,9 +345,9 @@ export default function UberEatsCloneDemo() {
     if (result === "completed") statusTitle = "Delivered";
     if (result === "rolled_back") statusTitle = "Order Cancelled";
     if (!result && stepStatuses["trackDelivery"] === "running") statusTitle = "Heading your way";
-    if (!result && stepStatuses["assignDriver"] === "running") statusTitle = "Courier assigned";
+    if (!result && stepStatuses["findDriver"] === "running") statusTitle = "Courier assigned";
 
-    const showCourier = (stepStatuses["assignDriver"] === "success" || stepStatuses["trackDelivery"] === "running" || stepStatuses["trackDelivery"] === "success") && result !== "rolled_back";
+    const showCourier = (stepStatuses["findDriver"] === "success" || stepStatuses["trackDelivery"] === "running" || stepStatuses["trackDelivery"] === "success") && result !== "rolled_back";
 
     return (
       <div className="flex h-full flex-col bg-zinc-50 relative">

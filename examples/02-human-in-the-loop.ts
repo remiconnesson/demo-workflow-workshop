@@ -1,36 +1,44 @@
 // Human-in-the-Loop — suspend the workflow until an external system responds.
+//
+// Mirrors: /slides/suspend/solution
 
-import { createHook } from "workflow";
+import { createWebhook, sleep } from "workflow";
 
-export async function orderWithApprovalWorkflow(input: { orderId: string }) {
+export async function placeOrder(orderId: string) {
   "use workflow";
 
-  await notifyRestaurant(input.orderId);
+  // createWebhook suspends the workflow.
+  // One URL. No route. No polling.
+  using webhook = createWebhook();
 
-  // Suspend here — the workflow sleeps until the restaurant POSTs to the hook URL.
-  const hook = createHook<{ accepted: boolean }>({
-    token: `restaurant-accept:${input.orderId}`,
-  });
-  const decision = await hook;
+  // Send the accept link to the restaurant
+  await pingRestaurant(orderId, webhook.url);
 
-  if (!decision.accepted) {
-    throw new Error("Restaurant rejected the order");
+  // Race: restaurant taps accept vs 24h timeout
+  const accepted = await Promise.race([
+    webhook.then(() => true),
+    sleep("24h").then(() => false),
+  ]);
+
+  if (!accepted) {
+    throw new Error("Restaurant never accepted");
   }
 
-  await assignDriver(input.orderId);
-  return { orderId: input.orderId, status: "dispatched" };
+  await findDriver(orderId);
+  return { orderId, status: "dispatched" as const };
 }
 
-export async function notifyRestaurant(orderId: string) {
+export async function pingRestaurant(orderId: string, callbackUrl: string) {
   "use step";
   // In production:
   // await fetch(`https://restaurant-api.example.com/orders/${orderId}`, {
   //   method: "POST",
+  //   body: JSON.stringify({ acceptUrl: callbackUrl }),
   // });
-  return { notified: true, orderId };
+  return { notified: true, orderId, callbackUrl };
 }
 
-export async function assignDriver(orderId: string) {
+export async function findDriver(orderId: string) {
   "use step";
   // In production: call driver dispatch service
   return { assigned: true, orderId };

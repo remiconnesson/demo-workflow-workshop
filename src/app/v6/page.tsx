@@ -17,20 +17,20 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "01 VALIDATE" },
-  { key: "chargePayment", label: "02 PAYMENT" },
-  { key: "notifyRestaurant", label: "03 KITCHEN" },
-  { key: "assignDriver", label: "04 COURIER" },
+  { key: "chargeCard", label: "02 PAYMENT" },
+  { key: "pingRestaurant", label: "03 KITCHEN" },
+  { key: "findDriver", label: "04 COURIER" },
   { key: "trackDelivery", label: "05 TRANSIT" },
-  { key: "sendReceipt", label: "06 RECEIPT" },
+  { key: "sendReceipts", label: "06 RECEIPT" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "HAPPY PATH" },
   { value: "validateOrder", label: "FAIL AT VALIDATE" },
-  { value: "chargePayment", label: "FAIL AT PAYMENT" },
-  { value: "notifyRestaurant", label: "FAIL AT KITCHEN" },
-  { value: "assignDriver", label: "FAIL AT COURIER" },
-  { value: "sendReceipt", label: "FAIL AT RECEIPT" },
+  { value: "chargeCard", label: "FAIL AT PAYMENT" },
+  { value: "pingRestaurant", label: "FAIL AT KITCHEN" },
+  { value: "findDriver", label: "FAIL AT COURIER" },
+  { value: "sendReceipts", label: "FAIL AT RECEIPT" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -152,9 +152,9 @@ export default function BrutalistOrderPage() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

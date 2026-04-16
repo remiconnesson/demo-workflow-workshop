@@ -7,7 +7,7 @@ const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
 
 type OrderItem = { id: string; name: string; price: number; qty: number };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 
 type OrderEvent =
   | { type: "step_running"; step: string; label: string }
@@ -40,11 +40,11 @@ interface SagaStep {
 
 const INITIAL_STEPS: SagaStep[] = [
   { id: "validateOrder", label: "Validate Order", state: "pending" },
-  { id: "chargePayment", label: "Charge Payment", state: "pending" },
-  { id: "notifyRestaurant", label: "Notify Restaurant", state: "pending" },
-  { id: "assignDriver", label: "Assign Driver", state: "pending" },
+  { id: "chargeCard", label: "Charge Payment", state: "pending" },
+  { id: "pingRestaurant", label: "Notify Restaurant", state: "pending" },
+  { id: "findDriver", label: "Assign Driver", state: "pending" },
   { id: "trackDelivery", label: "Track Delivery", state: "pending" },
-  { id: "sendReceipt", label: "Send Receipt", state: "pending" },
+  { id: "sendReceipts", label: "Send Receipt", state: "pending" },
 ];
 
 export default function V22Page() {
@@ -85,8 +85,8 @@ export default function V22Page() {
   };
 
   const getHookKind = (step: string) => {
-    if (step === "notifyRestaurant") return "restaurant-accept";
-    if (step === "assignDriver") return "driver-accept";
+    if (step === "pingRestaurant") return "restaurant-accept";
+    if (step === "findDriver") return "driver-accept";
     if (step === "trackDelivery") return "delivered";
     return "";
   };
@@ -331,11 +331,11 @@ export default function V22Page() {
             >
               <option value="">No Failure</option>
               <option value="validateOrder">Validate Order</option>
-              <option value="chargePayment">Charge Payment</option>
-              <option value="notifyRestaurant">Notify Restaurant</option>
-              <option value="assignDriver">Assign Driver</option>
+              <option value="chargeCard">Charge Payment</option>
+              <option value="pingRestaurant">Notify Restaurant</option>
+              <option value="findDriver">Assign Driver</option>
               <option value="trackDelivery">Track Delivery</option>
-              <option value="sendReceipt">Send Receipt</option>
+              <option value="sendReceipts">Send Receipt</option>
             </select>
           </div>
           

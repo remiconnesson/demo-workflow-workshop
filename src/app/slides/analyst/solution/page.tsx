@@ -35,33 +35,33 @@ export default function AgentAnalystFixSlide() {
     <FixSlideLayout
       slide="agent-analyst"
       eyebrow={group.eyebrow}
-      headline="Hooks turn the agent into an employee."
+      headline="The whole workshop — in one agent."
       marker="span"
       filename="analystAgent.ts"
-      statusTone="amber"
-      statusLabel="human-in-the-loop"
+      statusTone="emerald"
+      statusLabel="retry · suspend · rollback"
       steps={[
         {
-          label: <>Wrap tools as <code className="font-mono">steps</code></>,
-          detail: <>every tool call is <span className="text-zinc-300">durable</span></>,
+          label: <><span className="font-mono text-emerald-300">retry</span> — tools become <code className="font-mono">steps</code></>,
+          detail: <>every tool call <span className="text-zinc-300">replays from the event log</span> — same primitive as the charge</>,
         },
         {
-          label: <>Suspend on <code className="font-mono">approval hook</code></>,
-          detail: <>agent <span className="text-zinc-300">await hook</span> — parks, waits for a verdict</>,
+          label: <><span className="font-mono text-amber-300">suspend</span> — <code className="font-mono">await approvalHook</code></>,
+          detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span> — same primitive as the slow restaurant</>,
         },
         {
-          label: <>Resume with the <code className="font-mono">decision</code></>,
-          detail: <><span className="text-zinc-300">return decision</span> — apply or rollback</>,
+          label: <><span className="font-mono text-fuchsia-300">rollback</span> — <code className="font-mono">rollbackMenuChange</code></>,
+          detail: <>compensation becomes a tool the agent <span className="text-zinc-300">can call on request</span> — same unwind as the dispute</>,
         },
       ]}
       workflowFix={{
         code: FIX_CODE,
         highlightLines: {
-          2: "The agent conversation is a [durable workflow](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — survives restarts",
-          5: "Tools with [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) are durable steps — others run at [workflow level](https://workflow-sdk.dev/docs/ai/defining-tools)",
-          13: "Creates a unique [approval gate](https://workflow-sdk.dev/docs/ai/human-in-the-loop) — the workflow [suspends](https://workflow-sdk.dev/docs/foundations/hooks) when this hook is awaited",
-          16: "The agent [pauses](https://workflow-sdk.dev/docs/ai/human-in-the-loop) until a human **approves or rejects**",
-          18: "Returns the human's **verdict** — the agent [resumes with full context](https://workflow-sdk.dev/docs/ai/human-in-the-loop) intact",
+          2: "`use workflow` — the agent conversation is a [durable workflow](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) that survives restarts",
+          8: "**retry** — tools with [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) become durable; the event log replays finished calls on restart (same primitive as the [charge retry](https://workflow-sdk.dev/docs/foundations/workflows-and-steps))",
+          13: "**suspend** — the [approval hook](https://workflow-sdk.dev/docs/ai/human-in-the-loop) creates a unique gate the agent will await",
+          16: "**suspend** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
+          22: "**rollback** — compensation is a [tool the agent can call](https://workflow-sdk.dev/docs/ai/defining-tools) any turn — same saga unwind from Act II, now driven by the operator asking the agent to undo",
         },
       }}
     />

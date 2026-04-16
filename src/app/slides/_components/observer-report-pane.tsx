@@ -497,79 +497,9 @@ export function ObserverReportPane({ slug = "agent-observer" }: { slug?: string 
           </button>
         </div>
 
-        {/* durability stats card */}
-        <div
-          className={`shrink-0 flex flex-col gap-5 rounded-2xl border p-8 transition-all duration-500 ${
-            frame.crashPhase === "resumed"
-              ? "border-emerald-500/20 bg-emerald-500/5 opacity-100"
-              : fi > 0
-                ? "border-white/10 bg-zinc-950 opacity-100"
-                : "border-white/10 bg-zinc-950 opacity-40"
-          }`}
-        >
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Durability
-          </p>
-
-          <StatRow
-            label="Tool calls completed"
-            value={doneCount}
-            active={fi > 0}
-          />
-          <StatRow
-            label="Steps replayed from log"
-            value={
-              frame.crashPhase === "replaying" || frame.crashPhase === "resumed"
-                ? TOOLS.filter((t) => frame.tools[t.id] === "replayed").length
-                : 0
-            }
-            active={frame.crashPhase === "replaying" || frame.crashPhase === "resumed"}
-            highlight={frame.crashPhase === "resumed"}
-          />
-          <StatRow
-            label="Steps re-executed"
-            value={0}
-            active={frame.crashPhase === "resumed"}
-            highlight={frame.crashPhase === "resumed"}
-          />
-        </div>
-
         {/* debug drawer — inline, not overlapping */}
         <AgentDebugDrawer runId={runId} events={debugEvents} />
       </aside>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Stat row — single metric line in the durability card
-// ---------------------------------------------------------------------------
-
-function StatRow({
-  label,
-  value,
-  active,
-  highlight = false,
-}: {
-  label: string;
-  value: number;
-  active: boolean;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={`flex items-center justify-between transition-opacity duration-500 ${
-        active ? "opacity-100" : "opacity-30"
-      }`}
-    >
-      <span className="text-lg text-zinc-400">{label}</span>
-      <span
-        className={`font-mono text-3xl font-semibold tabular-nums ${
-          highlight ? "text-emerald-300" : "text-white"
-        }`}
-      >
-        {value}
-      </span>
     </div>
   );
 }

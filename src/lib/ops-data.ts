@@ -56,15 +56,42 @@ export type MenuProposal = {
 
 // ---------------------------------------------------------------------------
 // Module-scope state
+//
+// Stashed on `globalThis` so Next's dev-server HMR (which re-evaluates this
+// module on every edit) does not wipe the menuHistory stack. Without this,
+// an apply in process N followed by a rollback in process N+1 fails with
+// "no_history" — and the demo's rollback payoff dies on stage.
 // ---------------------------------------------------------------------------
 
-const orders: OrderRecord[] = [];
-const menu = new Map<string, MenuItem>();
-const menuHistory = new Map<string, MenuItem[]>(); // sku -> stack of prior versions
-const report: ReportEntry[] = [];
-const proposals = new Map<string, MenuProposal>();
+type OpsStore = {
+  orders: OrderRecord[];
+  menu: Map<string, MenuItem>;
+  menuHistory: Map<string, MenuItem[]>;
+  report: ReportEntry[];
+  proposals: Map<string, MenuProposal>;
+  seeded: boolean;
+};
 
-let seeded = false;
+const OPS_GLOBAL_KEY = "__workflowGaSlides_opsData__";
+type GlobalWithOps = typeof globalThis & { [OPS_GLOBAL_KEY]?: OpsStore };
+
+const globalStore = globalThis as GlobalWithOps;
+const store: OpsStore =
+  globalStore[OPS_GLOBAL_KEY] ??
+  (globalStore[OPS_GLOBAL_KEY] = {
+    orders: [],
+    menu: new Map(),
+    menuHistory: new Map(),
+    report: [],
+    proposals: new Map(),
+    seeded: false,
+  });
+
+const orders = store.orders;
+const menu = store.menu;
+const menuHistory = store.menuHistory;
+const report = store.report;
+const proposals = store.proposals;
 
 // ---------------------------------------------------------------------------
 // Seed
@@ -116,8 +143,8 @@ const SEED_ORDERS: Array<Omit<OrderRecord, "id" | "timestamp">> = [
 ];
 
 export function seedOpsData(): void {
-  if (seeded) return;
-  seeded = true;
+  if (store.seeded) return;
+  store.seeded = true;
 
   for (const item of SEED_MENU) {
     menu.set(item.sku, { ...item });
@@ -171,6 +198,16 @@ export function rollbackMenuMutation(sku: string): MenuItem | null {
   const prev = history.pop()!;
   menu.set(sku, { ...prev });
   return { ...prev };
+}
+
+/** Skus with a non-empty rollback stack. Used by the client to reconcile
+ *  its persisted `appliedProposals` list after a cold start. */
+export function getRollbackableSkus(): string[] {
+  const out: string[] = [];
+  for (const [sku, stack] of menuHistory) {
+    if (stack.length > 0) out.push(sku);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

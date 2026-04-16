@@ -9,7 +9,7 @@ export type SlideInfo = {
 /**
  * The 26-slide workshop arc (~1 hour).
  *
- * Act I — Setup (1–5): cold open, happy-path demo, code, three verbs, workshop map.
+ * Act I — Setup (1–5): cold open, happy-path demo, code, reliability requirements, workshop map.
  * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
  * Act III — Pivot (15): workflows → agents.
  * Act IV — First agent (16–18): demo (F5 proof), workflow code, pattern.
@@ -39,7 +39,7 @@ export const SLIDES: SlideInfo[] = [
   },
   {
     slug: "three-verbs",
-    title: "Three Verbs",
+    title: "Reliable Software",
     number: 4,
     notes: "POINT at the three verbs: \"For each one, I'm going to ask — what do you do now?\"",
   },
@@ -78,21 +78,21 @@ export const SLIDES: SlideInfo[] = [
   // --- Slow restaurant ---
   {
     slug: "suspend/demo",
-    title: "Slow Restaurant · Demo",
+    title: "The Suspend · Demo",
     number: 9,
     breadcrumb: "suspend / demo",
-    notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
+    notes: "PRESS r. It pauses at pingRestaurant. Click 'Accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
   },
   {
     slug: "suspend/solution",
-    title: "Slow Restaurant · Workflow Code",
+    title: "The Suspend · Workflow Code",
     number: 10,
     breadcrumb: "suspend / solution",
     notes: "SAY: \"createWebhook. One line gives you a URL. That URL goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom route, no resume worker.\"",
   },
   {
     slug: "suspend/pattern",
-    title: "Slow Restaurant · Pattern",
+    title: "The Suspend · Pattern",
     number: 11,
     breadcrumb: "suspend / pattern",
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
@@ -101,21 +101,21 @@ export const SLIDES: SlideInfo[] = [
   // --- Dispute (driver refuses) ---
   {
     slug: "rollback/demo",
-    title: "Dispute · Demo",
+    title: "The Rollback · Demo",
     number: 12,
     breadcrumb: "rollback / demo",
     notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
   },
   {
     slug: "rollback/solution",
-    title: "Dispute · Workflow Code",
+    title: "The Rollback · Workflow Code",
     number: 13,
     breadcrumb: "rollback / solution",
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
     slug: "rollback/pattern",
-    title: "Dispute · Pattern",
+    title: "The Rollback · Pattern",
     number: 14,
     breadcrumb: "rollback / pattern",
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
@@ -185,29 +185,29 @@ export const SLIDES: SlideInfo[] = [
     title: "Analyst · Demo",
     number: 22,
     breadcrumb: "analyst / demo",
-    notes: "PRESS r. The analyst reaches a decision point and pauses for human approval.\n\nSAY: \"An agent that waits for you. Mid-task, it asks a human. Then picks up exactly where it left off.\"",
+    notes: "POINT at the phone — it IS the operator surface. Live menu up top, suggestion chips, text input, Reset and Undo at the bottom. The big panel to the left is a read-only record of what the agent and operator are doing together.\n\nTAP \"What's going wrong?\" on the phone. The analyst queries orders, proposes a menu change, and suspends on requestApproval. Phone glows amber and flips to the approval card: sku, item name, price → price, rationale.\n\nTAP Approve. An emerald dashed \"operator approved\" pill lands in the unified history column, right between requestApproval and applyMenuChange. Menu on the phone updates live — the affected item dims and picks up a hidden badge. Phone returns to idle. \"Undo previous (1)\" now lights up fuchsia.\n\nTAP a suggestion chip again or type a new question. Agent proposes another change and suspends. Approval card now also offers an Undo… button.\n\nTAP Undo previous. Checklist slides in over the phone. CHECK one or more applied changes → TAP Roll back. A fuchsia dashed \"operator requested undo\" pill lands in the history, the current approval clears, a synthetic user turn reaches the agent, and one fuchsia rollbackMenuChange pill drops for every sku.\n\nSAY: \"One phone. One history. The agent and the operator both write to the same timeline — approve, continue, undo, any decision, any time.\"",
   },
   {
     slug: "analyst/solution",
     title: "Analyst · Workflow Code",
     number: 23,
     breadcrumb: "analyst / solution",
-    notes: "SAY: \"Define the hook once, call .create() inside a workflow-level tool. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
+    notes: "THIS IS THE RECAP. Point at each verb in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nRETRY — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent in Act II.\n\nSUSPEND — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nROLLBACK — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nRetry, suspend, rollback. Three primitives, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (retry), 19 (suspend), 25 (rollback).",
   },
   {
     slug: "analyst/pattern",
     title: "Analyst · Pattern",
     number: 24,
     breadcrumb: "analyst / pattern",
-    notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with a hook defined via defineHook — create and await it in a workflow-level tool. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"Human-in-the-Loop Agent pattern. A DurableAgent plus a handful of workflow-level tools. One hook — created and awaited inside requestApproval — gates every change behind a human tap. A separate rollback tool stands by; the operator can point the agent at any prior applied change, any turn, and the agent calls that tool to compensate.\n\nSame primitives the workflow slides opened with — suspend and rollback — now running inside an agent loop. The operator never talks to the server directly; they talk to the agent, and the agent owns every write.\"\n\nPOINT at the URL.",
   },
 
   // ─── Act VII · Close ───────────────────────────────────────
   {
     slug: "the-mirror",
-    title: "The Mirror",
+    title: "The Payoff",
     number: 25,
-    notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"Left side: a workflow. Right side: an agent. Same primitives. Same durability model. One mental model for every long-running thing you build.\"\n\nPAUSE.",
+    notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"That's how you build reliable agents.\"\n\nPAUSE.\n\nPOINT at each pill in turn:\n- RETRY: \"Agents that survive. Streams reconnect. Tool calls replay.\"\n- SUSPEND: \"Agents that wait. Pause for a human, pick up where you left off.\"\n- ROLLBACK: \"Agents that undo. Compensations unwind the loop.\"\n\nSAY: \"Same three verbs you already learned. One SDK.\"",
   },
   {
     slug: "close",

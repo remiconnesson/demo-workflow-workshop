@@ -8,7 +8,6 @@ export default function RollbackDemoSlide() {
       slide="rollback"
       eyebrow="12a · The dispute"
       {...scenarioGroups["rollback"]}
-      subcopy="A post-delivery hook lets any stakeholder unwind the saga — every prior compensation fires in reverse."
       scenario={slideScenarios.saga}
       allowDispute
     />

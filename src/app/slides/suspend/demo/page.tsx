@@ -8,9 +8,8 @@ export default function SuspendDemoSlide() {
       slide="suspend"
       eyebrow="06a · The slow restaurant"
       {...scenarioGroups["suspend"]}
-      subcopy="When the kitchen stays silent, the workflow suspends on a hook — hours or days — and resumes the moment a human replies."
       scenario={slideScenarios.approvalGate}
-      highlightSteps={["notifyRestaurant"]}
+      highlightSteps={["pingRestaurant"]}
     />
   );
 }

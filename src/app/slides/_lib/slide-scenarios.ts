@@ -12,7 +12,7 @@ const BASE_INPUT = {
 
 const AUTO_FINISH_AFTER_RESTAURANT = [
   {
-    step: "assignDriver" as const,
+    step: "findDriver" as const,
     delayMs: 400,
     body: { kind: "driver-accept" as const, accepted: true },
   },
@@ -45,7 +45,7 @@ export const slideScenarios = {
     autoStart: false,
     input: {
       ...BASE_INPUT,
-      failAt: "chargePaymentRetryable" as const,
+      failAt: "chargeCardRetryable" as const,
       autoAck: true,
     },
   },
@@ -91,12 +91,12 @@ export const slideScenarios = {
     input: { ...BASE_INPUT, failAt: null, autoAck: false },
     scriptedResumes: [
       {
-        step: "notifyRestaurant" as const,
+        step: "pingRestaurant" as const,
         delayMs: 500,
         body: { kind: "restaurant-accept" as const, accepted: true },
       },
       {
-        step: "assignDriver" as const,
+        step: "findDriver" as const,
         delayMs: 500,
         body: { kind: "driver-accept" as const, accepted: false },
       },
@@ -114,13 +114,13 @@ export const slideScenarios = {
     scenarioId: "replay-probe",
     title: "Earlier work is not repeated",
     subtitle:
-      "A real retry is injected immediately before assignDriver.",
+      "A real retry is injected immediately before findDriver.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
       failAt: null,
       autoAck: true,
-      demoMode: "replayProbeBeforeAssignDriver" as const,
+      demoMode: "replayProbeBeforeFindDriver" as const,
     },
   },
   naive: {
@@ -133,7 +133,7 @@ export const slideScenarios = {
       ...BASE_INPUT,
       failAt: null,
       autoAck: true,
-      demoMode: "replayProbeBeforeAssignDriver" as const,
+      demoMode: "replayProbeBeforeFindDriver" as const,
     },
   },
   directives: {
@@ -145,7 +145,7 @@ export const slideScenarios = {
       ...BASE_INPUT,
       failAt: null,
       autoAck: true,
-      demoMode: "replayProbeBeforeAssignDriver" as const,
+      demoMode: "replayProbeBeforeFindDriver" as const,
     },
   },
   errorsFatal: {
@@ -155,7 +155,7 @@ export const slideScenarios = {
     autoStart: false,
     input: {
       ...BASE_INPUT,
-      failAt: "notifyRestaurant" as const,
+      failAt: "pingRestaurant" as const,
       autoAck: true,
     },
   },
@@ -168,7 +168,7 @@ export const slideScenarios = {
       ...BASE_INPUT,
       failAt: null,
       autoAck: true,
-      demoMode: "chargePaymentUnhandledOnce" as const,
+      demoMode: "chargeCardUnhandledOnce" as const,
     },
   },
   naiveDoubleCharge: {
@@ -225,7 +225,7 @@ export const slideScenarios = {
     scenarioId: "timeout-race",
     title: "Driver timeout wins the race",
     subtitle:
-      "Restaurant accepts, driver never responds, timeout fires on-stage.",
+      "Restaurant responds, driver never shows up, timeout fires on-stage.",
     autoStart: false,
     input: {
       ...BASE_INPUT,
@@ -235,11 +235,11 @@ export const slideScenarios = {
     },
     scriptedResumes: [
       {
-        step: "notifyRestaurant" as const,
+        step: "pingRestaurant" as const,
         delayMs: 300,
         body: { kind: "restaurant-accept" as const, accepted: true },
       },
     ],
-    silentWaitingSteps: ["assignDriver"],
+    silentWaitingSteps: ["findDriver"],
   },
 } satisfies Record<string, OrderRunScenario>;

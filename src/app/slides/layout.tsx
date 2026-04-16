@@ -67,6 +67,21 @@ export default function SlidesLayout({
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPickerOpen(false);
+      }
+
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const isEditable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        !!target?.isContentEditable;
+      if (isEditable) return;
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       if (e.key === "ArrowRight" && next) {
         e.preventDefault();
         router.push(`/slides/${next.slug}`);
@@ -93,18 +108,14 @@ export default function SlidesLayout({
           new CustomEvent("slide:reset", { detail: { slug } }),
         );
       }
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (e.key === "g" && tag !== "INPUT" && tag !== "TEXTAREA" && !(e.target as HTMLElement)?.isContentEditable) {
+      if (e.key === "g") {
         e.preventDefault();
         setPickerOpen((v) => !v);
-      }
-      if (e.key === "Escape") {
-        setPickerOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [prev, next, router]);
+  }, [prev, next, router, slug]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
@@ -194,7 +205,7 @@ export default function SlidesLayout({
 
       {/* debug drawer — always open when a run is active */}
       {runInfo && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">
             <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
           </div>

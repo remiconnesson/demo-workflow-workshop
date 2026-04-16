@@ -67,6 +67,9 @@ export function FirstAgentDemoPane() {
     transport,
   });
 
+  const [draft, setDraft] = useState(PRESET_PROMPT);
+  const [hasSentFirst, setHasSentFirst] = useState(false);
+
   const isWorking = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
 
@@ -105,7 +108,11 @@ export function FirstAgentDemoPane() {
 
   function handleSend() {
     if (isWorking) return;
-    sendMessage({ text: PRESET_PROMPT });
+    const text = draft.trim();
+    if (!text) return;
+    sendMessage({ text });
+    setDraft("");
+    setHasSentFirst(true);
   }
 
   function handleReset() {
@@ -158,20 +165,31 @@ export function FirstAgentDemoPane() {
         </div>
 
         <div className="flex items-center justify-between gap-4 border-t border-white/10 px-8 py-6">
-          <div className="flex-1 rounded-xl border border-white/10 bg-black px-5 py-4 font-sans text-lg text-zinc-400">
-            {PRESET_PROMPT}
-          </div>
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
+            placeholder="Ask the agent…"
+            disabled={isWorking}
+            className="flex-1 rounded-xl border border-white/10 bg-black px-5 py-4 font-sans text-lg text-white placeholder:text-zinc-600 focus:border-white/30 focus:outline-none disabled:opacity-50"
+          />
           <button
             type="button"
             onClick={handleSend}
-            disabled={isWorking || hasMessages}
+            disabled={isWorking || draft.trim().length === 0}
             className={`rounded-xl px-8 py-4 text-lg font-semibold transition-all ${
-              isWorking || hasMessages
+              isWorking || draft.trim().length === 0
                 ? "bg-white/60 text-black/60 cursor-not-allowed opacity-40"
                 : "bg-white text-black hover:bg-zinc-200"
             }`}
           >
-            Open ticket
+            {hasSentFirst || hasMessages ? "Send" : "Open ticket"}
           </button>
         </div>
       </div>
@@ -319,7 +337,7 @@ function MessagePart({ part }: { part: MessagePart }) {
   if (!part) return null;
   if (part.type === "text") {
     return (
-      <p className="whitespace-pre-wrap text-2xl leading-[1.35] text-zinc-100">
+      <p className="whitespace-pre-wrap text-lg leading-[1.4] text-zinc-100">
         {part.text}
       </p>
     );
@@ -331,7 +349,7 @@ function MessagePart({ part }: { part: MessagePart }) {
       state === "output-available" || state === "output-error";
     return (
       <div
-        className={`flex items-center gap-3 rounded-xl border px-4 py-3 font-mono text-base ${
+        className={`flex items-center gap-3 rounded-xl border px-4 py-3 font-mono text-sm ${
           done
             ? "border-emerald-500/30 bg-emerald-500/5 text-emerald-300"
             : "border-sky-500/40 bg-sky-500/10 text-sky-200"

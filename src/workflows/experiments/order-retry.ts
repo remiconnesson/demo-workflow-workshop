@@ -78,7 +78,7 @@ async function chargeCustomer({
   };
 }
 
-async function notifyRestaurant({
+async function pingRestaurant({
   orderId,
   restaurant,
 }: {
@@ -111,7 +111,7 @@ export async function orderRetryAgentWorkflow() {
       "Delivery address: '1455 Market St, San Francisco'.",
       "Your job: (1) validate the delivery address using validateDeliveryAddress,",
       "(2) charge the customer via chargeCustomer for the exact amount,",
-      "(3) notify the restaurant via notifyRestaurant.",
+      "(3) notify the restaurant via pingRestaurant.",
       "Call each tool exactly once. After the three tools complete, reply with",
       "a single short sentence confirming the order is on its way. Do not",
       "mention any internal errors or retries in your final message — the",
@@ -135,13 +135,13 @@ export async function orderRetryAgentWorkflow() {
         }),
         execute: chargeCustomer,
       },
-      notifyRestaurant: {
+      pingRestaurant: {
         description: "Send the order ticket to the restaurant's kitchen.",
         inputSchema: z.object({
           orderId: z.string(),
           restaurant: z.string(),
         }),
-        execute: notifyRestaurant,
+        execute: pingRestaurant,
       },
     },
   });

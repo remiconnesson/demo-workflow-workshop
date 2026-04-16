@@ -12,7 +12,7 @@ import { useCallback, useRef, useState } from "react";
 //
 // The suspend lands via a single amber glow panel and a "Waiting on human"
 // pill. The resume lands as that panel flipping to emerald and the
-// downstream tool (reassignDriver or holdAssignment) lighting up. No
+// downstream tool (refindDriver or holdAssignment) lighting up. No
 // scrolling log — one status line, one hero state.
 // ---------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ type ToolKey =
   | "readDriverDispute"
   | "listAvailableDriversExcluding"
   | "requestReassignApproval"
-  | "reassignDriver"
+  | "refindDriver"
   | "holdAssignment";
 
 type ToolState =
@@ -37,7 +37,7 @@ const INITIAL: AllTools = {
   readDriverDispute: { phase: "idle" },
   listAvailableDriversExcluding: { phase: "idle" },
   requestReassignApproval: { phase: "idle" },
-  reassignDriver: { phase: "idle" },
+  refindDriver: { phase: "idle" },
   holdAssignment: { phase: "idle" },
 };
 
@@ -58,8 +58,8 @@ const TOOL_LABELS: Record<ToolKey, { title: string; subtitle: string }> = {
     title: "requestReassignApproval",
     subtitle: "Suspend — await dispatcher",
   },
-  reassignDriver: {
-    title: "reassignDriver",
+  refindDriver: {
+    title: "refindDriver",
     subtitle: "Hand-off to new driver",
   },
   holdAssignment: {
@@ -324,7 +324,7 @@ export default function DispatchSuspendPage() {
             state={tools.requestReassignApproval}
             accent="amber"
           />
-          <ToolCard toolKey="reassignDriver" state={tools.reassignDriver} />
+          <ToolCard toolKey="refindDriver" state={tools.refindDriver} />
           <ToolCard toolKey="holdAssignment" state={tools.holdAssignment} />
         </div>
       </div>
@@ -338,7 +338,7 @@ function isToolKey(x: string): x is ToolKey {
     x === "readDriverDispute" ||
     x === "listAvailableDriversExcluding" ||
     x === "requestReassignApproval" ||
-    x === "reassignDriver" ||
+    x === "refindDriver" ||
     x === "holdAssignment"
   );
 }
@@ -349,14 +349,14 @@ function statusFor(key: ToolKey, phase: "running" | "done"): string {
     if (key === "readDriverDispute") return "Reading driver dispute…";
     if (key === "listAvailableDriversExcluding")
       return "Scanning SOMA for reroute candidates…";
-    if (key === "reassignDriver") return "Reassigning driver…";
+    if (key === "refindDriver") return "Reassigning driver…";
     if (key === "holdAssignment") return "Holding original assignment…";
     return "…";
   }
   if (key === "getCurrentAssignment") return "Assignment located.";
   if (key === "readDriverDispute") return "Dispute read.";
   if (key === "listAvailableDriversExcluding") return "Candidate found.";
-  if (key === "reassignDriver") return "Reassigned.";
+  if (key === "refindDriver") return "Reassigned.";
   if (key === "holdAssignment") return "Held.";
   return "ok";
 }
@@ -378,7 +378,7 @@ function summarize(key: ToolKey, output?: Record<string, unknown>): string {
       (first.name as string) ?? "—"
     }`;
   }
-  if (key === "reassignDriver") {
+  if (key === "refindDriver") {
     const name = (output.toDriverName as string) ?? "driver";
     const eta = (output.etaMin as number) ?? 0;
     return `${name} · ETA ${eta}m`;

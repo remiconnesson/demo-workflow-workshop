@@ -57,6 +57,7 @@ export default function RollbackFixSlide() {
         tabs: [
           {
             filename: "saga.ts",
+            tone: "fuchsia",
             highlightLines: {
               5: "Each successful step [pushes its own undo](https://workflow-sdk.dev/docs/foundations/common-patterns) — if anything fails later, **this runs**",
               8: "",
@@ -69,10 +70,10 @@ try {
   await reserveInventory(orderId)
   rollbacks.push(() => releaseInventory(orderId))
 
-  await chargePayment(orderId)
+  await chargeCard(orderId)
   rollbacks.push(() => refundPayment(orderId))
 
-  await notifyRestaurant(orderId)
+  await pingRestaurant(orderId)
   rollbacks.push(() => cancelRestaurantOrder(orderId))
 
   // ... dispute hook throws here

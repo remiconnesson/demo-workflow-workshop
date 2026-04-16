@@ -8,9 +8,8 @@ export default function RetryDemoSlide() {
       slide="retry"
       eyebrow="05a · The retry"
       {...scenarioGroups["retry"]}
-      subcopy="A flaky charge is where idempotency earns its keep — the workflow retries the step without double-billing the customer."
       scenario={slideScenarios.naiveDoubleCharge}
-      highlightSteps={["chargePayment"]}
+      highlightSteps={["chargeCard"]}
     />
   );
 }

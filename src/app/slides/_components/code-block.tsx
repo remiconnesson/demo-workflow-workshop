@@ -36,18 +36,41 @@ function formatTip(text: string): string {
   return result;
 }
 
-/** Wrap each line in a div, applying a highlight style + optional tooltip child. */
+/**
+ * Split optional `LABEL:: body` prefix. Labels become a small-caps eyebrow
+ * above the tooltip body ("CONCEPT", "WHY", "DOCS"…). Omitting the prefix
+ * renders the tooltip without an eyebrow — existing call sites are unchanged.
+ */
+function splitEyebrow(raw: string): { label: string | null; body: string } {
+  const match = raw.match(/^\s*([A-Z][A-Z0-9 _-]{1,20})::\s*([\s\S]+)$/);
+  if (!match) return { label: null, body: raw };
+  return { label: match[1].trim(), body: match[2] };
+}
+
+/** Wrap each line in a div, applying a highlight style + optional tooltip child.
+ *
+ * Tooltips default to "popping up" above the highlighted line. For lines near
+ * the top of the block (first 3), we flip the tooltip below so it isn't
+ * clipped by the editor chrome / container top edge. */
 function wrapLines(html: string, highlightLines?: Record<number, string>): string {
   if (!highlightLines || Object.keys(highlightLines).length === 0) return html;
   const lines = html.split("<br>");
+  const FLIP_DOWN_BEFORE_LINE = 4; // lines 1..3 flip below
   return lines
     .map((line, i) => {
-      const tooltip = highlightLines[i + 1];
+      const lineNumber = i + 1;
+      const tooltip = highlightLines[lineNumber];
       if (tooltip === undefined) return `<div>${line}</div>`;
-      const tip = tooltip
-        ? `<div class="code-hl-tip">${formatTip(tooltip)}</div>`
+      if (!tooltip) return `<div class="code-hl">${line}</div>`;
+      const flip = lineNumber < FLIP_DOWN_BEFORE_LINE;
+      const tipClass = flip ? "code-hl-tip code-hl-tip--below" : "code-hl-tip";
+      const hlClass = flip ? "code-hl code-hl--flip" : "code-hl";
+      const { label, body } = splitEyebrow(tooltip);
+      const eyebrow = label
+        ? `<div class="code-hl-tip-eyebrow">${label}</div>`
         : "";
-      return `<div class="code-hl">${line}${tip}</div>`;
+      const tip = `<div class="${tipClass}">${eyebrow}<div class="code-hl-tip-body">${formatTip(body)}</div></div>`;
+      return `<div class="${hlClass}">${line}${tip}</div>`;
     })
     .join("");
 }

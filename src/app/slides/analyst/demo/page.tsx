@@ -13,7 +13,7 @@ function AnalystDemoSurface() {
   const [debugEvents, setDebugEvents] = useState<AnalystDebugEvent[]>([]);
 
   return (
-    <div className="grid h-full w-full grid-cols-[1fr_320px] gap-8">
+    <div className="grid h-full w-full grid-cols-[1fr_420px] gap-8">
       <div className="min-h-0">
         <AnalystChatPane
           onRunIdChange={setDebugRunId}
@@ -39,8 +39,7 @@ export default function AgentAnalystDemoSlide() {
     <DemoSlideLayout
       slide="agent-analyst"
       eyebrow={group.eyebrow}
-      headline="Ask the ops question. Watch the agent answer."
-      subcopy="Every tool call streams through an approval hook before the agent touches anything that costs money or writes to production."
+      headline="...an Agent that needs undo?"
       rightPanel={<AnalystDemoSurface />}
     />
   );

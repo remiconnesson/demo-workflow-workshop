@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Types — the three tools the agent will call, in order.
 // ---------------------------------------------------------------------------
 
-type StepId = "validateDeliveryAddress" | "chargeCustomer" | "notifyRestaurant";
+type StepId = "validateDeliveryAddress" | "chargeCustomer" | "pingRestaurant";
 
 type StepStatus = "idle" | "running" | "retrying" | "succeeded" | "failed";
 
@@ -40,7 +40,7 @@ const INITIAL_STEPS: StepState[] = [
     attempts: [],
   },
   {
-    id: "notifyRestaurant",
+    id: "pingRestaurant",
     label: "Notify Burger Barn",
     sublabel: "kitchen ticket dispatch",
     status: "idle",
@@ -218,7 +218,7 @@ export default function OrderRetryPage() {
             enqueue(() => playValidateRetry());
           } else if (name === "chargeCustomer") {
             enqueue(() => playOneShot(name, "auth · $12.50 on card •••4242"));
-          } else if (name === "notifyRestaurant") {
+          } else if (name === "pingRestaurant") {
             enqueue(() => playOneShot(name, "ticket sent to Burger Barn"));
           }
         } else if (chunk.type === "text-delta") {

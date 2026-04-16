@@ -5,11 +5,11 @@ import type { ScenarioGroupSlug } from "../_data/scenario-groups";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={16} strokeWidth={2.5} />,
-  chargePayment: <CreditCard size={16} strokeWidth={2.5} />,
-  notifyRestaurant: <ChefHat size={16} strokeWidth={2.5} />,
-  assignDriver: <Bike size={16} strokeWidth={2.5} />,
+  chargeCard: <CreditCard size={16} strokeWidth={2.5} />,
+  pingRestaurant: <ChefHat size={16} strokeWidth={2.5} />,
+  findDriver: <Bike size={16} strokeWidth={2.5} />,
   trackDelivery: <MapPin size={16} strokeWidth={2.5} />,
-  sendReceipt: <Receipt size={16} strokeWidth={2.5} />,
+  sendReceipts: <Receipt size={16} strokeWidth={2.5} />,
 };
 
 type BadgeTone = "red" | "amber" | "fuchsia" | "sky";
@@ -26,13 +26,13 @@ const TONE_CLASS: Record<BadgeTone, string> = {
 // same tone as the live badge in LiveOrderConceptLab, frozen for naive/fix.
 const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
   "retry": {
-    chargePayment: { label: "×2", tone: "red" },
+    chargeCard: { label: "×2", tone: "red" },
   },
   "suspend": {
-    notifyRestaurant: { label: "waiting…", tone: "amber" },
+    pingRestaurant: { label: "waiting…", tone: "amber" },
   },
   "rollback": {
-    sendReceipt: { label: "disputed", tone: "fuchsia" },
+    sendReceipts: { label: "disputed", tone: "fuchsia" },
   },
 };
 
@@ -66,8 +66,8 @@ export function FinishedTimelineStrip({
         {/* Connecting line — behind nodes, clipped by node backgrounds */}
         <div className="pointer-events-none absolute left-8 right-8 top-[18px] h-px bg-white/15" />
         {ORDER_STEPS.map((step) => {
-          const dimmed = highlightSteps && !highlightSteps.includes(step.id) && !badge;
           const badge = badges[step.id];
+          const dimmed = highlightSteps && !highlightSteps.includes(step.id) && !badge;
           return (
             <div
               key={step.id}

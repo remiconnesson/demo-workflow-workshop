@@ -2,16 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ORDER_STEPS, type SlideStepState, type CompensationAction } from "@/lib/order-contract";
-import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt, Undo2 } from "lucide-react";
 import type { OrderStepId } from "@/lib/order-contract";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={24} strokeWidth={2.5} />,
-  chargePayment: <CreditCard size={24} strokeWidth={2.5} />,
-  notifyRestaurant: <ChefHat size={24} strokeWidth={2.5} />,
-  assignDriver: <Bike size={24} strokeWidth={2.5} />,
+  chargeCard: <CreditCard size={24} strokeWidth={2.5} />,
+  pingRestaurant: <ChefHat size={24} strokeWidth={2.5} />,
+  findDriver: <Bike size={24} strokeWidth={2.5} />,
   trackDelivery: <MapPin size={24} strokeWidth={2.5} />,
-  sendReceipt: <Receipt size={24} strokeWidth={2.5} />,
+  sendReceipts: <Receipt size={24} strokeWidth={2.5} />,
 };
 import {
   useOrderRun,
@@ -57,6 +57,14 @@ const ALL_COMPENSATIONS: CompensationAction[] = [
   "cancelRestaurantOrder",
   "releaseDriver",
 ];
+
+// Which step each compensation unwinds — drives the fuchsia "undone" treatment
+// on the main timeline (circle color + compensation-name affordance).
+const COMPENSATION_FOR_STEP: Partial<Record<OrderStepId, CompensationAction>> = {
+  chargeCard: "refundPayment",
+  pingRestaurant: "cancelRestaurantOrder",
+  findDriver: "releaseDriver",
+};
 
 const GLOW_STYLE: Record<SlideStepState, string> = {
   pending: "bg-transparent",
@@ -111,12 +119,12 @@ export function LiveOrderConceptLab({
 
   // Count chargePayment successes — naiveDoubleCharge emits step_succeeded twice.
   const chargeCount = controller.events.reduce(
-    (n, e) => (e.type === "step_succeeded" && e.step === "chargePayment" ? n + 1 : n),
+    (n, e) => (e.type === "step_succeeded" && e.step === "chargeCard" ? n + 1 : n),
     0,
   );
   // Count chargePayment failures — naiveDoubleCharge emits step_failed on attempt 1.
   const chargeFailed = controller.events.some(
-    (e) => e.type === "step_failed" && e.step === "chargePayment",
+    (e) => e.type === "step_failed" && e.step === "chargeCard",
   );
 
   const compensationFired = controller.compensations.length > 0;
@@ -178,16 +186,16 @@ export function LiveOrderConceptLab({
         const badges: Badge[] = [];
         if (chargeFailed) badges.push({ label: "$", tone: "red" });
         if (chargeCount >= 2) badges.push({ label: "$", tone: "emerald" });
-        return badges.length > 0 ? { chargePayment: badges } : {};
+        return badges.length > 0 ? { chargeCard: badges } : {};
       }
       case "suspend":
-        if (controller.waitingOn === "notifyRestaurant") {
-          return { notifyRestaurant: [{ label: "waiting", tone: "amber", pulse: true }] };
+        if (controller.waitingOn === "pingRestaurant") {
+          return { pingRestaurant: [{ label: "waiting", tone: "amber", pulse: true }] };
         }
         return {};
       case "rollback":
         if (compensationFired || phase === "rolled_back") {
-          return { sendReceipt: [{ label: "disputed", tone: "fuchsia", pulse: true }] };
+          return { sendReceipts: [{ label: "disputed", tone: "fuchsia", pulse: true }] };
         }
         return {};
       default:
@@ -314,10 +322,14 @@ export function LiveOrderConceptLab({
         {showManualControls ? (
           <div className="flex items-center gap-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3">
             <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300 whitespace-nowrap">
-              Waiting on Restaurant
+              {controller.waitingOn === "pingRestaurant"
+                ? "Waiting on restaurant"
+                : controller.waitingOn === "findDriver"
+                  ? "Waiting on driver"
+                  : "Waiting on delivery"}
             </div>
             <div className="flex flex-wrap gap-3">
-              {controller.waitingOn === "notifyRestaurant" ? (
+              {controller.waitingOn === "pingRestaurant" ? (
                 <>
                   <button
                     onClick={() =>
@@ -344,7 +356,7 @@ export function LiveOrderConceptLab({
                   </button>
                 </>
               ) : null}
-              {controller.waitingOn === "assignDriver" ? (
+              {controller.waitingOn === "findDriver" ? (
                 <>
                   <button
                     onClick={() =>
@@ -355,7 +367,7 @@ export function LiveOrderConceptLab({
                     }
                     className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
                   >
-                    Driver accept
+                    Accept
                   </button>
                   <button
                     onClick={() =>
@@ -366,7 +378,7 @@ export function LiveOrderConceptLab({
                     }
                     className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
                   >
-                    Driver reject
+                    Decline
                   </button>
                 </>
               ) : null}
@@ -535,6 +547,11 @@ export function LiveOrderConceptLab({
         {ORDER_STEPS.map((step) => {
           const state = controller.stepState[step.id] ?? "pending";
           const dimmed = highlightSteps && !highlightSteps.includes(step.id);
+          const compensationAction = COMPENSATION_FOR_STEP[step.id as OrderStepId];
+          const compensated =
+            showCompensations &&
+            !!compensationAction &&
+            controller.compensations.includes(compensationAction);
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
@@ -563,13 +580,24 @@ export function LiveOrderConceptLab({
                     </div>
                   );
                 })()}
-                {/* Glow layer — always in DOM, visibility via bg color */}
-                <div className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${GLOW_STYLE[state]}`} />
-                {/* Node */}
+                {/* Glow layer — always in DOM, visibility via bg color.
+                    When compensated, swap to a fuchsia pulse to signal "unwinding". */}
                 <div
-                  className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold transition-all duration-500 ${STATE_STYLE[state]}`}
+                  className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${
+                    compensated ? "bg-fuchsia-400/40 animate-pulse" : GLOW_STYLE[state]
+                  }`}
+                />
+                {/* Node — fuchsia compensation skin overrides success white once the undo fires */}
+                <div
+                  className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold transition-all duration-500 ${
+                    compensated
+                      ? "border-fuchsia-400 bg-fuchsia-500/20 text-fuchsia-200"
+                      : STATE_STYLE[state]
+                  }`}
                 >
-                  {state === "success"
+                  {compensated ? (
+                    <Undo2 size={24} strokeWidth={2.5} />
+                  ) : state === "success"
                     ? STEP_ICON[step.id as OrderStepId]
                     : state === "waiting"
                       ? "II"
@@ -582,7 +610,21 @@ export function LiveOrderConceptLab({
                             : "\u00B7"}
                 </div>
               </div>
-              <div className="mt-3 text-lg font-semibold">{step.label}</div>
+              <div
+                className={`mt-3 text-lg font-semibold transition-colors duration-500 ${
+                  compensated ? "text-fuchsia-200 line-through decoration-fuchsia-400/70" : ""
+                }`}
+              >
+                {step.label}
+              </div>
+              {/* compensation name affordance — always reserves a row to prevent CLS */}
+              <div
+                className={`mt-1 font-mono text-sm text-fuchsia-300 transition-opacity duration-300 ${
+                  compensated ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {compensationAction ?? "\u00A0"}
+              </div>
             </div>
           );
         })}
@@ -591,22 +633,7 @@ export function LiveOrderConceptLab({
 
 
       {/* event feed removed — events broadcast to debug drawer via slide:workflow-events */}
-
-      {/* compensations — all slots pre-rendered, fade individually */}
-      {showCompensations && (
-        <div className="mt-6 flex flex-wrap gap-3 min-h-[40px]">
-          {ALL_COMPENSATIONS.map((action) => (
-            <span
-              key={action}
-              className={`rounded-full border border-fuchsia-400/40 bg-black px-4 py-2 font-mono text-sm text-fuchsia-200 transition-opacity duration-300 ${
-                controller.compensations.includes(action) ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {action}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* compensations now render as an "undo timeline" at the top-right of the card */}
 
       {/* error display */}
       <div className={`rounded-xl border p-4 text-sm transition-all duration-300 ${

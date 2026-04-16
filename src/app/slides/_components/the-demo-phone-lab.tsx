@@ -29,11 +29,11 @@ const MENU: MenuItem[] = [
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={28} strokeWidth={2.5} />,
-  chargePayment: <CreditCard size={28} strokeWidth={2.5} />,
-  notifyRestaurant: <ChefHat size={28} strokeWidth={2.5} />,
-  assignDriver: <Bike size={28} strokeWidth={2.5} />,
+  chargeCard: <CreditCard size={28} strokeWidth={2.5} />,
+  pingRestaurant: <ChefHat size={28} strokeWidth={2.5} />,
+  findDriver: <Bike size={28} strokeWidth={2.5} />,
   trackDelivery: <MapPin size={28} strokeWidth={2.5} />,
-  sendReceipt: <Receipt size={28} strokeWidth={2.5} />,
+  sendReceipts: <Receipt size={28} strokeWidth={2.5} />,
 };
 
 const NODE_STYLE: Record<SlideStepState, string> = {

@@ -1,25 +1,27 @@
 import { describe, it, expect } from "vitest";
-import { start, resumeHook } from "workflow/api";
-import { waitForHook } from "@workflow/vitest";
-import { orderWithApprovalWorkflow } from "./02-human-in-the-loop";
+import { start, resumeWebhook } from "workflow/api";
+import { waitForHook, waitForSleep } from "@workflow/vitest";
+import { placeOrder } from "./02-human-in-the-loop";
 
-describe("orderWithApprovalWorkflow", () => {
-  it("should dispatch when restaurant accepts", async () => {
-    const run = await start(orderWithApprovalWorkflow, [{ orderId: "order-1" }]);
+describe("placeOrder", () => {
+  it("should dispatch when restaurant hits the webhook URL", async () => {
+    const run = await start(placeOrder, ["order-1"]);
 
-    await waitForHook(run, { token: "restaurant-accept:order-1" });
-    await resumeHook("restaurant-accept:order-1", { accepted: true });
+    // createWebhook generates a random token — pick up whichever hook is pending
+    const hook = await waitForHook(run);
+    await resumeWebhook(hook.token, new Request("http://test/accept"));
 
     const result = await run.returnValue;
     expect(result).toEqual({ orderId: "order-1", status: "dispatched" });
   });
 
-  it("should throw when restaurant rejects", async () => {
-    const run = await start(orderWithApprovalWorkflow, [{ orderId: "order-2" }]);
+  it("should throw when the 24h sleep wins the race", async () => {
+    const run = await start(placeOrder, ["order-2"]);
 
-    await waitForHook(run, { token: "restaurant-accept:order-2" });
-    await resumeHook("restaurant-accept:order-2", { accepted: false });
+    // Let the sleep fire instead of the webhook
+    const sleepId = await waitForSleep(run);
+    await run.wakeUp({ correlationIds: [sleepId] });
 
-    await expect(run.returnValue).rejects.toThrow("Restaurant rejected the order");
+    await expect(run.returnValue).rejects.toThrow("Restaurant never accepted");
   });
 });

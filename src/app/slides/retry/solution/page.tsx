@@ -7,7 +7,7 @@ export default function RetryFixSlide() {
       slide="retry"
       eyebrow="05c / workflow code"
       {...scenarioGroups["retry"]}
-      filename="chargePayment.ts"
+      filename="chargeCard.ts"
       statusTone="red"
       steps={[
         {
@@ -30,7 +30,7 @@ export default function RetryFixSlide() {
           10: "Stripe sees the [same key](https://workflow-sdk.dev/docs/foundations/idempotency) on retry → returns the original charge, **no double-billing**",
         },
         code: `// if this fails, it runs again
-async function chargePayment(order) {
+async function chargeCard(order) {
   // "use step" marks the durable boundary...
   "use step"
   // ...and getStepMetadata hands you its identity

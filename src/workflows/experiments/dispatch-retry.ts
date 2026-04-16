@@ -123,7 +123,7 @@ async function pingDriverGps({ driverId }: { driverId: string }) {
   };
 }
 
-async function assignDriver({
+async function findDriver({
   driverId,
   orderId,
 }: {
@@ -165,7 +165,7 @@ export async function dispatchRetryWorkflow() {
       "3. Call pingDriverGps on that driver to confirm they are reachable.",
       "   (If the ping flakes, the runtime will retry it transparently — just",
       "    call the tool once and trust the result.)",
-      "4. Call assignDriver with that driver's id and orderId ord-9421.",
+      "4. Call findDriver with that driver's id and orderId ord-9421.",
       "5. Reply with a one-sentence confirmation naming the driver and ETA.",
     ].join(" "),
     tools: {
@@ -180,13 +180,13 @@ export async function dispatchRetryWorkflow() {
         inputSchema: z.object({ driverId: z.string() }),
         execute: pingDriverGps,
       },
-      assignDriver: {
+      findDriver: {
         description: "Assign a driver to an order and return ETA in minutes.",
         inputSchema: z.object({
           driverId: z.string(),
           orderId: z.string(),
         }),
-        execute: assignDriver,
+        execute: findDriver,
       },
     },
   });

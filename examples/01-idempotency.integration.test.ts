@@ -5,7 +5,7 @@ import { chargeOnceWorkflow } from "./01-idempotency";
 describe("chargeOnceWorkflow", () => {
   it("should return orderId and a stable paymentId", async () => {
     const run = await start(chargeOnceWorkflow, [
-      { orderId: "order-1", amount: 1999 },
+      { orderId: "order-1", total: 1999 },
     ]);
     const result = await run.returnValue;
 

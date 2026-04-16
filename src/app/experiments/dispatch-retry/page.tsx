@@ -16,7 +16,7 @@ import { useCallback, useRef, useState } from "react";
 // badge. A single status line fades between states — no scrolling log.
 // ---------------------------------------------------------------------------
 
-type ToolKey = "listAvailableDrivers" | "pingDriverGps" | "assignDriver";
+type ToolKey = "listAvailableDrivers" | "pingDriverGps" | "findDriver";
 
 type ToolState =
   | { phase: "idle" }
@@ -29,7 +29,7 @@ type AllTools = Record<ToolKey, ToolState>;
 const INITIAL: AllTools = {
   listAvailableDrivers: { phase: "idle" },
   pingDriverGps: { phase: "idle" },
-  assignDriver: { phase: "idle" },
+  findDriver: { phase: "idle" },
 };
 
 const TOOL_LABELS: Record<ToolKey, { title: string; subtitle: string }> = {
@@ -41,8 +41,8 @@ const TOOL_LABELS: Record<ToolKey, { title: string; subtitle: string }> = {
     title: "pingDriverGps",
     subtitle: "Confirm driver reachability",
   },
-  assignDriver: {
-    title: "assignDriver",
+  findDriver: {
+    title: "findDriver",
     subtitle: "Lock the driver to the order",
   },
 };
@@ -225,7 +225,7 @@ export default function DispatchRetryPage() {
         <div className="grid grid-cols-3 gap-6">
           <ToolCard toolKey="listAvailableDrivers" state={tools.listAvailableDrivers} />
           <ToolCard toolKey="pingDriverGps" state={tools.pingDriverGps} retryCount={retryCount} />
-          <ToolCard toolKey="assignDriver" state={tools.assignDriver} />
+          <ToolCard toolKey="findDriver" state={tools.findDriver} />
         </div>
 
         <RetryExplainer retryCount={retryCount} pingState={tools.pingDriverGps} />
@@ -238,7 +238,7 @@ function isToolKey(x: string): x is ToolKey {
   return (
     x === "listAvailableDrivers" ||
     x === "pingDriverGps" ||
-    x === "assignDriver"
+    x === "findDriver"
   );
 }
 
@@ -264,7 +264,7 @@ function summarize(key: ToolKey, output?: Record<string, unknown>): string {
     const acc = output.accuracyM ?? "?";
     return `${name} · ±${acc}m`;
   }
-  if (key === "assignDriver") {
+  if (key === "findDriver") {
     const name = (output.driverName as string) ?? "driver";
     const eta = (output.etaMin as number) ?? 0;
     return `${name} · ETA ${eta}m`;

@@ -48,13 +48,13 @@ export function AgentDebugDrawer({
           href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}
           target="_blank"
           rel="noreferrer"
-          className="truncate font-mono text-sm text-zinc-400 transition-colors hover:text-white"
+          className="truncate font-mono text-base text-zinc-400 transition-colors hover:text-white"
         >
           <span className="text-zinc-600">$</span> npx workflow inspect run{" "}
           {runId}
         </a>
       ) : (
-        <span className="font-mono text-sm text-zinc-600">
+        <span className="font-mono text-base text-zinc-600">
           <span className="text-zinc-700">$</span> npx workflow inspect run{" "}
           &lt;run_id&gt;
         </span>
@@ -63,7 +63,7 @@ export function AgentDebugDrawer({
       {events.length > 0 && (
         <div
           ref={feedRef}
-          className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-sm"
+          className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-base"
         >
           {events.map((ev, i) => (
             <div key={i} className="flex gap-3 py-0.5">

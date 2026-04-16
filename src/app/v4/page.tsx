@@ -20,21 +20,21 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "VALIDATE_ORDER" },
-  { key: "chargePayment", label: "CHARGE_PAYMENT" },
-  { key: "notifyRestaurant", label: "NOTIFY_RESTAURANT" },
-  { key: "assignDriver", label: "ASSIGN_DRIVER" },
+  { key: "chargeCard", label: "CHARGE_PAYMENT" },
+  { key: "pingRestaurant", label: "NOTIFY_RESTAURANT" },
+  { key: "findDriver", label: "ASSIGN_DRIVER" },
   { key: "trackDelivery", label: "TRACK_DELIVERY" },
-  { key: "sendReceipt", label: "SEND_RECEIPT" },
+  { key: "sendReceipts", label: "SEND_RECEIPT" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string; key: string }[] = [
   { value: null, label: "HAPPY PATH", key: "0" },
   { value: "validateOrder", label: "FAIL AT VALIDATE", key: "1" },
-  { value: "chargePayment", label: "FAIL AT PAYMENT", key: "2" },
-  { value: "notifyRestaurant", label: "FAIL AT RESTAURANT", key: "3" },
-  { value: "assignDriver", label: "FAIL AT DRIVER", key: "4" },
+  { value: "chargeCard", label: "FAIL AT PAYMENT", key: "2" },
+  { value: "pingRestaurant", label: "FAIL AT RESTAURANT", key: "3" },
+  { value: "findDriver", label: "FAIL AT DRIVER", key: "4" },
   { value: "trackDelivery", label: "FAIL AT DELIVERY", key: "5" },
-  { value: "sendReceipt", label: "FAIL AT RECEIPT", key: "6" },
+  { value: "sendReceipts", label: "FAIL AT RECEIPT", key: "6" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -112,9 +112,9 @@ export default function TerminalPage() {
         addLog(`WAITING: ${event.label}`, "warn");
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {
@@ -226,8 +226,18 @@ export default function TerminalPage() {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        !!target?.isContentEditable
+      ) {
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
       const key = e.key.toUpperCase();
-      if (e.target instanceof HTMLInputElement) return;
 
       if (key === "P") placeOrder();
       if (key === "R") reset();

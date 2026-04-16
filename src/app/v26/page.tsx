@@ -7,7 +7,7 @@ const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
 
 type OrderItem = { id: string; name: string; price: number; qty: number };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 type OrderInput = {
   orderId: string;
   customerName: string;
@@ -40,11 +40,11 @@ const MENU_ITEMS = [
 
 const SAGA_STEPS = [
   { id: "validateOrder", label: "VALIDATE ORDER" },
-  { id: "chargePayment", label: "CHARGE PAYMENT" },
-  { id: "notifyRestaurant", label: "NOTIFY RESTAURANT" },
-  { id: "assignDriver", label: "ASSIGN DRIVER" },
+  { id: "chargeCard", label: "CHARGE PAYMENT" },
+  { id: "pingRestaurant", label: "NOTIFY RESTAURANT" },
+  { id: "findDriver", label: "ASSIGN DRIVER" },
   { id: "trackDelivery", label: "TRACK DELIVERY" },
-  { id: "sendReceipt", label: "SEND RECEIPT" },
+  { id: "sendReceipts", label: "SEND RECEIPT" },
 ];
 
 const genId = () => Math.random().toString(36).substring(2, 9).toUpperCase();
@@ -72,9 +72,9 @@ export default function V26Page() {
     const isWaiting = pendingHooks.some((h) => h.step === stepId);
     const isRunning = stepEvents.some((e) => e.type === "step_running") && !isFailed && !isSuccess && !isWaiting && !isSkipped;
     const isRolledBack = events.some((e) => e.type === "compensated" && (
-      (e.action === "refundPayment" && stepId === "chargePayment") ||
-      (e.action === "cancelRestaurantOrder" && stepId === "notifyRestaurant") ||
-      (e.action === "releaseDriver" && stepId === "assignDriver")
+      (e.action === "refundPayment" && stepId === "chargeCard") ||
+      (e.action === "cancelRestaurantOrder" && stepId === "pingRestaurant") ||
+      (e.action === "releaseDriver" && stepId === "findDriver")
     ));
 
     if (isRolledBack) return "ROLLED_BACK";
@@ -94,8 +94,8 @@ export default function V26Page() {
     if (!p) return;
     const timer = setTimeout(() => {
       let kind = "";
-      if (p.step === "notifyRestaurant") kind = "restaurant-accept";
-      if (p.step === "assignDriver") kind = "driver-accept";
+      if (p.step === "pingRestaurant") kind = "restaurant-accept";
+      if (p.step === "findDriver") kind = "driver-accept";
       if (p.step === "trackDelivery") kind = "delivered";
       if (kind) {
         resumeHook(kind, true);
@@ -388,13 +388,13 @@ export default function V26Page() {
                 {/* Hook Controls */}
                 {status === "WAITING" && pendingHooks.find(h => h.step === step.id) && (
                   <div className="ml-auto flex gap-6">
-                    {step.id === "notifyRestaurant" && (
+                    {step.id === "pingRestaurant" && (
                       <>
                         <button onClick={() => resumeHook("restaurant-accept", true)} className="bg-black text-white border-4 border-black px-10 py-5 text-2xl font-bold hover:bg-gray-800 transition-colors uppercase tracking-widest">Accept</button>
                         <button onClick={() => resumeHook("restaurant-accept", false)} className="bg-red-600 text-white border-4 border-red-600 px-10 py-5 text-2xl font-bold hover:bg-red-700 transition-colors uppercase tracking-widest">Reject</button>
                       </>
                     )}
-                    {step.id === "assignDriver" && (
+                    {step.id === "findDriver" && (
                       <>
                         <button onClick={() => resumeHook("driver-accept", true)} className="bg-black text-white border-4 border-black px-10 py-5 text-2xl font-bold hover:bg-gray-800 transition-colors uppercase tracking-widest">Accept</button>
                         <button onClick={() => resumeHook("driver-accept", false)} className="bg-red-600 text-white border-4 border-red-600 px-10 py-5 text-2xl font-bold hover:bg-red-700 transition-colors uppercase tracking-widest">Reject</button>

@@ -36,8 +36,8 @@ export default function RetryPatternSlide() {
       realWorldExamples={[
         "Payment processing",
         "Email delivery",
-        "Webhook dispatch",
-        "Database migrations",
+        "Webhook delivery",
+        "SMS notifications",
         "File uploads to S3",
       ]}
     />

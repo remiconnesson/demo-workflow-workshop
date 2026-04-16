@@ -1,10 +1,12 @@
+// Analyst agent — proposes a menu change, suspends for human approval,
+// then applies or rolls back based on the verdict.
+//
+// Mirrors: /slides/analyst/solution
+
 import { DurableAgent } from "@workflow/ai/agent";
 import { defineHook, getWritable } from "workflow";
 import { z } from "zod";
 import { convertToModelMessages, type UIMessage, type UIMessageChunk } from "ai";
-
-// The pattern: defineHook + DurableAgent. The agent suspends mid-task
-// to wait for human approval, then resumes exactly where it left off.
 
 const approvalHook = defineHook({
   schema: z.object({
@@ -13,55 +15,81 @@ const approvalHook = defineHook({
   }),
 });
 
-// Step-backed tool — durable, replayed on crash
-export async function analyzeData({ query }: { query: string }) {
+export async function queryOrders({ window }: { window: string }) {
   "use step";
-  return { query, finding: "Price is 30% above market average", confidence: 0.92 };
+  return { window, sampleSize: 1200, topMissingItem: "truffle fries" };
+}
+
+export async function proposeMenuChange({ item }: { item: string }) {
+  "use step";
+  return { proposalId: `prop_${item}`, item, action: "add" as const };
+}
+
+export async function applyMenuChange({ proposalId }: { proposalId: string }) {
+  "use step";
+  return { applied: true, proposalId };
+}
+
+export async function rollbackMenuChange({
+  proposalId,
+}: {
+  proposalId: string;
+}) {
+  "use step";
+  return { rolledBack: true, proposalId };
 }
 
 // Workflow-level tool — suspends via hook (no "use step")
-async function requestApproval({ proposalId, summary }: { proposalId: string; summary: string }) {
-  const hook = approvalHook.create({ token: `approval:${proposalId}` });
+async function requestApproval({ proposalId }: { proposalId: string }) {
+  const hook = approvalHook.create({
+    token: `analyst-approval:${proposalId}`,
+  });
   const decision = await hook;
   hook.dispose();
   return { approved: decision.approved, reason: decision.reason ?? null };
 }
 
-// Step-backed tool
-export async function applyChange({ proposalId }: { proposalId: string }) {
-  "use step";
-  return { applied: true, proposalId };
-}
-
-export async function analystWorkflow(messages: UIMessage[]) {
+export async function analystAgentWorkflow(messages: UIMessage[]) {
   "use workflow";
 
   const writable = getWritable<UIMessageChunk>();
 
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
-    instructions: "Analyze data, propose changes, and request approval before applying them.",
+    instructions:
+      "Query orders, propose menu changes, and request approval before applying.",
     tools: {
-      analyzeData: {
-        description: "Analyze data for patterns.",
-        inputSchema: z.object({ query: z.string() }),
-        execute: analyzeData,
+      queryOrders: {
+        description: "Query order history for a time window.",
+        inputSchema: z.object({ window: z.string() }),
+        execute: queryOrders,
+      },
+      proposeMenuChange: {
+        description: "Draft a proposed menu change.",
+        inputSchema: z.object({ item: z.string() }),
+        execute: proposeMenuChange,
       },
       requestApproval: {
         description: "Suspend and ask a human to approve or reject.",
-        inputSchema: z.object({ proposalId: z.string(), summary: z.string() }),
+        inputSchema: z.object({ proposalId: z.string() }),
         execute: requestApproval,
       },
-      applyChange: {
-        description: "Apply an approved change.",
+      applyMenuChange: {
+        description: "Apply an approved proposal.",
         inputSchema: z.object({ proposalId: z.string() }),
-        execute: applyChange,
+        execute: applyMenuChange,
+      },
+      rollbackMenuChange: {
+        description: "Rollback a rejected proposal.",
+        inputSchema: z.object({ proposalId: z.string() }),
+        execute: rollbackMenuChange,
       },
     },
   });
 
   await agent.stream({
-    messages: convertToModelMessages(messages),
+    messages: await convertToModelMessages(messages),
     writable,
+    maxSteps: 12,
   });
 }

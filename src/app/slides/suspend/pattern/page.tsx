@@ -16,8 +16,8 @@ export default function SuspendPatternSlide() {
       markerLabel={markerLabel}
       realWorldExamples={[
         "KYC identity verification",
-        "Manager approval flows",
-        "Waiting on third-party webhooks",
+        "Manager approvals",
+        "Third-party webhook callbacks",
         "Multi-day onboarding sequences",
         "Legal document signing",
       ]}

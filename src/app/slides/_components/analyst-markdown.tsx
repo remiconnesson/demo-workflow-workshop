@@ -6,6 +6,19 @@ type AnalystMarkdownProps = {
   children: string;
 };
 
+/**
+ * The analyst model occasionally emits a bold heading directly after a
+ * sentence-ending period with no newline, e.g. `risk.**Issue identified:**`.
+ * CommonMark renders that inline, so the heading collides with the previous
+ * sentence on stage. Pre-insert a paragraph break for these cases, and also
+ * split bold-heading run-ons (`**Section:** body**Next section:**`).
+ */
+function normalizeMarkdown(source: string): string {
+  return source
+    .replace(/([.!?]) ?\*\*([^*\n]+:)\*\*/g, "$1\n\n**$2**")
+    .replace(/([^\n])\*\*([^*\n]+:)\*\*\s*\n/g, "$1\n\n**$2**\n");
+}
+
 export function AnalystMarkdown({ children }: AnalystMarkdownProps) {
   return (
     <div className="analyst-md text-xl leading-relaxed text-zinc-100">
@@ -138,7 +151,7 @@ export function AnalystMarkdown({ children }: AnalystMarkdownProps) {
           ),
         }}
       >
-        {children}
+        {normalizeMarkdown(children)}
       </Streamdown>
     </div>
   );

@@ -18,7 +18,7 @@ type StepId =
   | "screenForFraud"
   | "stageCharge"
   | "requestOperatorReview"
-  | "notifyRestaurant";
+  | "pingRestaurant";
 
 type StepStatus =
   | "idle"
@@ -70,7 +70,7 @@ const INITIAL_STEPS: StepState[] = [
     note: "",
   },
   {
-    id: "notifyRestaurant",
+    id: "pingRestaurant",
     label: "Notify Burger Barn",
     sublabel: "kitchen ticket dispatch",
     status: "idle",
@@ -189,8 +189,8 @@ export default function OrderSuspendPage() {
               note: "workflow suspended — awaiting operator",
             });
             setRunStatus("suspended");
-          } else if (name === "notifyRestaurant") {
-            patchStep("notifyRestaurant", {
+          } else if (name === "pingRestaurant") {
+            patchStep("pingRestaurant", {
               status: "running",
               note: "ticket dispatch to Burger Barn",
             });
@@ -220,7 +220,7 @@ export default function OrderSuspendPage() {
             });
             setRunStatus("resuming");
             if (!approved) {
-              patchStep("notifyRestaurant", {
+              patchStep("pingRestaurant", {
                 status: "skipped",
                 note: "skipped — order was rejected",
               });
@@ -243,7 +243,7 @@ export default function OrderSuspendPage() {
                 note: "200 OK · lat 37.7935 / lng -122.3964",
               });
             } else if ("ticketId" in (output as Record<string, unknown>)) {
-              patchStep("notifyRestaurant", {
+              patchStep("pingRestaurant", {
                 status: "succeeded",
                 note: "ticket sent · Burger Barn accepted",
               });

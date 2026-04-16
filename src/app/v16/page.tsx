@@ -18,7 +18,7 @@ const vt323 = VT323({ weight: "400", subsets: ["latin"], display: "swap" });
 
 // Types
 type OrderItem = { id: string; name: string; price: number; qty: number };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 type OrderEvent =
   | { type: "step_running"; step: string; label: string }
   | { type: "step_succeeded"; step: string; label: string; detail?: string }
@@ -44,7 +44,7 @@ const DONUTS = [
   { id: "hydration", name: "Hydration Hole", price: 3.00, desc: "Water-glazed ring cut into a triangle" },
 ];
 
-const STEPS = ["validateOrder", "chargePayment", "notifyRestaurant", "assignDriver", "trackDelivery", "sendReceipt"];
+const STEPS = ["validateOrder", "chargeCard", "pingRestaurant", "findDriver", "trackDelivery", "sendReceipts"];
 
 export default function TriangleArcadeDemo() {
     const [cart, setCart] = useState<Record<string, number>>({});

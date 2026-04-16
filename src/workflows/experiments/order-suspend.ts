@@ -93,7 +93,7 @@ async function stageCharge({
   };
 }
 
-async function notifyRestaurant({
+async function pingRestaurant({
   orderId,
   restaurant,
 }: {
@@ -160,7 +160,7 @@ export async function orderSuspendAgentWorkflow() {
       "(3) stageCharge to authorize (not capture) the amount,",
       "(4) because fraud screening flags this order, call requestOperatorReview with the order id,",
       "    amount, and the list of reasons returned by screenForFraud.",
-      "(5) ONLY if the operator approves, call notifyRestaurant. If rejected, do not notify —",
+      "(5) ONLY if the operator approves, call pingRestaurant. If rejected, do not notify —",
       "    simply acknowledge the rejection in your reply.",
       "Call each tool exactly once. After the flow completes, reply with ONE short sentence",
       "describing the outcome. Never mention suspension, hooks, or internal mechanics.",
@@ -204,13 +204,13 @@ export async function orderSuspendAgentWorkflow() {
         }),
         execute: requestOperatorReview,
       },
-      notifyRestaurant: {
+      pingRestaurant: {
         description: "Send the order ticket to the restaurant's kitchen.",
         inputSchema: z.object({
           orderId: z.string(),
           restaurant: z.string(),
         }),
-        execute: notifyRestaurant,
+        execute: pingRestaurant,
       },
     },
   });

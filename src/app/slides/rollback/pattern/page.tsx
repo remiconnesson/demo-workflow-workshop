@@ -7,7 +7,7 @@ export default function RollbackPatternSlide() {
   return (
     <PatternSlideLayout
       eyebrow="12d · The dispute — concept / pattern"
-      patternName="Transactions & Rollbacks"
+      patternName="Rollbacks"
       description={<>Every step pushes an <code className="font-mono text-zinc-200">undo</code> as it succeeds. A post-delivery dispute <code className="font-mono text-zinc-200">hook throws</code> an error, and the workflow&apos;s <code className="font-mono text-zinc-200">catch</code> unwinds <code className="font-mono text-zinc-200">compensations in reverse</code> — even after the happy path finished.</>}
       apiPrimitive="try/catch  ·  compensations[]  ·  reverse unwind"
       docSection="Cookbook · Common Patterns"
@@ -16,10 +16,10 @@ export default function RollbackPatternSlide() {
       markerLabel={markerLabel}
       realWorldExamples={[
         "Order cancellations",
-        "Travel booking reversals",
+        "Travel booking cancellations",
         "Subscription downgrades",
         "Multi-service provisioning",
-        "Inventory reservation release",
+        "Releasing inventory holds",
       ]}
     />
   );

@@ -10,7 +10,6 @@ type DemoSlideLayoutProps = {
   slide: SlideGroupSlug | string;
   eyebrow: string;
   headline: string;
-  subcopy: string;
   marker?: OrderStepId | OrderStepId[] | "span";
   markerLabel?: string;
   scenario?: OrderRunScenario;
@@ -39,7 +38,6 @@ type DemoSlideLayoutProps = {
 export function DemoSlideLayout({
   slide,
   headline,
-  subcopy,
   scenario,
   allowCrash = false,
   allowAdminCancel = false,
@@ -52,15 +50,10 @@ export function DemoSlideLayout({
 }: DemoSlideLayoutProps) {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-8 px-10 pt-20 pb-12">
-      <div className="flex items-start justify-between gap-10">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-[56px] font-semibold leading-[1.0] tracking-tight">
-            {headline}
-          </h2>
-        </div>
-        <p className="max-w-[520px] pt-6 text-xl leading-[1.5] text-zinc-400">
-          {subcopy}
-        </p>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-[56px] font-semibold leading-[1.0] tracking-tight">
+          {headline}
+        </h2>
       </div>
 
       <div className="min-h-0 flex-1">

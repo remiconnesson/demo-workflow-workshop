@@ -81,7 +81,7 @@ async function listAvailableDriversExcluding({
   }));
 }
 
-async function reassignDriver({
+async function refindDriver({
   orderId,
   fromDriverId,
   toDriverId,
@@ -180,7 +180,7 @@ export async function dispatchSuspendWorkflow() {
       "   original driver id, the candidate driver id, and a one-sentence",
       "   rationale. This SUSPENDS the workflow until a human dispatcher",
       "   approves or rejects. Wait for the result — do not retry it.",
-      "5. If approved, call reassignDriver(ord-9421, from, to). If",
+      "5. If approved, call refindDriver(ord-9421, from, to). If",
       "   rejected, call holdAssignment with extraEtaMin 15.",
       "6. Reply with a single sentence describing what you did and the new",
       "   ETA (or the hold).",
@@ -216,7 +216,7 @@ export async function dispatchSuspendWorkflow() {
         }),
         execute: requestReassignApproval,
       },
-      reassignDriver: {
+      refindDriver: {
         description:
           "Reassign an order from one driver to another. Must only be called after approval.",
         inputSchema: z.object({
@@ -224,7 +224,7 @@ export async function dispatchSuspendWorkflow() {
           fromDriverId: z.string(),
           toDriverId: z.string(),
         }),
-        execute: reassignDriver,
+        execute: refindDriver,
       },
       holdAssignment: {
         description:

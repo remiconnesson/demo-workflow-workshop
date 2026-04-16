@@ -1,14 +1,20 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MenuItem } from "@/lib/ops-data";
 import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FormEvent,
-} from "react";
-import { setPendingApproval } from "./analyst-approval-bus";
+  clearOperatorEvents,
+  getOperatorEvents,
+  registerResetDispatcher,
+  registerRollbackDispatcher,
+  registerSendDispatcher,
+  setAppliedProposals,
+  setIsStreaming as publishIsStreaming,
+  setPendingPrompt,
+  subscribeOperatorEvents,
+  type AppliedProposal,
+  type OperatorEvent,
+} from "./analyst-approval-bus";
 import { AnalystMarkdown } from "./analyst-markdown";
 
 type ToolCallState = {
@@ -18,6 +24,7 @@ type ToolCallState = {
   output?: unknown;
   status: "running" | "done" | "error";
   summary: string;
+  startedAt: number;
 };
 
 type AssistantMessage = {
@@ -46,11 +53,20 @@ type WireChunk =
   | { type: "start" | "finish" | "start-step" | "finish-step" | "abort" }
   | { type: string; [k: string]: unknown };
 
-const SUGGESTED_PROMPTS = [
-  "What's going wrong?",
-  "Why are we refunding so much?",
-  "Should we hide any menu items?",
-];
+type FlatToolCall = ToolCallState & { assistantId: string; order: number };
+
+type HistoryRow =
+  | { kind: "tool"; at: number; order: number; tool: FlatToolCall }
+  | { kind: "operator"; at: number; order: number; event: OperatorEvent };
+
+type ProposalCacheEntry = {
+  proposalId: string;
+  sku: string;
+  itemName: string;
+  current: MenuItem | null;
+  patch: Partial<MenuItem>;
+  rationale: string;
+};
 
 function summarizeToolInput(name: string, input: unknown): string {
   if (!input || typeof input !== "object") return `${name}()`;
@@ -76,6 +92,10 @@ function summarizeToolOutput(name: string, output: unknown): string {
   if (Array.isArray(output)) return `${output.length} row${output.length === 1 ? "" : "s"}`;
   if (typeof output === "object") {
     const obj = output as Record<string, unknown>;
+    if ("proposal" in obj && obj.proposal && typeof obj.proposal === "object") {
+      const p = obj.proposal as Record<string, unknown>;
+      if (typeof p.id === "string") return `proposal ${p.id.slice(0, 10)}…`;
+    }
     if ("id" in obj && typeof obj.id === "string") return `id: ${obj.id}`;
     if ("proposalId" in obj && typeof obj.proposalId === "string")
       return `proposal ${String(obj.proposalId).slice(0, 10)}…`;
@@ -92,12 +112,13 @@ function makeId(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const STORAGE_KEY = "analyst-chat:v1";
+const STORAGE_KEY = "analyst-chat:v2";
 
 type Persisted = {
   items: ChatItem[];
   activeRunId: string | null;
   activeAssistantId: string | null;
+  appliedProposals: AppliedProposal[];
 };
 
 function loadPersisted(): Persisted | null {
@@ -130,15 +151,20 @@ export function AnalystChatPane({
   onEventsChange?: (events: AnalystDebugEvent[]) => void;
 } = {}) {
   const [items, setItems] = useState<ChatItem[]>([]);
-  const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [awaitingApproval, setAwaitingApproval] = useState<null | {
     summary: string;
   }>(null);
+  const [applied, setApplied] = useState<AppliedProposal[]>([]);
+  const [operatorEvents, setOperatorEventsState] = useState<OperatorEvent[]>(
+    () => getOperatorEvents(),
+  );
   const [hydrated, setHydrated] = useState(false);
   const activeRunIdRef = useRef<string | null>(null);
   const activeAssistantIdRef = useRef<string | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const conversationScrollRef = useRef<HTMLDivElement>(null);
+  const toolHistoryScrollRef = useRef<HTMLDivElement>(null);
+  const proposalCacheRef = useRef<Map<string, ProposalCacheEntry>>(new Map());
 
   const messagesForApi = useMemo(() => {
     return items
@@ -149,7 +175,41 @@ export function AnalystChatPane({
       }));
   }, [items]);
 
-  // Derive debug events from tool calls and notify parent
+  // Flat, chronological list of every tool call across every assistant turn.
+  const flatToolCalls = useMemo<FlatToolCall[]>(() => {
+    const out: FlatToolCall[] = [];
+    let order = 0;
+    for (const item of items) {
+      if (item.role !== "assistant") continue;
+      for (const t of item.toolCalls) {
+        out.push({ ...t, assistantId: item.id, order: order++ });
+      }
+    }
+    return out;
+  }, [items]);
+
+  // Merge tool calls + operator events into one chronological history. Tool
+  // calls carry `startedAt`; operator events carry `at`. Stable ordering is
+  // preserved by using the flat order index as a tiebreaker.
+  const historyRows = useMemo<HistoryRow[]>(() => {
+    const toolRows: HistoryRow[] = flatToolCalls.map((t) => ({
+      kind: "tool",
+      at: t.startedAt,
+      order: t.order,
+      tool: t,
+    }));
+    const opRows: HistoryRow[] = operatorEvents.map((event, i) => ({
+      kind: "operator",
+      at: event.at,
+      order: flatToolCalls.length + i,
+      event,
+    }));
+    return [...toolRows, ...opRows].sort((a, b) => {
+      if (a.at !== b.at) return a.at - b.at;
+      return a.order - b.order;
+    });
+  }, [flatToolCalls, operatorEvents]);
+
   const debugEvents: AnalystDebugEvent[] = useMemo(() => {
     const out: AnalystDebugEvent[] = [];
     for (const item of items) {
@@ -178,13 +238,47 @@ export function AnalystChatPane({
   }, [debugEvents, onEventsChange]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (conversationScrollRef.current) {
+      conversationScrollRef.current.scrollTop =
+        conversationScrollRef.current.scrollHeight;
     }
   }, [items, awaitingApproval]);
 
+  useEffect(() => {
+    if (toolHistoryScrollRef.current) {
+      toolHistoryScrollRef.current.scrollTop =
+        toolHistoryScrollRef.current.scrollHeight;
+    }
+  }, [historyRows.length]);
+
+  useEffect(() => subscribeOperatorEvents(setOperatorEventsState), []);
+
+  // Publish applied-proposals changes to the bus so the phone can react.
+  useEffect(() => {
+    setAppliedProposals(applied);
+  }, [applied]);
+
+  // Publish streaming flag so the phone can disable its action buttons while
+  // the agent is mid-turn.
+  useEffect(() => {
+    publishIsStreaming(isStreaming);
+  }, [isStreaming]);
+
   const handleChunk = useCallback(
     (chunk: WireChunk, assistantId: string) => {
+      // New text block after a previous one (typically: tool call ran, now the
+      // model resumes writing). Without a separator the two segments would
+      // concatenate as `...speed.Hidden Omakase...`. Insert a paragraph break.
+      if (chunk.type === "text-start") {
+        setItems((prev) =>
+          prev.map((m) => {
+            if (m.id !== assistantId || m.role !== "assistant") return m;
+            if (m.text.length === 0) return m;
+            return { ...m, text: m.text.replace(/\s*$/, "") + "\n\n" };
+          }),
+        );
+        return;
+      }
       if (chunk.type === "text-delta" && "delta" in chunk) {
         const delta = chunk.delta;
         setItems((prev) =>
@@ -228,6 +322,7 @@ export function AnalystChatPane({
                   input,
                   status: "running",
                   summary: summarizeToolInput(toolName, input),
+                  startedAt: Date.now(),
                 },
               ],
             };
@@ -237,20 +332,30 @@ export function AnalystChatPane({
           const inputObj = input as { proposalId?: string } | undefined;
           const proposalId = inputObj?.proposalId ?? "";
           const token = `analyst-approval:${proposalId}`;
-          const summary = `Approve proposal ${proposalId.slice(0, 10)}…`;
-          setAwaitingApproval({ summary });
-          setPendingApproval({
+          const cached = proposalCacheRef.current.get(proposalId);
+          setAwaitingApproval({
+            summary: cached
+              ? `Approve change to ${cached.itemName}`
+              : `Approve proposal ${proposalId.slice(0, 10)}…`,
+          });
+          setPendingPrompt({
+            kind: "approval",
             token,
             proposalId,
-            summary: `Menu change · ${proposalId.slice(0, 12)}…`,
+            sku: cached?.sku ?? proposalId,
+            itemName: cached?.itemName ?? `Proposal ${proposalId.slice(0, 10)}…`,
+            current: cached?.current ?? null,
+            patch: cached?.patch ?? {},
             rationale:
-              "Analyst proposed a menu change. Review the rationale in the report and decide.",
+              cached?.rationale ??
+              "Analyst proposed a menu change. Review and decide.",
           });
         }
         return;
       }
       if (chunk.type === "tool-output-available") {
         const toolCallId = String(chunk.toolCallId);
+        const output = chunk.output;
         setItems((prev) =>
           prev.map((m) => {
             if (m.id !== assistantId || m.role !== "assistant") return m;
@@ -260,11 +365,11 @@ export function AnalystChatPane({
                 t.toolCallId === toolCallId
                   ? {
                       ...t,
-                      output: chunk.output,
+                      output,
                       status: "done",
                       summary: `${t.summary} → ${summarizeToolOutput(
                         t.toolName,
-                        chunk.output,
+                        output,
                       )}`,
                     }
                   : t,
@@ -272,9 +377,84 @@ export function AnalystChatPane({
             };
           }),
         );
-        // Approval resolved — clear banner.
+
+        // Cache proposeMenuChange output so requestApproval can render a diff.
+        if (output && typeof output === "object" && "proposal" in output) {
+          const o = output as {
+            proposal?: {
+              id?: string;
+              sku?: string;
+              patch?: Partial<MenuItem>;
+              rationale?: string;
+            };
+            current?: MenuItem | null;
+          };
+          const p = o.proposal;
+          if (p && typeof p.id === "string" && typeof p.sku === "string") {
+            proposalCacheRef.current.set(p.id, {
+              proposalId: p.id,
+              sku: p.sku,
+              itemName: o.current?.name ?? p.sku,
+              current: o.current ?? null,
+              patch: p.patch ?? {},
+              rationale: p.rationale ?? "",
+            });
+          }
+        }
+
+        // On applyMenuChange success: append to applied-proposals log.
+        if (
+          output &&
+          typeof output === "object" &&
+          "applied" in output &&
+          (output as { applied?: unknown }).applied === true
+        ) {
+          const o = output as {
+            proposalId?: string;
+            sku?: string;
+            menuItem?: MenuItem;
+          };
+          const proposalId = o.proposalId ?? "";
+          const sku = o.sku ?? "";
+          if (proposalId && sku) {
+            const cached = proposalCacheRef.current.get(proposalId);
+            const entry: AppliedProposal = {
+              proposalId,
+              sku,
+              itemName: cached?.itemName ?? o.menuItem?.name ?? sku,
+              patch: cached?.patch ?? {},
+              appliedAt: Date.now(),
+            };
+            setApplied((prev) => [...prev, entry]);
+          }
+        }
+
+        // On rollbackMenuChange success: pop the most recent matching sku.
+        if (
+          output &&
+          typeof output === "object" &&
+          "rolledBack" in output &&
+          (output as { rolledBack?: unknown }).rolledBack === true
+        ) {
+          const o = output as { sku?: string };
+          const sku = o.sku ?? "";
+          if (sku) {
+            setApplied((prev) => {
+              // Remove the *last* entry with a matching sku — matches the
+              // LIFO semantics of menuHistory.pop().
+              for (let i = prev.length - 1; i >= 0; i--) {
+                if (prev[i].sku === sku) {
+                  return [...prev.slice(0, i), ...prev.slice(i + 1)];
+                }
+              }
+              return prev;
+            });
+          }
+        }
+
+        // Approval prompt resolved — clear banner/bus.
         setAwaitingApproval(null);
-        setPendingApproval(null);
+        setPendingPrompt(null);
         return;
       }
       if (chunk.type === "tool-output-error") {
@@ -339,7 +519,6 @@ export function AnalystChatPane({
       };
 
       setItems((prev) => [...prev, nextUserItem, nextAssistantItem]);
-      setInput("");
       setIsStreaming(true);
       activeAssistantIdRef.current = assistantId;
 
@@ -370,7 +549,7 @@ export function AnalystChatPane({
       } finally {
         setIsStreaming(false);
         setAwaitingApproval(null);
-        setPendingApproval(null);
+        setPendingPrompt(null);
         activeAssistantIdRef.current = null;
         // Keep activeRunIdRef and onRunIdChange intact so the debug drawer stays visible
       }
@@ -378,21 +557,67 @@ export function AnalystChatPane({
     [consumeStream, isStreaming, messagesForApi, onRunIdChange],
   );
 
+  // Register the phone's rollback dispatcher: phone calls dispatchRollback(skus)
+  // which invokes this function, which synthesizes a user message for the agent.
+  useEffect(() => {
+    return registerRollbackDispatcher((skus) => {
+      if (skus.length === 0) return;
+      const list = skus.join(", ");
+      const msg =
+        skus.length === 1
+          ? `Please roll back ${list}. Call rollbackMenuChange and confirm briefly.`
+          : `Please roll back the following skus: ${list}. Call rollbackMenuChange once per sku in order and confirm briefly.`;
+      // Fire and forget — the send() call guards against concurrent streams.
+      void send(msg);
+    });
+  }, [send]);
+
+  // Register the phone's send dispatcher: phone-surfaced prompt chips and
+  // text input feed straight into the chat pane's send().
+  useEffect(() => {
+    return registerSendDispatcher((text) => {
+      void send(text);
+    });
+  }, [send]);
+
   // Rehydrate from localStorage on mount; reconnect to any in-flight run.
   useEffect(() => {
     const persisted = loadPersisted();
     if (persisted) {
       setItems(persisted.items ?? []);
+      setApplied(persisted.appliedProposals ?? []);
     }
     setHydrated(true);
+
+    // Reconcile: ops-data state is in-memory and wiped on server restart /
+    // HMR. Any persisted applied-proposal whose sku the server no longer
+    // recognizes as rollbackable would fail with "no_history" — drop it so
+    // the phone's checklist never offers an undo that can't execute.
+    if (persisted?.appliedProposals && persisted.appliedProposals.length > 0) {
+      void (async () => {
+        try {
+          const r = await fetch("/api/agent/analyst/rollbackable");
+          if (!r.ok) return;
+          const { skus } = (await r.json()) as { skus?: string[] };
+          if (!skus) return;
+          const valid = new Set(skus);
+          setApplied((prev) => prev.filter((p) => valid.has(p.sku)));
+        } catch {
+          // Best-effort — if the endpoint is down, leave the list intact.
+        }
+      })();
+    }
 
     const runId = persisted?.activeRunId ?? null;
     const assistantId = persisted?.activeAssistantId ?? null;
     if (!runId || !assistantId) return;
 
-    // Clear the persisted run pointer immediately so a subsequent
-    // navigation doesn't try to reconnect to the same dead run.
-    savePersisted({ items: persisted?.items ?? [], activeRunId: null, activeAssistantId: null });
+    savePersisted({
+      items: persisted?.items ?? [],
+      activeRunId: null,
+      activeAssistantId: null,
+      appliedProposals: persisted?.appliedProposals ?? [],
+    });
 
     let cancelled = false;
     const abort = new AbortController();
@@ -414,7 +639,7 @@ export function AnalystChatPane({
         if (!cancelled) {
           setIsStreaming(false);
           setAwaitingApproval(null);
-          setPendingApproval(null);
+          setPendingPrompt(null);
           activeRunIdRef.current = null;
           activeAssistantIdRef.current = null;
           onRunIdChange?.(null);
@@ -422,7 +647,6 @@ export function AnalystChatPane({
       }
     })();
 
-    // Abort the reconnection attempt after 5s so stale runs don't block the UI.
     const timeout = setTimeout(() => abort.abort(), 5000);
 
     return () => {
@@ -435,8 +659,11 @@ export function AnalystChatPane({
   const reset = useCallback(() => {
     if (isStreaming) return;
     setItems([]);
+    setApplied([]);
+    clearOperatorEvents();
     setAwaitingApproval(null);
-    setPendingApproval(null);
+    setPendingPrompt(null);
+    proposalCacheRef.current.clear();
     activeRunIdRef.current = null;
     activeAssistantIdRef.current = null;
     onRunIdChange?.(null);
@@ -445,27 +672,44 @@ export function AnalystChatPane({
     }
   }, [isStreaming, onRunIdChange]);
 
-  // Persist transcript + active run pointer whenever they change.
+  // Register the phone's reset dispatcher.
+  useEffect(() => {
+    return registerResetDispatcher(() => {
+      reset();
+    });
+  }, [reset]);
+
   useEffect(() => {
     if (!hydrated) return;
     savePersisted({
       items,
       activeRunId: isStreaming ? activeRunIdRef.current : null,
       activeAssistantId: isStreaming ? activeAssistantIdRef.current : null,
+      appliedProposals: applied,
     });
-  }, [items, isStreaming, hydrated]);
+  }, [items, isStreaming, hydrated, applied]);
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    void send(input);
-  };
+  const promptBorderClass = awaitingApproval
+    ? "border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)]"
+    : "border-white/10";
+  const statusDotClass = isStreaming
+    ? "bg-sky-400"
+    : awaitingApproval
+      ? "bg-amber-400"
+      : "bg-emerald-400";
+  const statusLabel = isStreaming
+    ? "Thinking"
+    : awaitingApproval
+      ? "Awaiting approval"
+      : "Ready";
+  const suspensionBarClass = awaitingApproval
+    ? "border-amber-400/30 bg-amber-500/10 opacity-100"
+    : "border-transparent bg-transparent opacity-0";
 
   return (
-    <div className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-zinc-950 transition-[border-color,box-shadow] duration-500 ${
-      awaitingApproval
-        ? "border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)]"
-        : "border-white/10"
-    }`}>
+    <div
+      className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-zinc-950 transition-[border-color,box-shadow] duration-500 ${promptBorderClass}`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
@@ -476,43 +720,18 @@ export function AnalystChatPane({
             anthropic/claude-haiku-4.5
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={`h-3 w-3 rounded-full transition-colors ${
-                isStreaming
-                  ? "bg-sky-400"
-                  : awaitingApproval
-                    ? "bg-amber-400"
-                    : "bg-emerald-400"
-              }`}
-            />
-            <span className="text-sm text-zinc-400">
-              {isStreaming
-                ? "Thinking"
-                : awaitingApproval
-                  ? "Awaiting approval"
-                  : "Ready"}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={reset}
-            disabled={isStreaming}
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Reset
-          </button>
+        <div className="flex items-center gap-2">
+          <span
+            className={`h-3 w-3 rounded-full transition-colors ${statusDotClass}`}
+          />
+          <span className="text-sm text-zinc-400">{statusLabel}</span>
         </div>
       </div>
 
-      {/* Suspension bar — CLS-safe via opacity, always in DOM */}
+      {/* Suspension bar — CLS-safe: always reserves height, fades via opacity */}
       <div
-        className={`flex items-center gap-4 border-b px-8 transition-[opacity,border-color,background-color,padding] duration-500 ${
-          awaitingApproval
-            ? "py-4 border-amber-400/30 bg-amber-500/10 opacity-100"
-            : "h-0 overflow-hidden border-transparent opacity-0 py-0"
-        }`}
+        aria-hidden={!awaitingApproval}
+        className={`flex h-14 items-center gap-4 border-b px-8 transition-[opacity,border-color,background-color] duration-500 ${suspensionBarClass}`}
       >
         <span className="h-3 w-3 animate-pulse rounded-full bg-amber-400" />
         <span className="font-mono text-lg uppercase tracking-[0.2em] text-amber-200">
@@ -520,112 +739,122 @@ export function AnalystChatPane({
         </span>
       </div>
 
-      {/* Messages */}
-      <div
-        ref={scrollRef}
-        className="flex flex-1 flex-col gap-5 overflow-y-auto px-8 py-6"
-      >
-        {items.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center">
-            <p className="text-2xl text-zinc-600">
-              Ask the analyst anything about today&apos;s orders.
-            </p>
-          </div>
-        ) : (
-          items.map((item) =>
-            item.role === "user" ? (
-              <div key={item.id} className="flex justify-end">
-                <div className="max-w-[75%] rounded-xl bg-white px-4 py-3 text-xl text-black">
-                  {item.text}
+      {/* Main area: two columns — conversation text | tool call history */}
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_320px]">
+        {/* ── Conversation text column ── */}
+        <div
+          ref={conversationScrollRef}
+          className="flex flex-col gap-5 overflow-y-auto px-8 py-6"
+        >
+          {items.length === 0 ? (
+            <div className="flex flex-1 items-center justify-center">
+              <p className="text-2xl text-zinc-600">
+                Use the phone to send a prompt.
+              </p>
+            </div>
+          ) : (
+            items.map((item) =>
+              item.role === "user" ? (
+                <div key={item.id} className="flex justify-end">
+                  <div className="max-w-[85%] rounded-xl bg-white px-4 py-3 text-xl text-black">
+                    {item.text}
+                  </div>
                 </div>
+              ) : (
+                <div key={item.id} className="flex flex-col gap-2">
+                  {item.text ? <AnalystMarkdown>{item.text}</AnalystMarkdown> : null}
+                </div>
+              ),
+            )
+          )}
+        </div>
+
+        {/* ── Tool-call + operator history column ── */}
+        <div className="flex min-h-0 flex-col border-l border-white/10 bg-black/40">
+          <div className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
+            <span className="h-2 w-2 rounded-full bg-zinc-600" />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+              Tool + operator history
+            </span>
+            <span className="ml-auto font-mono text-xs text-zinc-600">
+              {historyRows.length}
+            </span>
+          </div>
+          <div
+            ref={toolHistoryScrollRef}
+            className="flex flex-1 flex-col gap-2 overflow-y-auto px-4 py-4"
+          >
+            {historyRows.length === 0 ? (
+              <div className="flex flex-1 items-center justify-center text-center text-sm text-zinc-700">
+                No activity yet
               </div>
             ) : (
-              <div key={item.id} className="flex flex-col gap-2">
-                {item.toolCalls.length > 0 && (
-                  <div className="flex flex-col gap-2">
-                    {item.toolCalls.map((t) => (
-                      <div
-                        key={t.toolCallId}
-                        className={`flex items-center gap-3 rounded-xl border px-4 py-2 font-mono text-lg transition-colors ${
-                          t.status === "done"
-                            ? "border-sky-500/30 bg-sky-500/5 text-sky-200"
-                            : t.status === "error"
-                              ? "border-red-500/40 bg-red-500/5 text-red-300"
-                              : "border-sky-400/40 bg-sky-500/10 text-sky-100"
-                        }`}
-                      >
-                        <span
-                          className={`h-2 w-2 rounded-full ${
-                            t.status === "running"
-                              ? "animate-pulse bg-sky-300"
-                              : t.status === "error"
-                                ? "bg-red-400"
-                                : "bg-sky-300"
-                          }`}
-                        />
-                        <span className="truncate">{t.summary}</span>
-                      </div>
-                    ))}
+              historyRows.map((row) => {
+                if (row.kind === "operator") {
+                  const e = row.event;
+                  const tintClass =
+                    e.kind === "approve"
+                      ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
+                      : e.kind === "reject"
+                        ? "border-red-500/40 bg-red-500/10 text-red-100"
+                        : e.kind === "optimize"
+                          ? "border-sky-500/40 bg-sky-500/10 text-sky-100"
+                          : "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-100";
+                  const dotClass =
+                    e.kind === "approve"
+                      ? "bg-emerald-300"
+                      : e.kind === "reject"
+                        ? "bg-red-300"
+                        : e.kind === "optimize"
+                          ? "bg-sky-300"
+                          : "bg-fuchsia-300";
+                  return (
+                    <div
+                      key={e.id}
+                      className={`flex items-center gap-3 rounded-xl border border-dashed px-3 py-2 font-mono text-sm transition-colors ${tintClass}`}
+                    >
+                      <span
+                        className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`}
+                      />
+                      <span className="truncate">{e.label}</span>
+                    </div>
+                  );
+                }
+                const t = row.tool;
+                const isRollback = t.toolName === "rollbackMenuChange";
+                const tintClass =
+                  t.status === "error"
+                    ? "border-red-500/40 bg-red-500/5 text-red-300"
+                    : isRollback
+                      ? "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-100"
+                      : t.status === "done"
+                        ? "border-sky-500/30 bg-sky-500/5 text-sky-200"
+                        : "border-sky-400/40 bg-sky-500/10 text-sky-100";
+                const dotClass =
+                  t.status === "error"
+                    ? "bg-red-400"
+                    : isRollback
+                      ? t.status === "running"
+                        ? "animate-pulse bg-fuchsia-300"
+                        : "bg-fuchsia-300"
+                      : t.status === "running"
+                        ? "animate-pulse bg-sky-300"
+                        : "bg-sky-300";
+                return (
+                  <div
+                    key={t.toolCallId}
+                    className={`flex items-center gap-3 rounded-xl border px-3 py-2 font-mono text-sm transition-colors ${tintClass}`}
+                  >
+                    <span className={`h-2 w-2 shrink-0 rounded-full ${dotClass}`} />
+                    <span className="truncate">{t.summary}</span>
                   </div>
-                )}
-                {item.text && <AnalystMarkdown>{item.text}</AnalystMarkdown>}
-              </div>
-            ),
-          )
-        )}
-
-        {/* Approval banner — reserved slot via opacity, CLS-safe */}
-        <div
-          className={`overflow-hidden transition-[max-height,opacity] duration-200 ${
-            awaitingApproval ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
-          }`}
-        >
-          <div className="rounded-xl border border-amber-400/40 bg-amber-500/10 px-5 py-4">
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-              Awaiting operator approval
-            </div>
-            <div className="mt-1 text-xl text-amber-100">
-              {awaitingApproval?.summary ?? ""}
-            </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
 
-      {/* Input row */}
-      <div className="border-t border-white/10 bg-zinc-950 px-8 py-5">
-        {items.length === 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {SUGGESTED_PROMPTS.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => void send(p)}
-                className="rounded-full border border-white/10 bg-white/5 px-5 py-2 text-base text-zinc-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
-                disabled={isStreaming}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        )}
-        <form onSubmit={onSubmit} className="flex items-center gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isStreaming}
-            placeholder="Ask the analyst…"
-            className="flex-1 rounded-xl border border-white/10 bg-black px-5 py-3 text-xl text-white placeholder:text-zinc-600 focus:border-white/30 focus:outline-none disabled:opacity-50"
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !input.trim()}
-            className="rounded-xl bg-white px-6 py-3 text-xl font-semibold text-black transition hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Send
-          </button>
-        </form>
-      </div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ const WORKFLOW_CODE = `export async function supportAgent(messages) {
   })
 
   await agent.stream({
-    messages: await convertToModelMessages(messages),
+    messages: convertToModelMessages(messages),
     writable,
   })
 }`;

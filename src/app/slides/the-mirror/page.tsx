@@ -1,68 +1,66 @@
-import type { ReactNode } from "react";
+import { Geist_Mono } from "next/font/google";
 
-const ROWS: { verb: string; verbClass: string; workflow: ReactNode; agent: ReactNode }[] = [
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const CAPABILITIES = [
   {
-    verb: "Retry",
+    verb: "RETRY",
     verbClass: "text-sky-400",
-    workflow: <>Charge didn&apos;t double — <code className="font-mono text-zinc-100">stepId</code> deduped.</>,
-    agent: <>Observer <code className="font-mono text-zinc-100">replayed</code> without re-executing.</>,
+    pillAccent: "border-sky-500/30 bg-sky-500/5",
+    promise: "Agents that survive.",
+    detail: "Streams reconnect. Tool calls replay from the event log.",
   },
   {
-    verb: "Suspend",
+    verb: "SUSPEND",
     verbClass: "text-amber-400",
-    workflow: <>Waited for the restaurant via <code className="font-mono text-zinc-100">hook</code>.</>,
-    agent: <>Analyst <code className="font-mono text-zinc-100">paused</code> for a human.</>,
+    pillAccent: "border-amber-500/30 bg-amber-500/5",
+    promise: "Agents that wait.",
+    detail: "Pause mid-task for a human, then pick up right where you left off.",
   },
   {
-    verb: "Rollback",
+    verb: "ROLLBACK",
     verbClass: "text-fuchsia-400",
-    workflow: <><code className="font-mono text-zinc-100">catch</code> unwound the dispute.</>,
-    agent: <>Agent <code className="font-mono text-zinc-100">reversed</code> its own decision.</>,
+    pillAccent: "border-fuchsia-500/30 bg-fuchsia-500/5",
+    promise: "Agents that undo.",
+    detail: "Compensations unwind the loop. Every decision is reversible.",
   },
-];
+] as const;
 
 export default function TheMirrorSlide() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center gap-12 px-20">
-      <h2 className="text-5xl font-semibold tracking-tight text-white">
-        Three verbs.
-        <span className="text-zinc-500"> You already learned them.</span>
-      </h2>
+    <div className="flex h-full w-full flex-col items-center justify-center gap-20 p-10 text-center">
+      <div className="flex flex-col items-center gap-5">
+        <h2 className="text-6xl font-semibold tracking-tight">
+          That&apos;s how you build{" "}
+          <span className="text-white">reliable agents.</span>
+        </h2>
+      </div>
 
-      <div className="rounded-2xl border border-white/10 bg-zinc-950">
-        <div className="grid grid-cols-[200px_1fr_1fr] border-b border-white/10 px-10 py-5">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Verb
-          </p>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Workflow
-          </p>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Agent
-          </p>
-        </div>
-
-        {ROWS.map((row, i) => (
-          <div
-            key={row.verb}
-            className={`grid min-h-[92px] grid-cols-[200px_1fr_1fr] items-center px-10 py-5 ${
-              i < ROWS.length - 1 ? "border-b border-white/5" : ""
-            }`}
-          >
+      <div className="flex w-full max-w-7xl flex-row items-start justify-center gap-10">
+        {CAPABILITIES.map((c) => (
+          <div key={c.verb} className="flex flex-1 flex-col items-center gap-6">
             <div
-              className={`font-mono text-3xl font-semibold tracking-tight ${row.verbClass}`}
+              className={`flex items-center justify-center rounded-full border px-12 py-5 ${c.pillAccent} ${geistMono.className}`}
             >
-              {row.verb}
+              <span className={`text-4xl font-medium tracking-tight ${c.verbClass}`}>
+                {c.verb}
+              </span>
             </div>
-            <div className="text-2xl text-zinc-300">{row.workflow}</div>
-            <div className="text-2xl text-zinc-200">{row.agent}</div>
+            <p className="text-3xl font-semibold tracking-tight text-white">
+              {c.promise}
+            </p>
+            <p className="max-w-xs text-xl leading-snug text-zinc-400">
+              {c.detail}
+            </p>
           </div>
         ))}
       </div>
 
-      <p className="text-4xl font-semibold leading-snug tracking-tight text-white">
-        One vocabulary.
-        <span className="text-zinc-500"> Workflows and agents.</span>
+      <p className={`text-lg tracking-[0.35em] text-zinc-600 ${geistMono.className}`}>
+        ONE SDK &nbsp;·&nbsp; ONE MENTAL MODEL
       </p>
     </div>
   );

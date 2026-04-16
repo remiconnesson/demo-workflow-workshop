@@ -36,7 +36,7 @@ export default function AgentFirstPatternSlide() {
         "AI customer support chats",
         "Long-running code generation",
         "Research assistants",
-        "Multi-step form wizards with AI",
+        "AI-powered form wizards",
       ]}
     />
   );

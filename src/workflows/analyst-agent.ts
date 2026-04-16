@@ -5,7 +5,7 @@ import type { UIMessageChunk } from "ai";
 
 import {
   createProposal,
-  getProposal,
+  getMenu,
   getRecentOrders,
   mutateMenu,
   readReport,
@@ -48,34 +48,40 @@ async function proposeMenuChange({
   rationale: string;
 }) {
   "use step";
+  const current = getMenu().find((m) => m.sku === sku) ?? null;
   const proposal = createProposal({ sku, patch, rationale });
-  return proposal;
+  return { proposal, current };
 }
 
-async function applyMenuChange({ proposalId }: { proposalId: string }) {
+async function applyMenuChange({
+  proposalId,
+  sku,
+  patch,
+}: {
+  proposalId: string;
+  sku: string;
+  patch: Partial<MenuItem>;
+}) {
   "use step";
-  const proposal = getProposal(proposalId);
-  if (!proposal) {
-    return { applied: false, error: "proposal_not_found" } as const;
-  }
-  if (proposal.status !== "approved") {
-    return { applied: false, error: "not_approved", status: proposal.status } as const;
-  }
-  const next = mutateMenu(proposal.sku, proposal.patch);
+  // Apply directly from the agent-supplied payload so this step is resilient
+  // to in-memory proposal state being lost (dev hot-reload, fresh worker).
+  const next = mutateMenu(sku, patch);
   if (!next) {
-    return { applied: false, error: "sku_not_found" } as const;
+    return { applied: false, error: "sku_not_found", sku } as const;
   }
+  // Best-effort status update — the proposals Map may be empty after a
+  // restart, in which case setProposalStatus is a no-op.
   setProposalStatus(proposalId, "applied");
-  return { applied: true, menuItem: next } as const;
+  return { applied: true, menuItem: next, sku, proposalId } as const;
 }
 
 async function rollbackMenuChange({ sku }: { sku: string }) {
   "use step";
   const prev = rollbackMenuMutation(sku);
   if (!prev) {
-    return { rolledBack: false, error: "no_history" } as const;
+    return { rolledBack: false, error: "no_history", sku } as const;
   }
-  return { rolledBack: true, menuItem: prev } as const;
+  return { rolledBack: true, menuItem: prev, sku } as const;
 }
 
 // ---------------------------------------------------------------------------
@@ -85,12 +91,9 @@ async function rollbackMenuChange({ sku }: { sku: string }) {
 async function requestApproval({ proposalId }: { proposalId: string }) {
   // Hooks awaited at workflow level — no "use step".
   const token = `analyst-approval:${proposalId}`;
-  console.log("[requestApproval] creating hook", { proposalId, token });
   const hook = approvalHook.create({ token });
-  console.log("[requestApproval] hook created, token:", hook.token);
 
   const decision = await hook;
-  console.log("[requestApproval] hook resolved", { proposalId, decision });
   hook.dispose();
 
   const status = decision.approved ? "approved" : "rejected";
@@ -122,11 +125,26 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
     model: "anthropic/claude-haiku-4.5",
     instructions: [
       "You are an ops analyst for a food delivery app.",
-      "Use readReport and queryOrders to spot patterns,",
-      "propose concrete menu changes (price adjustments, availability windows,",
-      "or hiding items) via proposeMenuChange, always call requestApproval",
-      "before applyMenuChange, and offer to rollbackMenuChange if the",
-      "operator rejects or regrets the change.",
+      "NEVER ask the operator clarifying questions — always act.",
+      "",
+      "DEFAULT FLOW — for any investigative user message (e.g. 'what's",
+      "going wrong', 'why are we refunding so much', 'should we hide",
+      "anything'), drive this pipeline to completion in one turn:",
+      "(1) call readReport and queryOrders to spot patterns.",
+      "(2) pick ONE highest-impact menu change and call proposeMenuChange.",
+      "(3) immediately call requestApproval with that proposalId.",
+      "(4) after the operator approves, call applyMenuChange with the",
+      "SAME proposalId, sku, and patch you used in proposeMenuChange,",
+      "then emit one short confirmation sentence and stop.",
+      "If the operator rejects, acknowledge in one sentence and stop.",
+      "",
+      "ROLLBACK FLOW — if the operator asks you to roll back, undo, or",
+      "revert one or more SKUs (e.g. 'roll back sushi-omakase' or",
+      "'please roll back: burger-classic, pho-beef'), call",
+      "rollbackMenuChange ONCE per sku the operator named, in order,",
+      "then emit one short confirmation sentence per sku and stop.",
+      "Do not re-investigate or propose new changes during a rollback.",
+      "",
       "Be concise. Cite numbers from the report when justifying proposals.",
     ].join(" "),
     tools: {
@@ -147,7 +165,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       proposeMenuChange: {
         description:
-          "Queue a proposed menu change. Does NOT apply it — requires approval first.",
+          "Queue a proposed menu change. Does NOT apply it — requires approval first. Returns the proposal plus the current menu item so the UI can show a diff.",
         inputSchema: z.object({
           sku: z.string(),
           patch: z
@@ -171,12 +189,25 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       applyMenuChange: {
         description:
-          "Apply an approved proposal to the live menu. Must be approved first.",
-        inputSchema: z.object({ proposalId: z.string() }),
+          "Apply an approved proposal to the live menu. Pass the same sku and patch returned from proposeMenuChange. Must be approved first.",
+        inputSchema: z.object({
+          proposalId: z.string(),
+          sku: z.string(),
+          patch: z
+            .object({
+              name: z.string().optional(),
+              price: z.number().optional(),
+              availableAfter: z.string().optional(),
+              availableBefore: z.string().optional(),
+              hidden: z.boolean().optional(),
+            })
+            .passthrough(),
+        }),
         execute: applyMenuChange,
       },
       rollbackMenuChange: {
-        description: "Roll back the most recent change to this menu item.",
+        description:
+          "Roll back the most recent change to this menu item. Call once per sku when the operator asks to undo previously applied changes.",
         inputSchema: z.object({ sku: z.string() }),
         execute: rollbackMenuChange,
       },

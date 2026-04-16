@@ -31,10 +31,10 @@ export default function AgentAnalystPatternSlide() {
       inspectPrompt={INSPECT_PROMPT}
       comparePrompt={COMPARE_PROMPT}
       realWorldExamples={[
-        "PR merge approval gates",
+        "PR merge approvals",
         "Financial trade authorization",
-        "Content moderation review",
-        "Production deployment sign-off",
+        "Content moderation",
+        "Deployment sign-offs",
       ]}
     />
   );

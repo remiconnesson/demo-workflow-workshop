@@ -17,21 +17,21 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Validate order" },
-  { key: "chargePayment", label: "Charge payment" },
-  { key: "notifyRestaurant", label: "Notify restaurant" },
-  { key: "assignDriver", label: "Assign driver" },
+  { key: "chargeCard", label: "Charge card" },
+  { key: "pingRestaurant", label: "Ping restaurant" },
+  { key: "findDriver", label: "Find driver" },
   { key: "trackDelivery", label: "Track delivery" },
-  { key: "sendReceipt", label: "Send receipt" },
+  { key: "sendReceipts", label: "Send receipts" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "chargePaymentRetryable", label: "Rate limit payment once" },
-  { value: "notifyRestaurant", label: "Fail at restaurant" },
-  { value: "assignDriver", label: "Fail at driver" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "chargeCardRetryable", label: "Rate limit payment once" },
+  { value: "pingRestaurant", label: "Fail at restaurant" },
+  { value: "findDriver", label: "Fail at driver" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -157,9 +157,9 @@ export default function OrderDemo() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

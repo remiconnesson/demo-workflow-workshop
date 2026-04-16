@@ -9,8 +9,7 @@ export default function AgentObserverDemoSlide() {
     <DemoSlideLayout
       slide={group.slug}
       eyebrow={group.eyebrow}
-      headline="An agent that runs while you sleep."
-      subcopy="Three tool calls per loop, each a durable step. Kill the server mid-tool-call — the agent replays from the event log and picks up where it left off."
+      headline="... an Agent loses its server?"
       rightPanel={<ObserverReportPane slug={group.slug} />}
     />
   );

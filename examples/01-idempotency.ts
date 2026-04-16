@@ -1,40 +1,33 @@
 // Idempotency pattern: use the stable stepId as an idempotency key
 // so retries never duplicate side effects.
+//
+// Mirrors: /slides/retry/solution
 
 import { getStepMetadata } from "workflow";
 
-export async function chargeOnceWorkflow(input: {
+export async function chargeOnceWorkflow(order: {
   orderId: string;
-  amount: number;
+  total: number;
 }) {
   "use workflow";
 
-  const paymentId = await chargePayment(input.orderId, input.amount);
-  await sendReceipt(input.orderId, paymentId);
-
-  return { orderId: input.orderId, paymentId };
+  const paymentId = await chargeCard(order);
+  return { orderId: order.orderId, paymentId };
 }
 
-// The key insight: stepId is stable across retries, making it
-// safe to use as an idempotency key for external APIs.
-//
-//   const result = await stripe.charges.create(
-//     { amount, currency: "usd" },
-//     { idempotencyKey: stepId }
-//   );
-//
-export async function chargePayment(
-  orderId: string,
-  amount: number,
-): Promise<string> {
+// if this fails, it runs again
+export async function chargeCard(order: {
+  orderId: string;
+  total: number;
+}): Promise<string> {
+  // "use step" marks the durable boundary...
   "use step";
+  // ...and getStepMetadata hands you its identity
   const { stepId } = getStepMetadata();
-  // In production, pass stepId as your idempotency key to Stripe/etc.
+  // lock it down with a stable id — in production:
+  //   return stripe.charges.create(
+  //     { amount: order.total },
+  //     { idempotencyKey: stepId },
+  //   )
   return `pay_${stepId}`;
-}
-
-export async function sendReceipt(orderId: string, paymentId: string) {
-  "use step";
-  // In production, send an email here.
-  return { orderId, paymentId, sent: true };
 }

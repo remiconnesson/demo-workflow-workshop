@@ -4,7 +4,7 @@ import type { OrderStepId } from "@/lib/order-contract";
 import { isAgentGroupSlug, type AgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
 import { AgentBeatStrip } from "./agent-beat-strip";
 import { CodeBlock } from "./code-block";
-import { CodeEditorTabs, type CodeEditorTab } from "./code-editor-tabs";
+import { CodeEditorTabs, type CodeEditorTab, type TabTone } from "./code-editor-tabs";
 import { FinishedTimelineStrip } from "./finished-timeline-strip";
 
 export type WorkflowFixTab = {
@@ -13,6 +13,8 @@ export type WorkflowFixTab = {
   lang?: "ts" | "tsx" | "js" | "jsx";
   /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
   highlightLines?: Record<number, string>;
+  /** Optional semantic tone — adds a colored dot in the tab strip. */
+  tone?: TabTone;
 };
 
 export type WorkflowFix = {
@@ -90,6 +92,7 @@ async function buildTabs(
     (workflowFix.tabs ?? []).map(async (tab) => ({
       filename: tab.filename,
       html: await highlight(tab.code, tab.lang ?? "ts", tab.highlightLines),
+      tone: tab.tone,
     })),
   );
   return [primary, ...extras];

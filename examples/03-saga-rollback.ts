@@ -1,61 +1,83 @@
-// Saga / Transactions & Rollbacks
-// Push an undo for each side effect. On failure,
-// the catch block pops compensations in reverse order.
+// Saga / Rollback — each successful step pushes its undo. A dispute hook
+// races against a 24h sleep; if the customer disputes, the catch block
+// unwinds every compensation in reverse order.
+//
+// Mirrors: /slides/rollback/solution
 
-type Compensation = { name: string; undo: () => Promise<void> };
+import { createHook, sleep } from "workflow";
 
 export async function orderWithRollbackWorkflow(input: {
   orderId: string;
-  amount: number;
-  failAt?: string;
+  disputeAt?: string;
 }) {
   "use workflow";
 
-  const compensations: Compensation[] = [];
+  const rollbacks: Array<() => Promise<void>> = [];
 
   try {
-    const paymentId = await chargePayment(input.orderId, input.amount);
-    compensations.push({
-      name: "refundPayment",
-      undo: () => refundPayment(input.orderId, paymentId),
+    await reserveInventory(input.orderId);
+    rollbacks.push(async () => {
+      await releaseInventory(input.orderId);
     });
 
-    await notifyRestaurant(input.orderId);
-    compensations.push({
-      name: "cancelOrder",
-      undo: () => cancelRestaurantOrder(input.orderId),
+    await chargeCard(input.orderId);
+    rollbacks.push(async () => {
+      await refundPayment(input.orderId);
     });
 
-    const driverId = await assignDriver(input.orderId, input.failAt);
-    compensations.push({
-      name: "releaseDriver",
-      undo: () => releaseDriver(input.orderId, driverId),
+    await pingRestaurant(input.orderId);
+    rollbacks.push(async () => {
+      await cancelRestaurantOrder(input.orderId);
     });
 
-    return { orderId: input.orderId, status: "completed" };
-  } catch (error) {
-    // Unwind in reverse order — each compensation is a durable step.
-    while (compensations.length > 0) {
-      const c = compensations.pop()!;
-      await c.undo();
+    // Open a post-delivery dispute window.
+    const disputeHook = createHook<{ reason: string }>({
+      token: `order:${input.orderId}:delivery-dispute`,
+    });
+
+    const verdict = await Promise.race([
+      disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
+      sleep("24h").then(() => ({ kind: "ok" as const })),
+    ]);
+
+    if (verdict.kind === "disputed") {
+      // Workflow catch {} unwinds every compensation in reverse.
+      throw new Error(`Disputed: ${verdict.reason}`);
     }
-    return { orderId: input.orderId, status: "rolled_back" };
+
+    return { orderId: input.orderId, status: "completed" as const };
+  } catch (error) {
+    // Unwind in reverse — each rollback is a "use step" so it's durable.
+    for (const rollback of rollbacks.reverse()) {
+      await rollback();
+    }
+    throw error;
   }
 }
 
 // Each step and compensation is independently durable.
 
-export async function chargePayment(orderId: string, amount: number): Promise<string> {
+export async function reserveInventory(orderId: string) {
   "use step";
-  return `pay_${orderId}_${amount}`;
+  return { reserved: true, orderId };
 }
 
-export async function refundPayment(orderId: string, paymentId: string) {
+export async function releaseInventory(orderId: string) {
   "use step";
-  return { refunded: true, orderId, paymentId };
+  return { released: true, orderId };
 }
 
-export async function notifyRestaurant(orderId: string) {
+export async function chargeCard(orderId: string) {
+  "use step";
+  return `pay_${orderId}`;
+}
+
+export async function refundPayment(orderId: string) {
+  "use step";
+  return { refunded: true, orderId };
+}
+
+export async function pingRestaurant(orderId: string) {
   "use step";
   return { notified: true, orderId };
 }
@@ -63,17 +85,4 @@ export async function notifyRestaurant(orderId: string) {
 export async function cancelRestaurantOrder(orderId: string) {
   "use step";
   return { cancelled: true, orderId };
-}
-
-export async function assignDriver(orderId: string, failAt?: string): Promise<string> {
-  "use step";
-  if (failAt === "assignDriver") {
-    throw new Error(`Driver assignment failed for ${orderId}`);
-  }
-  return `drv_${orderId}`;
-}
-
-export async function releaseDriver(orderId: string, driverId: string) {
-  "use step";
-  return { released: true, orderId, driverId };
 }

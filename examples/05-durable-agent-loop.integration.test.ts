@@ -3,28 +3,32 @@ import { describe, it, expect } from "vitest";
 // DurableAgent workflows require ANTHROPIC_API_KEY for full integration tests.
 // This file tests the step functions directly as unit tests.
 
-describe("fetchMetrics step", () => {
-  it("should return metrics for a service", async () => {
-    const { fetchMetrics } = await import("./05-durable-agent-loop");
-    const result = await fetchMetrics({ service: "api-gateway" });
+describe("fetchRecentOrders step", () => {
+  it("should return a list of recent orders", async () => {
+    const { fetchRecentOrders } = await import("./05-durable-agent-loop");
+    const result = await fetchRecentOrders({ limit: 3 });
 
-    expect(result.service).toBe("api-gateway");
-    expect(result.errorRate).toBe(0.02);
-    expect(result.p99).toBe(340);
-    expect(result.requestCount).toBe(15420);
+    expect(result.orders).toHaveLength(3);
+    expect(result.orders[0]).toMatchObject({ orderId: "ord_1" });
   });
 });
 
-describe("createAlert step", () => {
-  it("should create an alert with the given parameters", async () => {
-    const { createAlert } = await import("./05-durable-agent-loop");
-    const result = await createAlert({
-      message: "High error rate",
-      severity: "critical",
+describe("analyzeWindow step", () => {
+  it("should surface anomalies from a window of order IDs", async () => {
+    const { analyzeWindow } = await import("./05-durable-agent-loop");
+    const result = await analyzeWindow({
+      orderIds: ["a", "b", "c", "d", "e", "f", "g", "h"],
     });
 
-    expect(result.alertId).toMatch(/^alert_/);
-    expect(result.message).toBe("High error rate");
-    expect(result.severity).toBe("critical");
+    expect(Array.isArray(result.anomalies)).toBe(true);
+  });
+});
+
+describe("appendToReport step", () => {
+  it("should append a note", async () => {
+    const { appendToReport } = await import("./05-durable-agent-loop");
+    const result = await appendToReport({ note: "spike at 15:02" });
+
+    expect(result).toEqual({ appended: true, note: "spike at 15:02" });
   });
 });
