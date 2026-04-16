@@ -1,6 +1,6 @@
 import type { ScenarioGroupSlug } from "./scenario-groups";
 
-export type AgentGroupSlug = "agent-observer" | "agent-analyst";
+export type AgentGroupSlug = "agent-first" | "agent-observer" | "agent-analyst";
 
 /**
  * Unified slug type for every slide "group" the shared layouts accept.
@@ -25,6 +25,19 @@ export type AgentGroup = {
 };
 
 export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
+  "agent-first": {
+    slug: "agent-first",
+    headline: "Agents That Survive Reload",
+    eyebrow: "Durable agent · resumable stream",
+    pattern: {
+      name: "DurableAgent + WorkflowChatTransport",
+      description:
+        "A DurableAgent whose chat stream survives page refreshes, network drops, and serverless timeouts. The client reconnects to the same run — no re-prompt, no lost tokens.",
+      apiPrimitive: "new DurableAgent({ tools }) + WorkflowChatTransport",
+      docUrl: "useworkflow.dev/docs/ai/resumable-streams",
+      docSection: "AI · Resumable Streams",
+    },
+  },
   "agent-observer": {
     slug: "agent-observer",
     headline: "Agents That Run While You Sleep",
@@ -59,5 +72,5 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
  * agent-surface affordances without forking the template.
  */
 export function isAgentGroupSlug(slug: string): slug is AgentGroupSlug {
-  return slug === "agent-observer" || slug === "agent-analyst";
+  return slug === "agent-first" || slug === "agent-observer" || slug === "agent-analyst";
 }

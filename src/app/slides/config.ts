@@ -6,14 +6,15 @@ export type SlideInfo = {
 };
 
 /**
- * The 24-slide workshop arc (~1 hour).
+ * The 26-slide workshop arc (~1 hour).
  *
  * Act I — Setup (1–5): cold open, happy-path demo, code, three verbs, workshop map.
  * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
  * Act III — Pivot (15): workflows → agents.
- * Act IV — Agents (16–19): first agent (F5 proof), then observer (demo, fix, pattern).
- * Act V — Analyst agent (20–22): demo, fix, pattern.
- * Act VI — Close (23–24): the mirror, ship it.
+ * Act IV — First agent (16–18): demo (F5 proof), workflow code, pattern.
+ * Act V — Observer agent (19–21): demo, fix, pattern.
+ * Act VI — Analyst agent (22–24): demo, fix, pattern.
+ * Act VII — Close (25–26): the mirror, ship it.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act I · Setup ─────────────────────────────────────────
@@ -123,62 +124,76 @@ export const SLIDES: SlideInfo[] = [
   // --- First agent (the F5 proof) ---
   {
     slug: "agent-first-demo",
-    title: "Our First Agent",
+    title: "Our First Agent · Demo",
     number: 16,
-    notes: "PRESS 'Open ticket'. Let the agent stream its acknowledgement and start the tool call. While the sky-blue 'agent working — reload safe' card is pulsing, HIT F5.\n\nSAY: \"Every chat you've ever built loses the response on refresh. This one doesn't. Same run id. Same sentence. Same tool call. The stream just reconnects.\"\n\nPAUSE. Then: \"This is our first durable agent. From here we add three verbs.\"",
+    notes: "PRESS 'Open ticket'. Let the agent stream its acknowledgement and start the tool call. While the sky-blue 'agent working — reload safe' card is pulsing, HIT F5.\n\nSAY: \"Every chat you've ever built loses the response on refresh. This one doesn't. Same run id. Same sentence. Same tool call. The stream just reconnects.\"",
   },
+  {
+    slug: "agent-first-fix",
+    title: "Our First Agent · Workflow Code",
+    number: 17,
+    notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.",
+  },
+  {
+    slug: "agent-first-pattern",
+    title: "Our First Agent · Pattern",
+    number: 18,
+    notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we add three verbs.\"",
+  },
+
+  // ─── Act V · Observer agent ────────────────────────────────
 
   // --- Observer agent ---
   {
     slug: "agent-observer-demo",
     title: "Observer · Demo",
-    number: 17,
+    number: 19,
     notes: "PRESS r. Let the observer agent run autonomously. Watch tool calls land as durable steps.\n\nSAY: \"An agent that monitors the system while you sleep. Long-running. Survives restarts. Resumes from its last tool call.\"",
   },
   {
     slug: "agent-observer-fix",
     title: "Observer · Workflow Code",
-    number: 18,
+    number: 20,
     notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow. Restarts resume mid-thought from the last tool call.\"",
   },
   {
     slug: "agent-observer-pattern",
     title: "Observer · Pattern",
-    number: 19,
+    number: 21,
     notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Act V · Analyst agent ─────────────────────────────────
+  // ─── Act VI · Analyst agent ─────────────────────────────────
   {
     slug: "agent-analyst-demo",
     title: "Analyst · Demo",
-    number: 20,
+    number: 22,
     notes: "PRESS r. The analyst reaches a decision point and pauses for human approval.\n\nSAY: \"An agent that waits for you. Mid-task, it asks a human. Then picks up exactly where it left off.\"",
   },
   {
     slug: "agent-analyst-fix",
     title: "Analyst · Workflow Code",
-    number: 21,
+    number: 23,
     notes: "SAY: \"defineHook inside the agent loop. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
   },
   {
     slug: "agent-analyst-pattern",
     title: "Analyst · Pattern",
-    number: 22,
+    number: 24,
     notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with defineHook. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Act VI · Close ────────────────────────────────────────
+  // ─── Act VII · Close ───────────────────────────────────────
   {
     slug: "the-mirror",
     title: "The Mirror",
-    number: 23,
+    number: 25,
     notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"Left side: a workflow. Right side: an agent. Same primitives. Same durability model. One mental model for every long-running thing you build.\"\n\nPAUSE.",
   },
   {
     slug: "close",
     title: "Ship It",
-    number: 24,
+    number: 26,
     notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
   },
 ];

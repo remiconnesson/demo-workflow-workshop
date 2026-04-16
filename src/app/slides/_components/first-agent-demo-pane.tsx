@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { WorkflowChatTransport } from "@workflow/ai";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const STORAGE_KEY = "slides:first-agent:run-id";
 const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
@@ -27,7 +27,14 @@ export function FirstAgentDemoPane() {
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) setActiveRunId(stored);
+    if (stored) {
+      setActiveRunId(stored);
+      window.dispatchEvent(
+        new CustomEvent("slide:workflow-started", {
+          detail: { runId: stored, orderId: "ord-8842" },
+        }),
+      );
+    }
   }, []);
 
   const transport = useMemo(
@@ -39,6 +46,12 @@ export function FirstAgentDemoPane() {
           if (runId) {
             localStorage.setItem(STORAGE_KEY, runId);
             setActiveRunId(runId);
+            // Broadcast to slide layout so the debug drawer appears
+            window.dispatchEvent(
+              new CustomEvent("slide:workflow-started", {
+                detail: { runId, orderId: "ord-8842" },
+              }),
+            );
           }
         },
         onChatEnd: () => {
@@ -115,12 +128,7 @@ export function FirstAgentDemoPane() {
           )}
 
           {hasMessages && (
-            <div className="flex h-full flex-col gap-6 overflow-y-auto px-8 py-8">
-              {messages.map((m) => (
-                <MessageCard key={m.id} message={m} />
-              ))}
-              {isWorking && <WorkingPulse />}
-            </div>
+            <ChatScroll messages={messages} isWorking={isWorking} />
           )}
         </div>
 
@@ -165,33 +173,37 @@ export function FirstAgentDemoPane() {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-zinc-950 p-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Run id
-          </p>
-          <p className="mt-3 font-mono text-xl text-emerald-300">
-            {mounted && activeRunId
-              ? activeRunId.slice(0, 24) + "…"
-              : "—"}
-          </p>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-500">
-            Same id before and after the reload. The client reads it
-            from{" "}
-            <span className="font-mono text-zinc-400">localStorage</span>
-            {" "}and reconnects to the live stream.
-          </p>
-        </div>
-
-        <div className="mt-auto rounded-2xl border border-white/10 bg-black p-6">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Primitive
-          </p>
-          <p className="mt-3 font-mono text-xl leading-relaxed text-zinc-300">
-            new <span className="text-white">DurableAgent</span>
-            <br />+ WorkflowChatTransport
-          </p>
-        </div>
+        <p className="mt-auto text-sm leading-relaxed text-zinc-600">
+          Debug drawer appears at the bottom with the run id and{" "}
+          <span className="font-mono text-zinc-500">npx workflow web</span>{" "}
+          command.
+        </p>
       </aside>
+    </div>
+  );
+}
+
+/* ---------- auto-scroll wrapper ---------- */
+
+type ChatScrollProps = {
+  messages: ReturnType<typeof useChat>["messages"];
+  isWorking: boolean;
+};
+
+function ChatScroll({ messages, isWorking }: ChatScrollProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isWorking]);
+
+  return (
+    <div className="flex h-full flex-col gap-6 overflow-y-auto px-8 py-8">
+      {messages.map((m) => (
+        <MessageCard key={m.id} message={m} />
+      ))}
+      {isWorking && <WorkingPulse />}
+      <div ref={bottomRef} />
     </div>
   );
 }

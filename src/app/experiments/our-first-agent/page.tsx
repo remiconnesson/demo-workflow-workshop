@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { WorkflowChatTransport } from "@workflow/ai";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 const STORAGE_KEY = "our-first-agent:run-id";
 
@@ -89,17 +89,7 @@ export default function OurFirstAgentPage() {
 
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_360px]">
         <div className="flex min-h-0 flex-col overflow-hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
-            <div className="mx-auto flex max-w-3xl flex-col gap-6">
-              {messages.length === 0 && (
-                <EmptyState />
-              )}
-              {messages.map((m) => (
-                <MessageBubble key={m.id} message={m} />
-              ))}
-              {isWorking && <WorkingHint />}
-            </div>
-          </div>
+          <ExperimentChatScroll messages={messages} isWorking={isWorking} />
 
           <div className="border-t border-white/10 px-8 py-5">
             <div className="mx-auto flex max-w-3xl items-center gap-3">
@@ -184,6 +174,32 @@ export default function OurFirstAgentPage() {
             </p>
           </div>
         </aside>
+      </div>
+    </div>
+  );
+}
+
+type ExperimentChatScrollProps = {
+  messages: ReturnType<typeof useChat>["messages"];
+  isWorking: boolean;
+};
+
+function ExperimentChatScroll({ messages, isWorking }: ExperimentChatScrollProps) {
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isWorking]);
+
+  return (
+    <div className="min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="mx-auto flex max-w-3xl flex-col gap-6">
+        {messages.length === 0 && <EmptyState />}
+        {messages.map((m) => (
+          <MessageBubble key={m.id} message={m} />
+        ))}
+        {isWorking && <WorkingHint />}
+        <div ref={bottomRef} />
       </div>
     </div>
   );

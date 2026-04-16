@@ -49,26 +49,30 @@ export default function RollbackFixSlide() {
             filename: "saga.ts",
             directive: "catch → unwind",
             directiveTone: "fuchsia",
-            code: `// Each prior step pushed its undo onto the stack:
-//   [ refundPayment, cancelRestaurantOrder, releaseDriver ]
+            code: `const rollbacks: Array<() => Promise<void>> = []
 
 try {
-  await placeOrderSteps(input) // throws "Disputed: cold, bag torn"
-} catch (error) {
-  console.error(error)
-  // → Error: Disputed: cold, bag torn
+  await reserveInventory(orderId)
+  rollbacks.push(() => releaseInventory(orderId))
 
-  // Pop the saga in reverse (LIFO) and run each undo.
-  while (compensations.length > 0) {
-    const { action, undo } = compensations.pop()!
-    await undo()
-    console.info("[saga] compensated", { action })
+  await chargePayment(orderId)
+  rollbacks.push(() => refundPayment(orderId))
+
+  await notifyRestaurant(orderId)
+  rollbacks.push(() => cancelRestaurantOrder(orderId))
+
+  // ... dispute hook throws here
+} catch (e) {
+  // Unwind in reverse — each rollback is a "use step"
+  // so it's durable and retried automatically.
+  for (const rollback of rollbacks.reverse()) {
+    await rollback()
   }
-  // → [saga] compensated { action: "releaseDriver" }
-  // → [saga] compensated { action: "cancelRestaurantOrder" }
-  // → [saga] compensated { action: "refundPayment" }
+  // → cancelRestaurantOrder ✓
+  // → refundPayment ✓
+  // → releaseInventory ✓
 
-  throw error // re-throw so the run is marked rolled_back
+  throw e
 }`,
           },
         ],
