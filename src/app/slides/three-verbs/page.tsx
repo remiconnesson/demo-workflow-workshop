@@ -21,7 +21,7 @@ const PRIMITIVES = [
 
 export default function ThreeVerbsSlide() {
   return (
-    <div className="flex h-full w-full flex-col justify-center gap-14 px-20">
+    <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center gap-14 px-20">
       <div className="flex flex-col gap-3">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
           The workshop vocabulary

@@ -27,7 +27,7 @@ const BEATS = [
 
 export default function HowItWorksSlide() {
   return (
-    <div className="flex h-full w-full flex-col justify-center gap-16 px-20">
+    <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center gap-16 px-20">
       <div className="flex flex-col gap-4">
         <h2 className="text-6xl font-semibold tracking-tight">
           Workshop Structure{" "}

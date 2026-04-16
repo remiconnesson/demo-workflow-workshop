@@ -4,6 +4,7 @@ import { AGENT_GROUPS } from "../_data/agent-groups";
 const FIX_CODE = `export async function analystAgentWorkflow(messages: ChatMessage[]) {
   "use workflow"
 
+  const writable = getWritable<UIMessageChunk>()
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
     tools: {
@@ -25,7 +26,7 @@ const FIX_CODE = `export async function analystAgentWorkflow(messages: ChatMessa
     },
   })
 
-  return agent.stream({ messages, maxSteps: 12 })
+  return agent.stream({ messages, writable, maxSteps: 12 })
 }`;
 
 export default function AgentAnalystFixSlide() {

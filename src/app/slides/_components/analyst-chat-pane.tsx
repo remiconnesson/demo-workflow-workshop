@@ -371,9 +371,8 @@ export function AnalystChatPane({
         setIsStreaming(false);
         setAwaitingApproval(null);
         setPendingApproval(null);
-        activeRunIdRef.current = null;
         activeAssistantIdRef.current = null;
-        onRunIdChange?.(null);
+        // Keep activeRunIdRef and onRunIdChange intact so the debug drawer stays visible
       }
     },
     [consumeStream, isStreaming, messagesForApi, onRunIdChange],
@@ -440,10 +439,11 @@ export function AnalystChatPane({
     setPendingApproval(null);
     activeRunIdRef.current = null;
     activeAssistantIdRef.current = null;
+    onRunIdChange?.(null);
     if (typeof window !== "undefined") {
       window.localStorage.removeItem(STORAGE_KEY);
     }
-  }, [isStreaming]);
+  }, [isStreaming, onRunIdChange]);
 
   // Persist transcript + active run pointer whenever they change.
   useEffect(() => {
@@ -461,7 +461,7 @@ export function AnalystChatPane({
   };
 
   return (
-    <div className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-zinc-950 transition-all duration-500 ${
+    <div className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border bg-zinc-950 transition-[border-color,box-shadow] duration-500 ${
       awaitingApproval
         ? "border-amber-400/40 shadow-[0_0_40px_rgba(251,191,36,0.15)]"
         : "border-white/10"
@@ -498,7 +498,7 @@ export function AnalystChatPane({
           <button
             type="button"
             onClick={reset}
-            disabled={isStreaming || items.length === 0}
+            disabled={isStreaming}
             className="rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm text-zinc-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
           >
             Reset
@@ -508,9 +508,9 @@ export function AnalystChatPane({
 
       {/* Suspension bar — CLS-safe via opacity, always in DOM */}
       <div
-        className={`flex items-center gap-4 border-b px-8 py-4 transition-all duration-500 ${
+        className={`flex items-center gap-4 border-b px-8 transition-[opacity,border-color,background-color,padding] duration-500 ${
           awaitingApproval
-            ? "border-amber-400/30 bg-amber-500/10 opacity-100"
+            ? "py-4 border-amber-400/30 bg-amber-500/10 opacity-100"
             : "h-0 overflow-hidden border-transparent opacity-0 py-0"
         }`}
       >
@@ -576,7 +576,7 @@ export function AnalystChatPane({
 
         {/* Approval banner — reserved slot via opacity, CLS-safe */}
         <div
-          className={`overflow-hidden transition-all duration-200 ${
+          className={`overflow-hidden transition-[max-height,opacity] duration-200 ${
             awaitingApproval ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
           }`}
         >

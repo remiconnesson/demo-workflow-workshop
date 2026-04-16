@@ -1,6 +1,7 @@
 import { codeToHtml } from "shiki";
 import type { OrderStepId } from "@/lib/order-contract";
-import { isAgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
+import { isAgentGroupSlug, type AgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
+import { AgentBeatStrip } from "./agent-beat-strip";
 import { CodeBlock } from "./code-block";
 import { CodeEditorTabs, type CodeEditorTab } from "./code-editor-tabs";
 import { FinishedTimelineStrip } from "./finished-timeline-strip";
@@ -103,7 +104,7 @@ export async function FixSlideLayout({
   return (
     <div className="flex h-full w-full flex-col gap-6 px-14 py-8">
       {isAgent ? (
-        <div aria-hidden className="min-h-[108px]" />
+        <AgentBeatStrip slug={slide as AgentGroupSlug} />
       ) : (
         <FinishedTimelineStrip slide={slide} highlightSteps={highlightSteps} />
       )}

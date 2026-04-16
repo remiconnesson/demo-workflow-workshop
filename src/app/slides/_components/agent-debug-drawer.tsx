@@ -42,41 +42,40 @@ export function AgentDebugDrawer({
   }, [events.length]);
 
   return (
-    <div
-      className={`flex min-h-[48px] flex-1 flex-col rounded-lg border bg-zinc-950/95 px-5 py-3 transition-opacity duration-300 ${
-        runId ? "border-white/10 opacity-100" : "border-transparent opacity-0"
-      }`}
-    >
-      {runId && (
-        <>
-          <a
-            href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="truncate font-mono text-sm text-zinc-400 transition-colors hover:text-white"
-          >
-            <span className="text-zinc-600">$</span> npx workflow web{" "}
-            {runId}
-          </a>
+    <div className="flex min-h-[48px] flex-1 flex-col rounded-lg border border-white/10 bg-zinc-950/95 px-5 py-3">
+      {runId ? (
+        <a
+          href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}
+          target="_blank"
+          rel="noreferrer"
+          className="truncate font-mono text-sm text-zinc-400 transition-colors hover:text-white"
+        >
+          <span className="text-zinc-600">$</span> npx workflow inspect run{" "}
+          {runId}
+        </a>
+      ) : (
+        <span className="font-mono text-sm text-zinc-600">
+          <span className="text-zinc-700">$</span> npx workflow inspect run{" "}
+          &lt;run_id&gt;
+        </span>
+      )}
 
-          {events.length > 0 && (
-            <div
-              ref={feedRef}
-              className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-sm"
-            >
-              {events.map((ev, i) => (
-                <div key={i} className="flex gap-3 py-0.5">
-                  <span
-                    className={`w-8 shrink-0 font-semibold ${kindColor(ev.kind)}`}
-                  >
-                    {ev.kind}
-                  </span>
-                  <span className="truncate text-zinc-400">{ev.msg}</span>
-                </div>
-              ))}
+      {events.length > 0 && (
+        <div
+          ref={feedRef}
+          className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-sm"
+        >
+          {events.map((ev, i) => (
+            <div key={i} className="flex gap-3 py-0.5">
+              <span
+                className={`w-8 shrink-0 font-semibold ${kindColor(ev.kind)}`}
+              >
+                {ev.kind}
+              </span>
+              <span className="truncate text-zinc-400">{ev.msg}</span>
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
     </div>
   );

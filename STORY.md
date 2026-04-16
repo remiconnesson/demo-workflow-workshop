@@ -8,7 +8,7 @@
 
 ## Locked decisions
 
-1. **Three verbs, not nine failures.** The deck is organized around `retry`, `suspend`, `rollback`. Everything else (sleep, hooks, saga, idempotency, streaming) shows up as an API inside one of those verbs, not as its own slide group. `durable` is the substrate the three verbs run on — not a fourth peer verb.
+1. **Three verbs, not nine failures.** The deck is organized around `retry`, `suspend`, `rollback`. Everything else (sleep, hooks, saga, idempotency, streaming) shows up as an API inside one of those verbs, not as its own slide group. `durable` is the foundation the three verbs run on — not a fourth peer verb.
 2. **Three-beat rhythm per scenario.** Every scenario is exactly three slides: **Demo → Workflow Code → Pattern**. No naive code slide — the demo itself establishes the pain, the workflow-code slide is the fix, the pattern slide names the SDK vocabulary and links to docs.
 3. **Agents are the payoff, not an aside.** Acts IV–VI mirror the workflow act with three agent demos. First Agent proves resumable streams (F5 proof). Observer proves durable tool-call replay (crash/resume). Analyst proves human-in-the-loop inside the agent (suspend + approve). They exist to prove the verbs carry over.
 4. **The Mirror is the close.** Slide 25 puts a workflow and an agent side-by-side using the same vocabulary. Same primitives, same durability model, one mental model.
@@ -55,9 +55,9 @@
 
 | Verb | Scenario | What breaks | SDK pattern | Docs |
 |---|---|---|---|---|
-| **retry** | Never Charge Twice | Retry fires, charge runs twice | Idempotency — `getStepMetadata().stepId` | `useworkflow.dev/docs/cookbook/common-patterns/idempotency` |
-| **suspend** | Wait for Humans | Restaurant takes 10 minutes to accept | Human-in-the-Loop — `createHook()` | `useworkflow.dev/docs/cookbook/agent-patterns/human-in-the-loop` |
-| **rollback** | Dispute the Entire Order | Happy path completes, then the customer disputes | Transactions & Rollbacks (Saga) — `compensate` | `useworkflow.dev/docs/cookbook/common-patterns/saga` |
+| **retry** | Never Charge Twice | Retry fires, charge runs twice | Idempotency — `getStepMetadata().stepId` | `workflow-sdk.dev/docs/cookbook/common-patterns/idempotency` |
+| **suspend** | Wait for Humans | Restaurant takes 10 minutes to accept | Human-in-the-Loop — `createHook()` | `workflow-sdk.dev/docs/cookbook/agent-patterns/human-in-the-loop` |
+| **rollback** | Dispute the Entire Order | Happy path completes, then the customer disputes | Transactions & Rollbacks (Saga) — `compensate` | `workflow-sdk.dev/docs/cookbook/common-patterns/saga` |
 
 ---
 

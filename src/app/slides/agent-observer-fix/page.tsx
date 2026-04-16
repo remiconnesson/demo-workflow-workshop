@@ -33,7 +33,7 @@ export default function AgentObserverFixSlide() {
     <FixSlideLayout
       slide={group.slug}
       eyebrow={group.eyebrow}
-      headline="Same loop. Durable substrate."
+      headline="Same loop. Durable foundation."
       marker="span"
       filename="observerAgent.ts"
       statusTone="sky"

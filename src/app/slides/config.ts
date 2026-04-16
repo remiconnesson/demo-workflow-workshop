@@ -132,7 +132,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "agent-first-fix",
     title: "Our First Agent · Workflow Code",
     number: 17,
-    notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.\n\nIF ASKED about idempotency: DurableAgent just works — no idempotency key needed from the caller. Run-level: start() auto-generates a runId, returned via x-workflow-run-id header. Step-level: each 'use step' tool call is cached in the event log — on reconnect the SDK replays results without re-executing. For extra safety (e.g. charging a card), getStepMetadata() exposes a stepId you CAN use as an idempotency key, but it's opt-in, not required.",
+    notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.\n\nIF ASKED about idempotency: DurableAgent handles replay automatically — no caller-supplied idempotency key needed. Run-level: start() auto-generates a runId, returned via x-workflow-run-id header. Step-level: each 'use step' tool call is cached in the event log — on reconnect the SDK replays results without re-executing. For outbound side effects (e.g. charging a card), you should still pass getStepMetadata().stepId as an idempotency key to the external API.",
   },
   {
     slug: "agent-first-pattern",
@@ -148,7 +148,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "agent-observer-demo",
     title: "Observer · Demo",
     number: 19,
-    notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"Same retry primitive you already learned. Every tool call is a step. The event log replays them. Zero re-execution.\"",
+    notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"Same retry primitive you already learned. Step-backed tools are durable — the event log replays them. Zero re-execution.\"",
   },
   {
     slug: "agent-observer-fix",
@@ -174,13 +174,13 @@ export const SLIDES: SlideInfo[] = [
     slug: "agent-analyst-fix",
     title: "Analyst · Workflow Code",
     number: 23,
-    notes: "SAY: \"defineHook inside the agent loop. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
+    notes: "SAY: \"Define the hook once, call .create() inside a workflow-level tool. The agent suspends. A human taps approve. The same loop resumes — no re-prompt, no reconstructed context.\"",
   },
   {
     slug: "agent-analyst-pattern",
     title: "Analyst · Pattern",
     number: 24,
-    notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with defineHook. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
+    notes: "SAY: \"This is the Human-in-the-Loop Agent pattern. Pair DurableAgent with a hook defined via defineHook — create and await it in a workflow-level tool. The hook you already learned, now inside the agent.\"\n\nPOINT at the URL.",
   },
 
   // ─── Act VII · Close ───────────────────────────────────────
