@@ -3,6 +3,7 @@ import {
   analystAgentWorkflow,
   type ChatMessage,
 } from "@/workflows/analyst-agent";
+import { setLatestRunId } from "@/lib/latest-run-store";
 
 type ChatBody = { messages: ChatMessage[] };
 
@@ -11,6 +12,7 @@ export async function POST(req: Request) {
   const messages = Array.isArray(body.messages) ? body.messages : [];
 
   const run = await start(analystAgentWorkflow, [messages]);
+  setLatestRunId(run.runId);
   const readable = getRun(run.runId).getReadable();
 
   const encoder = new TextEncoder();
