@@ -132,7 +132,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "agent-first-fix",
     title: "Our First Agent · Workflow Code",
     number: 17,
-    notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.",
+    notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.\n\nIF ASKED about idempotency: DurableAgent just works — no idempotency key needed from the caller. Run-level: start() auto-generates a runId, returned via x-workflow-run-id header. Step-level: each 'use step' tool call is cached in the event log — on reconnect the SDK replays results without re-executing. For extra safety (e.g. charging a card), getStepMetadata() exposes a stepId you CAN use as an idempotency key, but it's opt-in, not required.",
   },
   {
     slug: "agent-first-pattern",

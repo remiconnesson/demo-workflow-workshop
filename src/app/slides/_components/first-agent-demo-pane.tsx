@@ -67,6 +67,39 @@ export function FirstAgentDemoPane() {
   const isWorking = status === "submitted" || status === "streaming";
   const hasMessages = messages.length > 0;
 
+  // Derive debug events from the chat stream — same shape as the other
+  // slides' DebugDrawer so the presenter sees a familiar event log.
+  const debugEvents = useMemo(() => {
+    const out: { kind: string; msg: string }[] = [];
+    for (const m of messages) {
+      if (m.role === "user") {
+        out.push({ kind: "LOG", msg: `user · ${m.parts.find((p) => p.type === "text")?.text?.slice(0, 60) ?? "…"}` });
+        continue;
+      }
+      for (const part of m.parts) {
+        if (typeof part.type === "string" && part.type.startsWith("tool-")) {
+          const toolName = part.type.slice("tool-".length);
+          const state = (part as { state?: string }).state ?? "calling";
+          const input = (part as { input?: unknown }).input;
+          if (state === "call" || state === "partial-call") {
+            const argStr = input ? JSON.stringify(input).slice(0, 50) : "";
+            out.push({ kind: "RUN", msg: `${toolName}(${argStr})` });
+          }
+          if (state === "result" || state === "output-available") {
+            out.push({ kind: "OK ", msg: `${toolName} · done` });
+          }
+          if (state === "output-error") {
+            out.push({ kind: "ERR", msg: `${toolName} · error` });
+          }
+        }
+      }
+    }
+    if (hasMessages && !isWorking) {
+      out.push({ kind: "END", msg: "agent complete" });
+    }
+    return out;
+  }, [messages, hasMessages, isWorking]);
+
   function handleSend() {
     if (isWorking) return;
     sendMessage({ text: PRESET_PROMPT });
@@ -162,26 +195,10 @@ export function FirstAgentDemoPane() {
           </p>
         </div>
 
-        <div
-          className={`mt-auto rounded-lg border bg-zinc-950/95 px-5 py-3 transition-opacity duration-300 ${
-            mounted && activeRunId
-              ? "border-white/10 opacity-100"
-              : "border-transparent opacity-0"
-          }`}
-          style={{ minHeight: 48 }}
-        >
-          {mounted && activeRunId && (
-            <a
-              href={`http://localhost:3456/run/${activeRunId}`}
-              target="_blank"
-              rel="noreferrer"
-              className="font-mono text-lg text-zinc-400 transition-colors hover:text-white"
-            >
-              <span className="text-zinc-600">$</span> npx workflow web{" "}
-              {activeRunId}
-            </a>
-          )}
-        </div>
+        <AgentDebugDrawer
+          runId={mounted ? activeRunId : undefined}
+          events={debugEvents}
+        />
       </aside>
     </div>
   );
@@ -208,6 +225,74 @@ function ChatScroll({ messages, isWorking }: ChatScrollProps) {
       ))}
       {isWorking && <WorkingPulse />}
       <div ref={bottomRef} />
+    </div>
+  );
+}
+
+/* ---------- debug drawer ---------- */
+
+function kindColor(kind: string): string {
+  switch (kind) {
+    case "OK ": return "text-emerald-400";
+    case "ERR": return "text-red-400";
+    case "WAI": case "HOK": return "text-amber-400";
+    case "CMP": return "text-fuchsia-400";
+    case "RUN": return "text-sky-400";
+    case "END": return "text-white";
+    default: return "text-zinc-500";
+  }
+}
+
+function AgentDebugDrawer({
+  runId,
+  events,
+}: {
+  runId: string | undefined;
+  events: { kind: string; msg: string }[];
+}) {
+  const feedRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight });
+  }, [events.length]);
+
+  return (
+    <div
+      className={`flex min-h-[48px] flex-1 flex-col rounded-lg border bg-zinc-950/95 px-5 py-3 transition-opacity duration-300 ${
+        runId ? "border-white/10 opacity-100" : "border-transparent opacity-0"
+      }`}
+    >
+      {runId && (
+        <>
+          <a
+            href={`http://localhost:3456/run/${runId}`}
+            target="_blank"
+            rel="noreferrer"
+            className="truncate font-mono text-sm text-zinc-400 transition-colors hover:text-white"
+          >
+            <span className="text-zinc-600">$</span> npx workflow web{" "}
+            {runId}
+          </a>
+
+          {events.length > 0 && (
+            <div
+              ref={feedRef}
+              className="mt-3 flex-1 overflow-y-auto border-t border-white/5 pt-3 font-mono text-sm"
+            >
+              {events.map((ev, i) => (
+                <div key={i} className="flex gap-3 py-0.5">
+                  <span
+                    className={`w-8 shrink-0 font-semibold ${kindColor(ev.kind)}`}
+                  >
+                    {ev.kind}
+                  </span>
+                  <span className="truncate text-zinc-400">{ev.msg}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -254,6 +339,7 @@ function MessageCard({ message }: { message: ChatMessage }) {
 type MessagePart = ChatMessage["parts"][number];
 
 function MessagePart({ part }: { part: MessagePart }) {
+  if (!part) return null;
   if (part.type === "text") {
     return (
       <p className="whitespace-pre-wrap text-2xl leading-[1.35] text-zinc-100">
