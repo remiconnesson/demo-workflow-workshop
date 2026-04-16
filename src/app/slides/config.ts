@@ -36,7 +36,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "POINT at the code: \"Six awaits. Fifteen lines. No framework. This is the version we're about to break.\"",
   },
   {
-    slug: "the-four-failures",
+    slug: "three-verbs",
     title: "Three Verbs",
     number: 4,
     notes: "POINT at the three verbs: \"For each one, I'm going to ask — what do you do now?\"",
@@ -48,23 +48,23 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"Here's the shape of the next hour. Three scenarios, three verbs. Each one gets three beats: demo, workflow code, pattern. See it break, see the fix, learn the name. Then we pivot to agents.\"",
   },
 
-  // ─── Act II · Three workflow failures × 3 beats ────────────
+  // ─── Act II · Three scenarios × 3 beats ───────────────────
 
   // --- Retry ---
   {
-    slug: "failure-retry-demo",
+    slug: "retry-demo",
     title: "The Retry · Demo",
     number: 6,
     notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
   },
   {
-    slug: "failure-retry-fix",
+    slug: "retry-fix",
     title: "The Retry · Workflow Code",
     number: 7,
     notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
   },
   {
-    slug: "failure-retry-pattern",
+    slug: "retry-pattern",
     title: "The Retry · Pattern",
     number: 8,
     notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
@@ -72,19 +72,19 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Slow restaurant ---
   {
-    slug: "failure-slow-restaurant-demo",
+    slug: "slow-restaurant-demo",
     title: "Slow Restaurant · Demo",
     number: 9,
     notes: "PRESS r. It pauses at notifyRestaurant. Click 'Restaurant accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
   },
   {
-    slug: "failure-slow-restaurant-fix",
+    slug: "slow-restaurant-fix",
     title: "Slow Restaurant · Workflow Code",
     number: 10,
     notes: "SAY: \"createHook. Function suspends. Token goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom resume worker.\"",
   },
   {
-    slug: "failure-slow-restaurant-pattern",
+    slug: "slow-restaurant-pattern",
     title: "Slow Restaurant · Pattern",
     number: 11,
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
@@ -92,19 +92,19 @@ export const SLIDES: SlideInfo[] = [
 
   // --- Dispute (driver refuses) ---
   {
-    slug: "failure-driver-refuses-demo",
+    slug: "dispute-demo",
     title: "Dispute · Demo",
     number: 12,
     notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
   },
   {
-    slug: "failure-driver-refuses-fix",
+    slug: "dispute-fix",
     title: "Dispute · Workflow Code",
     number: 13,
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
-    slug: "failure-driver-refuses-pattern",
+    slug: "dispute-pattern",
     title: "Dispute · Pattern",
     number: 14,
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",

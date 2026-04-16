@@ -388,7 +388,7 @@ export async function placeOrderWorkflow(
     }
 
     // 7. Post-delivery dispute window (demo mode only — the
-    //    failure-driver-refuses / "Dispute the Order" slide demonstrates
+    //    dispute / "Dispute the Order" slide demonstrates
     //    compensation unwinding a fully-completed happy path. All six
     //    steps are green; we open a short race between a durable
     //    disputeHook (resumed by the /api/orders/[orderId]/dispute

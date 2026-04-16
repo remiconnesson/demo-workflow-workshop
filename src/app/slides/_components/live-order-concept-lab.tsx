@@ -174,17 +174,17 @@ export function LiveOrderConceptLab({
   const stepBadges: Partial<Record<OrderStepId, Badge>> = (() => {
     const state = (id: OrderStepId) => controller.stepState[id];
     switch (slide) {
-      case "failure-retry":
+      case "retry":
         return chargeCount >= 2
           ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
           : {};
-      case "failure-slow-restaurant":
+      case "slow-restaurant":
         if (controller.waitingOn === "notifyRestaurant") {
           const label = `💸 burning $${waitCost.toFixed(2)}`;
           return { notifyRestaurant: { label, tone: "red", pulse: true } };
         }
         return {};
-      case "failure-driver-refuses":
+      case "dispute":
         if (compensationFired || phase === "rolled_back") {
           return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
         }

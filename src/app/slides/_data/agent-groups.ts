@@ -1,13 +1,13 @@
-import type { FailureGroupSlug } from "./failure-groups";
+import type { ScenarioGroupSlug } from "./scenario-groups";
 
 export type AgentGroupSlug = "agent-observer" | "agent-analyst";
 
 /**
  * Unified slug type for every slide "group" the shared layouts accept.
  * Burst 2 pages should import this when a page type could belong to
- * either failure-group or agent-group families.
+ * either scenario-group or agent-group families.
  */
-export type SlideGroupSlug = FailureGroupSlug | AgentGroupSlug;
+export type SlideGroupSlug = ScenarioGroupSlug | AgentGroupSlug;
 
 export type AgentGroupPattern = {
   name: string;

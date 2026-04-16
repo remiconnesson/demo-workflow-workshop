@@ -1,7 +1,7 @@
 import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import { ORDER_STEPS, type OrderStepId } from "@/lib/order-contract";
 import { isAgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
-import type { FailureGroupSlug } from "../_data/failure-groups";
+import type { ScenarioGroupSlug } from "../_data/scenario-groups";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={16} strokeWidth={2.5} />,
@@ -24,14 +24,14 @@ const TONE_CLASS: Record<BadgeTone, string> = {
 
 // Finished-state snapshot of each scenario's dynamic affordance — same label,
 // same tone as the live badge in LiveOrderConceptLab, frozen for naive/fix.
-const AFFORDANCES: Record<FailureGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
-  "failure-retry": {
+const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
+  "retry": {
     chargePayment: { label: "×2", tone: "red" },
   },
-  "failure-slow-restaurant": {
+  "slow-restaurant": {
     notifyRestaurant: { label: "💸 burning $", tone: "red" },
   },
-  "failure-driver-refuses": {
+  "dispute": {
     sendReceipt: { label: "disputed", tone: "fuchsia" },
   },
 };
@@ -58,7 +58,7 @@ export function FinishedTimelineStrip({
     return <div aria-hidden className="min-h-[108px]" />;
   }
 
-  const badges = AFFORDANCES[slide as FailureGroupSlug] ?? {};
+  const badges = AFFORDANCES[slide as ScenarioGroupSlug] ?? {};
 
   return (
     <div className="rounded-2xl border border-white/5 bg-zinc-950/60 px-8 py-5 opacity-60">

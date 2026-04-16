@@ -6,7 +6,7 @@ import { hookTokens } from "@/workflows/place-order";
 type DisputeBody = { reason?: string };
 
 /**
- * Delivery dispute endpoint. Drives the `failure-driver-refuses` /
+ * Delivery dispute endpoint. Drives the `dispute` /
  * "Dispute the Order" finale slide.
  *
  * Resumes the delivery-dispute hook. The workflow is paused inside
