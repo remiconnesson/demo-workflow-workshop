@@ -17,11 +17,12 @@ import {
  */
 
 async function fetchOrderDetails({ orderId }: { orderId: string }) {
-  "use step";
-  // Slow the tool enough that a presenter can reload the page while it
-  // runs. The step boundary is what makes the result durable — when the
-  // client reconnects via WorkflowChatTransport, this value is already
-  // in the event log, so the agent never re-runs the side effect.
+  // No "use step" — this tool calls sleep(), which is a workflow-level
+  // primitive. Per the canonical guidance, tools that use sleep()/hooks
+  // run in the workflow context, not as steps. The slow tool still lets
+  // the presenter hit F5 mid-response: the workflow VM resumes, sleep
+  // picks up via the event log timer, and the LLM step's cached output
+  // continues the same sentence on reconnect via WorkflowChatTransport.
   await sleep("3s");
   return {
     orderId,
