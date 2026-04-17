@@ -1,5 +1,5 @@
 import { DemoSlideLayout } from "../../_components/demo-slide-layout";
-import { ObserverReportPane } from "../../_components/observer-report-pane";
+import { ObserverChatPane } from "../../_components/observer-chat-pane";
 import { AGENT_GROUPS } from "../../_data/agent-groups";
 
 const group = AGENT_GROUPS["agent-observer"];
@@ -10,7 +10,7 @@ export default function AgentObserverDemoSlide() {
       slide={group.slug}
       eyebrow={group.eyebrow}
       headline="... an Agent loses its server?"
-      rightPanel={<ObserverReportPane slug={group.slug} />}
+      rightPanel={<ObserverChatPane slug={group.slug} />}
     />
   );
 }
