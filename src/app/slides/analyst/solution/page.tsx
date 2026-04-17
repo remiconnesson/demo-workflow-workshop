@@ -1,36 +1,9 @@
 import { FixSlideLayout } from "../../_components/fix-slide-layout";
 import { AGENT_GROUPS } from "../../_data/agent-groups";
 
-const FIX_CODE = `export async function analystAgentWorkflow(messages: ChatMessage[]) {
-  "use workflow"
-
-  const writable = getWritable<UIMessageChunk>()
-  const agent = new DurableAgent({
-    model: "anthropic/claude-haiku-4.5",
-    tools: {
-      queryOrders: { execute: queryOrders, /* "use step" */ },
-      proposeMenuChange: { execute: proposeMenuChange },
-      requestApproval: {
-        // Suspend the agent, wait for a human.
-        execute: async ({ proposalId }) => {
-          const hook = approvalHook.create({
-            token: \`analyst-approval:\${proposalId}\`,
-          })
-          const decision = await hook       // ← resumable pause
-          hook.dispose()
-          return decision
-        },
-      },
-      applyMenuChange: { execute: applyMenuChange },
-      rollbackMenuChange: { execute: rollbackMenuChange },
-    },
-  })
-
-  return agent.stream({ messages, writable, maxSteps: 12 })
-}`;
+const group = AGENT_GROUPS["agent-analyst"];
 
 export default function AgentAnalystFixSlide() {
-  const group = AGENT_GROUPS["agent-analyst"];
   return (
     <FixSlideLayout
       slide="agent-analyst"
@@ -55,14 +28,115 @@ export default function AgentAnalystFixSlide() {
         },
       ]}
       workflowFix={{
-        code: FIX_CODE,
-        highlightLines: {
-          2: "`use workflow` — the agent conversation is a [durable workflow](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) that survives restarts",
-          8: "**retry** — tools with [\"use step\"](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) become durable; the event log replays finished calls on restart (same primitive as the [charge retry](https://workflow-sdk.dev/docs/foundations/workflows-and-steps))",
-          13: "**suspend** — the [approval hook](https://workflow-sdk.dev/docs/ai/human-in-the-loop) creates a unique gate the agent will await",
-          16: "**suspend** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
-          22: "**rollback** — compensation is a [tool the agent can call](https://workflow-sdk.dev/docs/ai/defining-tools) any turn — same saga unwind from Act II, now driven by the operator asking the agent to undo",
-        },
+        progression: [
+          {
+            code: `async function queryOrders({ limit }) {
+  return db.orders.recent(limit)
+}
+
+export async function analystAgentWorkflow(messages: ChatMessage[]) {
+  "use workflow"
+
+  const writable = getWritable<UIMessageChunk>()
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    tools: { queryOrders },
+  })
+
+  return agent.stream({ messages, writable, maxSteps: 12 })
+}`,
+          },
+          {
+            highlightLines: {
+              2: "",
+              3: "**retry** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as Act II's charge)",
+            },
+            code: `async function queryOrders({ limit }) {
+  // retry: tool call replays from the event log on restart
+  "use step"
+  return db.orders.recent(limit)
+}
+
+export async function analystAgentWorkflow(messages: ChatMessage[]) {
+  "use workflow"
+
+  const writable = getWritable<UIMessageChunk>()
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    tools: { queryOrders },
+  })
+
+  return agent.stream({ messages, writable, maxSteps: 12 })
+}`,
+          },
+          {
+            highlightLines: {
+              6: "",
+              7: "",
+              8: "[`hook.create({ token })`](https://workflow-sdk.dev/docs/ai/human-in-the-loop) — the UI references this token to submit the approval",
+              9: "**suspend** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
+              10: "",
+            },
+            code: `async function queryOrders({ limit }) {
+  "use step"
+  return db.orders.recent(limit)
+}
+
+// suspend: await the approval hook — agent parks until a human acts
+async function requestApproval({ proposalId }, { toolCallId }) {
+  const hook = approvalHook.create({ token: toolCallId })
+  return await hook
+}
+
+export async function analystAgentWorkflow(messages: ChatMessage[]) {
+  "use workflow"
+
+  const writable = getWritable<UIMessageChunk>()
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    tools: { queryOrders, requestApproval },
+  })
+
+  return agent.stream({ messages, writable, maxSteps: 12 })
+}`,
+          },
+          {
+            highlightLines: {
+              11: "",
+              12: "**rollback** — compensation is just [another tool](https://workflow-sdk.dev/docs/ai/defining-tools) the agent can call — same [saga unwind](https://workflow-sdk.dev/docs/foundations/common-patterns) from the dispute, now driven by the operator through the agent",
+              13: "",
+              14: "",
+              15: "",
+            },
+            code: `async function queryOrders({ limit }) {
+  "use step"
+  return db.orders.recent(limit)
+}
+
+async function requestApproval({ proposalId }, { toolCallId }) {
+  const hook = approvalHook.create({ token: toolCallId })
+  return await hook
+}
+
+// rollback: compensation the operator invokes through the agent
+async function rollbackMenuChange({ changeId }) {
+  "use step"
+  return menu.rollback(changeId)
+}
+
+export async function analystAgentWorkflow(messages: ChatMessage[]) {
+  "use workflow"
+
+  const writable = getWritable<UIMessageChunk>()
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    tools: { queryOrders, requestApproval, rollbackMenuChange },
+  })
+
+  return agent.stream({ messages, writable, maxSteps: 12 })
+}`,
+          },
+        ],
       }}
     />
   );
