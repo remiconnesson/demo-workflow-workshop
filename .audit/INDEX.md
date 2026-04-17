@@ -6,10 +6,13 @@ Each iteration of the audit loop:
 2. Picks the **first** row in Section A whose status is `pending`. If Section A is exhausted, moves to Section B (only if Section B has been flipped to `active` at the section header).
 3. Flips it to `in_progress` (save, then proceed).
 4. Runs the audit per `.audit/RULES.md`, writing `.audit/<outfile>`.
-5. Flips `in_progress` → `done` (or `failed` + short reason) when the findings file is written.
-6. Exits the loop iteration.
+5. Applies the Fix protocol from `.audit/RULES.md` if warranted (blocker-only, surgical, typecheck-gated, one commit per target, never push).
+6. Flips `in_progress` → `done` (no fix needed or skipped), `fixed` (fix committed), or `failed` + short reason.
+7. Exits the loop iteration.
 
-When every active-section row is `done` or `failed`, the loop exits cleanly without scheduling another wakeup.
+Status vocabulary: `pending` | `in_progress` | `done` | `fixed` | `failed`.
+
+When every active-section row is terminal (`done` / `fixed` / `failed`), the loop exits cleanly without scheduling another wakeup.
 
 ## Section A — Stage-critical targets (must audit)
 
@@ -19,7 +22,7 @@ These are the files whose correctness determines whether the on-stage demos beha
 
 | # | Status | Slide slug | Target file | Outfile |
 |---|---|---|---|---|
-| 1 | pending | `title` | `src/app/slides/title/page.tsx` | `.audit/title.md` |
+| 1 | done | `title` | `src/app/slides/title/page.tsx` | `.audit/title.md` |
 | 2 | pending | `the-demo` | `src/app/slides/the-demo/page.tsx` | `.audit/the-demo.md` |
 | 3 | pending | `the-setup` | `src/app/slides/the-setup/page.tsx` | `.audit/the-setup.md` |
 | 4 | pending | `three-verbs` | `src/app/slides/three-verbs/page.tsx` | `.audit/three-verbs.md` |

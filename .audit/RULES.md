@@ -1,6 +1,6 @@
 # Audit Rules
 
-You are auditing an AI-generated codebase — a live GA talk's slide deck plus the workflows, API routes, and components that back its demos — against the canonical Workflow SDK source-of-truth. Your job is **not** to rewrite anything — it is to produce a short, structured findings file per target that a human can triage at 6am.
+You are auditing an AI-generated codebase — a live GA talk's slide deck plus the workflows, API routes, and components that back its demos — against the canonical Workflow SDK source-of-truth. You produce a structured findings file per target AND, when the evidence is conclusive and the fix is surgical, apply and commit the fix. **You do not push.** A human reviews the commits in the morning and decides what to release.
 
 ## Audit lens by target type
 
@@ -101,6 +101,25 @@ Write to the `Outfile` column specified in `.audit/INDEX.md`. Use this schema ex
 
 ## Scope of each iteration
 
-One target from `.audit/INDEX.md`. Read the target file fully. Grep for every user-visible symbol name, `"use step"` / `"use workflow"` directive, and canonical claim. Cross-check signature shapes in the SDK source. Write the findings file. Mark the INDEX entry done. Exit.
+One target from `.audit/INDEX.md`. Read the target file fully. Grep for every user-visible symbol name, `"use step"` / `"use workflow"` directive, and canonical claim. Cross-check signature shapes in the SDK source. Write the findings file. Apply the Fix protocol below if warranted. Mark the INDEX entry `done` (no fix) or `fixed` (fix committed). Exit.
 
-**Do not edit source code.** The audit is strictly read-only — the human triages in the morning. If you discover a bug so severe that the live demo would break, add `CRITICAL — recommend stopping the loop` to the findings file's Summary section; do not attempt to fix.
+If you discover a bug so severe that the live demo would break AND the fix is not surgical, add `CRITICAL — recommend stopping the loop` to the findings file's Summary section and leave the target at `failed` with a short reason. The human will triage in the morning.
+
+## Fix protocol
+
+After writing the findings file, apply fixes with a narrow, safe policy:
+
+1. **Only fix `mismatch` findings at `blocker` severity.** Leave `minor`, `stylistic`, `ambiguous`, and `teaching_simplification` alone. A human triages those.
+2. **Only fix when the Recommendation is surgical and unambiguous.** "Rename `createWebhook` → `defineHook` on line 42" is surgical. "Restructure this example" is not. If in doubt, skip the fix and leave the target at `done` — the human will decide.
+3. **Apply the exact change in the Recommendation field.** Do not refactor surrounding code, reorder imports, or touch anything the recommendation didn't name.
+4. **Run `pnpm typecheck` after the fix.** If it fails, revert the fix (`git checkout -- <path>`), downgrade the finding to `ambiguous` in the findings file with a note that the surgical fix broke typecheck, and leave the target at `done`.
+5. **One commit per target**, title format: `Audit fix: <target> — <one-line summary>`. Body should name the claim number from the findings file and the canonical source cited. Example:
+   ```
+   Audit fix: retry/solution — rename createWebhook → defineHook
+
+   Finding #3 in .audit/retry-solution.md cited ~/dev/workflow/packages/workflow/src/hooks.ts:14 as the canonical symbol.
+   ```
+6. **Never push.** Never amend prior commits. Never run `--no-verify`. If a pre-commit hook fails, revert the fix and downgrade the finding as in step 4.
+7. **Flip the INDEX row to `fixed`** (not `done`) when a fix was committed; `done` when no fix was needed or the fix was skipped per step 2.
+
+The human reviews the commits in the morning and decides what to keep, revert, or escalate.
