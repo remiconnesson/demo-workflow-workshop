@@ -20,20 +20,20 @@ const MENU: CartItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Order Confirmed" },
-  { key: "chargePayment", label: "Payment Processed" },
-  { key: "notifyRestaurant", label: "Preparing Order" },
-  { key: "assignDriver", label: "Dasher Assigned" },
+  { key: "chargeCard", label: "Payment Processed" },
+  { key: "pingRestaurant", label: "Preparing Order" },
+  { key: "findDriver", label: "Dasher Assigned" },
   { key: "trackDelivery", label: "On The Way" },
-  { key: "sendReceipt", label: "Delivered" },
+  { key: "sendReceipts", label: "Delivered" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "notifyRestaurant", label: "Fail at restaurant" },
-  { value: "assignDriver", label: "Fail at driver" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "pingRestaurant", label: "Fail at restaurant" },
+  { value: "findDriver", label: "Fail at driver" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -142,7 +142,7 @@ export default function DoorDashClone() {
       case "waiting_for_hook": {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
-          const kind = event.step === "notifyRestaurant" ? "restaurant-accept" : event.step === "assignDriver" ? "driver-accept" : "delivered";
+          const kind = event.step === "pingRestaurant" ? "restaurant-accept" : event.step === "findDriver" ? "driver-accept" : "delivered";
           setTimeout(() => { void resume(kind, kind === "delivered" ? {} : { accepted: true }); }, 800);
         }
         break;

@@ -2,16 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ORDER_STEPS, type SlideStepState, type CompensationAction } from "@/lib/order-contract";
-import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
+import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt, Undo2 } from "lucide-react";
 import type { OrderStepId } from "@/lib/order-contract";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={24} strokeWidth={2.5} />,
-  chargePayment: <CreditCard size={24} strokeWidth={2.5} />,
-  notifyRestaurant: <ChefHat size={24} strokeWidth={2.5} />,
-  assignDriver: <Bike size={24} strokeWidth={2.5} />,
+  chargeCard: <CreditCard size={24} strokeWidth={2.5} />,
+  pingRestaurant: <ChefHat size={24} strokeWidth={2.5} />,
+  findDriver: <Bike size={24} strokeWidth={2.5} />,
   trackDelivery: <MapPin size={24} strokeWidth={2.5} />,
-  sendReceipt: <Receipt size={24} strokeWidth={2.5} />,
+  sendReceipts: <Receipt size={24} strokeWidth={2.5} />,
 };
 import {
   useOrderRun,
@@ -58,6 +58,14 @@ const ALL_COMPENSATIONS: CompensationAction[] = [
   "releaseDriver",
 ];
 
+// Which step each compensation unwinds — drives the fuchsia "undone" treatment
+// on the main timeline (circle color + compensation-name affordance).
+const COMPENSATION_FOR_STEP: Partial<Record<OrderStepId, CompensationAction>> = {
+  chargeCard: "refundPayment",
+  pingRestaurant: "cancelRestaurantOrder",
+  findDriver: "releaseDriver",
+};
+
 const GLOW_STYLE: Record<SlideStepState, string> = {
   pending: "bg-transparent",
   running: "bg-sky-400/30 animate-pulse",
@@ -97,10 +105,6 @@ export function LiveOrderConceptLab({
   showSleepCost?: boolean;
 }) {
   const controller = useOrderRun(`slides/${slide}`, scenario);
-  const [displayedPill, setDisplayedPill] = useState<{
-    stepId: OrderStepId;
-    state: "running" | "waiting";
-  } | null>(null);
 
   const phase = getDemoPhase({
     running: controller.running,
@@ -115,13 +119,17 @@ export function LiveOrderConceptLab({
 
   // Count chargePayment successes — naiveDoubleCharge emits step_succeeded twice.
   const chargeCount = controller.events.reduce(
-    (n, e) => (e.type === "step_succeeded" && e.step === "chargePayment" ? n + 1 : n),
+    (n, e) => (e.type === "step_succeeded" && e.step === "chargeCard" ? n + 1 : n),
     0,
+  );
+  // Count chargePayment failures — naiveDoubleCharge emits step_failed on attempt 1.
+  const chargeFailed = controller.events.some(
+    (e) => e.type === "step_failed" && e.step === "chargeCard",
   );
 
   const compensationFired = controller.compensations.length > 0;
 
-  type BadgeTone = "red" | "amber" | "fuchsia" | "sky";
+  type BadgeTone = "red" | "amber" | "fuchsia" | "sky" | "emerald";
   type Badge = { label: string; tone: BadgeTone; pulse?: boolean };
 
   const toneClass: Record<BadgeTone, string> = {
@@ -129,6 +137,7 @@ export function LiveOrderConceptLab({
     amber: "border-amber-300 bg-amber-400 text-black shadow-[0_0_24px_rgba(252,211,77,0.55)]",
     fuchsia: "border-fuchsia-400 bg-fuchsia-500 text-white shadow-[0_0_24px_rgba(232,121,249,0.55)]",
     sky: "border-sky-400 bg-sky-500 text-white shadow-[0_0_24px_rgba(56,189,248,0.6)]",
+    emerald: "border-emerald-400 bg-emerald-500 text-white shadow-[0_0_24px_rgba(52,211,153,0.6)]",
   };
 
   // Derive active step for the status pill
@@ -171,82 +180,28 @@ export function LiveOrderConceptLab({
     }
   }, [controller.crashPhase, activeStep, phase, isResetState]);
 
-  const stepBadges: Partial<Record<OrderStepId, Badge>> = (() => {
-    const state = (id: OrderStepId) => controller.stepState[id];
+  const stepBadges: Partial<Record<OrderStepId, Badge[]>> = (() => {
     switch (slide) {
-      case "failure-retry":
-        return chargeCount >= 2
-          ? { chargePayment: { label: "×2", tone: "red", pulse: true } }
-          : {};
-      case "failure-crash": {
-        const step = crashedStepRef.current ?? "notifyRestaurant";
-        if (controller.crashPhase === "crashed") {
-          return { [step]: { label: "💥 crashed", tone: "red", pulse: true } };
-        }
-        if (controller.crashPhase === "replaying") {
-          return { [step]: { label: "replaying", tone: "sky", pulse: true } };
-        }
-        if (crashedStepRef.current) {
-          return { [step]: { label: "replayed", tone: "sky" } };
-        }
-        return {};
+      case "retry": {
+        const badges: Badge[] = [];
+        if (chargeFailed) badges.push({ label: "$", tone: "red" });
+        if (chargeCount >= 2) badges.push({ label: "$", tone: "emerald" });
+        return badges.length > 0 ? { chargeCard: badges } : {};
       }
-      case "failure-slow-restaurant":
-        if (controller.waitingOn === "notifyRestaurant") {
-          const label = `💸 burning $${waitCost.toFixed(2)}`;
-          return { notifyRestaurant: { label, tone: "red", pulse: true } };
+      case "suspend":
+        if (controller.waitingOn === "pingRestaurant") {
+          return { pingRestaurant: [{ label: "waiting", tone: "amber", pulse: true }] };
         }
         return {};
-      case "failure-prep-window":
-        if (
-          state("chargePayment") === "success" &&
-          (state("notifyRestaurant") === "pending" ||
-            state("notifyRestaurant") === "running")
-        ) {
-          return { notifyRestaurant: { label: "20m sleep", tone: "amber", pulse: true } };
-        }
-        return {};
-      case "failure-admin-cancel":
+      case "rollback":
         if (compensationFired || phase === "rolled_back") {
-          return {
-            notifyRestaurant: { label: "cancelled", tone: "fuchsia" },
-            assignDriver: { label: "cancelled", tone: "fuchsia" },
-          };
-        }
-        return {};
-      case "failure-driver-refuses":
-        if (compensationFired || phase === "rolled_back") {
-          return { sendReceipt: { label: "disputed", tone: "fuchsia", pulse: true } };
-        }
-        return {};
-      case "failure-fan-out":
-        if (state("sendReceipt") === "running" || state("sendReceipt") === "success") {
-          return { sendReceipt: { label: "×3 parallel", tone: "sky" } };
-        }
-        return {};
-      case "failure-live-updates":
-        if (phase === "running" && activeStep) {
-          return { [activeStep.id]: { label: "streaming", tone: "sky", pulse: true } };
+          return { sendReceipts: [{ label: "disputed", tone: "fuchsia", pulse: true }] };
         }
         return {};
       default:
         return {};
     }
   })();
-
-  useEffect(() => {
-    if (!activeStep) {
-      if (phase === "idle" && isResetState) {
-        setDisplayedPill(null);
-      }
-      return;
-    }
-
-    const state = controller.stepState[activeStep.id];
-    if (state === "running" || state === "waiting") {
-      setDisplayedPill({ stepId: activeStep.id, state });
-    }
-  }, [activeStep, controller.stepState, isResetState, phase]);
 
   // phase transition logging (signature-guarded to avoid noise)
   const lastPhaseSignatureRef = useRef("");
@@ -362,18 +317,99 @@ export function LiveOrderConceptLab({
 
   return (
     <div className="relative rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
-            {scenario.subtitle ?? scenario.title}
+      <div className="flex items-center justify-between gap-4 min-h-[88px]">
+        {/* hook controls on the left — only visible when actively waiting */}
+        {showManualControls ? (
+          <div className="flex items-center gap-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3">
+            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300 whitespace-nowrap">
+              {controller.waitingOn === "pingRestaurant"
+                ? "Waiting on restaurant"
+                : controller.waitingOn === "findDriver"
+                  ? "Waiting on driver"
+                  : "Waiting on delivery"}
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {controller.waitingOn === "pingRestaurant" ? (
+                <>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "restaurant-accept",
+                        accepted: true,
+                      })
+                    }
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "restaurant-accept",
+                        accepted: false,
+                        reason: "closed",
+                      })
+                    }
+                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : null}
+              {controller.waitingOn === "findDriver" ? (
+                <>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "driver-accept",
+                        accepted: true,
+                      })
+                    }
+                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() =>
+                      void manualResume({
+                        kind: "driver-accept",
+                        accepted: false,
+                      })
+                    }
+                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                  >
+                    Decline
+                  </button>
+                </>
+              ) : null}
+              {controller.waitingOn === "trackDelivery" ? (
+                <button
+                  onClick={() => void manualResume({ kind: "delivered" })}
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                >
+                  Mark delivered
+                </button>
+              ) : null}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex-1">
+            <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
+              {scenario.subtitle ?? scenario.title}
+            </div>
+          </div>
+        )}
         <div className="flex gap-2">
           <button
             onClick={() => void controller.start()}
-            className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:border-white/30 hover:text-white transition-colors"
+            disabled={controller.running}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+              controller.running
+                ? "border border-white/10 text-zinc-500 cursor-not-allowed"
+                : "bg-white text-black hover:bg-zinc-200"
+            }`}
           >
-            Run
+            ▶ Run
           </button>
           {allowCrash ? (
             <button
@@ -511,29 +547,57 @@ export function LiveOrderConceptLab({
         {ORDER_STEPS.map((step) => {
           const state = controller.stepState[step.id] ?? "pending";
           const dimmed = highlightSteps && !highlightSteps.includes(step.id);
+          const compensationAction = COMPENSATION_FOR_STEP[step.id as OrderStepId];
+          const compensated =
+            showCompensations &&
+            !!compensationAction &&
+            controller.compensations.includes(compensationAction);
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
-                {/* Scenario affordance badge — opacity-gated to avoid CLS */}
+                {/* Scenario affordance badges — opacity-gated to avoid CLS */}
                 {(() => {
-                  const badge = stepBadges[step.id];
+                  const badges = stepBadges[step.id];
+                  const hasBadges = badges && badges.length > 0;
                   return (
                     <div
-                      className={`pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold transition-opacity duration-500 ${
-                        badge ? toneClass[badge.tone] : "border-transparent bg-transparent text-transparent"
-                      } ${badge ? "opacity-100" : "opacity-0"} ${badge?.pulse ? "animate-pulse" : ""}`}
+                      className={`pointer-events-none absolute -top-8 left-1/2 z-10 -translate-x-1/2 flex gap-1.5 transition-opacity duration-500 ${
+                        hasBadges ? "opacity-100" : "opacity-0"
+                      }`}
                     >
-                      {badge?.label ?? "·"}
+                      {hasBadges ? badges.map((badge) => (
+                        <div
+                          key={badge.tone}
+                          className={`whitespace-nowrap rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold ${
+                            toneClass[badge.tone]
+                          } ${badge.pulse ? "animate-pulse" : ""}`}
+                        >
+                          {badge.label}
+                        </div>
+                      )) : (
+                        <div className="border-transparent bg-transparent text-transparent rounded-full border-2 px-3 py-0.5 font-mono text-base font-bold">·</div>
+                      )}
                     </div>
                   );
                 })()}
-                {/* Glow layer — always in DOM, visibility via bg color */}
-                <div className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${GLOW_STYLE[state]}`} />
-                {/* Node */}
+                {/* Glow layer — always in DOM, visibility via bg color.
+                    When compensated, swap to a fuchsia pulse to signal "unwinding". */}
                 <div
-                  className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold transition-all duration-500 ${STATE_STYLE[state]}`}
+                  className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${
+                    compensated ? "bg-fuchsia-400/40 animate-pulse" : GLOW_STYLE[state]
+                  }`}
+                />
+                {/* Node — fuchsia compensation skin overrides success white once the undo fires */}
+                <div
+                  className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold transition-all duration-500 ${
+                    compensated
+                      ? "border-fuchsia-400 bg-fuchsia-500/20 text-fuchsia-200"
+                      : STATE_STYLE[state]
+                  }`}
                 >
-                  {state === "success"
+                  {compensated ? (
+                    <Undo2 size={24} strokeWidth={2.5} />
+                  ) : state === "success"
                     ? STEP_ICON[step.id as OrderStepId]
                     : state === "waiting"
                       ? "II"
@@ -546,9 +610,20 @@ export function LiveOrderConceptLab({
                             : "\u00B7"}
                 </div>
               </div>
-              <div className="mt-3 text-lg font-semibold">{step.label}</div>
-              <div className="text-sm uppercase tracking-[0.12em] text-zinc-500">
-                {state}
+              <div
+                className={`mt-3 text-lg font-semibold transition-colors duration-500 ${
+                  compensated ? "text-fuchsia-200 line-through decoration-fuchsia-400/70" : ""
+                }`}
+              >
+                {step.label}
+              </div>
+              {/* compensation name affordance — always reserves a row to prevent CLS */}
+              <div
+                className={`mt-1 font-mono text-sm text-fuchsia-300 transition-opacity duration-300 ${
+                  compensated ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {compensationAction ?? "\u00A0"}
               </div>
             </div>
           );
@@ -556,146 +631,9 @@ export function LiveOrderConceptLab({
       </div>
       )}
 
-      {/* status pill — fixed size, content swaps instantly without cross-fade */}
-      <div className="mt-6 flex justify-center">
-        <div className={`relative h-[52px] min-w-[420px] rounded-full border transition-colors duration-500 ${
-          phase === "idle" ? "border-transparent" :
-          phase === "running" ? "border-sky-400/30" :
-          phase === "waiting" ? "border-amber-400/30" :
-          phase === "completed" ? "border-emerald-400/30" :
-          phase === "rolled_back" ? "border-fuchsia-400/30" :
-          phase === "error" ? "border-red-400/30" :
-          "border-white/10"
-        }`}>
-          {/* Each label is absolutely positioned so swapping never shifts layout */}
-          {ORDER_STEPS.map((step) => {
-            const isDisplayed =
-              displayedPill?.stepId === step.id &&
-              phase !== "completed" &&
-              phase !== "rolled_back" &&
-              phase !== "error";
-            const isWaiting = isDisplayed && displayedPill.state === "waiting";
-            return (
-              <span
-                key={step.id}
-                className={`absolute inset-0 flex items-center justify-center whitespace-nowrap font-mono text-2xl ${
-                  isDisplayed
-                    ? isWaiting
-                      ? "opacity-100 text-amber-300"
-                      : "opacity-100 text-sky-300"
-                    :
-                  "opacity-0"
-                }`}
-              >
-                {step.label}{isWaiting ? <span className="text-zinc-500 ml-2">· waiting</span> : null}
-              </span>
-            );
-          })}
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-emerald-300 ${phase === "completed" ? "opacity-100" : "opacity-0"}`}>
-            Complete
-          </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-fuchsia-300 ${phase === "rolled_back" ? "opacity-100" : "opacity-0"}`}>
-            Rolled back
-          </span>
-          <span className={`absolute inset-0 flex items-center justify-center font-mono text-2xl text-red-300 ${phase === "error" ? "opacity-100" : "opacity-0"}`}>
-            Error
-          </span>
-        </div>
-      </div>
-
-      {/* manual hook controls — always rendered when scenario uses manual hooks, visibility via opacity */}
-      {!scenario.input.autoAck ? (
-        <div className={`mt-6 rounded-xl border p-5 min-h-[100px] transition-all duration-300 ${
-          showManualControls
-            ? "border-amber-500/30 bg-amber-500/5 opacity-100"
-            : "border-white/5 bg-transparent opacity-30"
-        }`}>
-          <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300">
-            {showManualControls ? `Waiting on ${controller.waitingOn}` : "Hook controls"}
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            {controller.waitingOn === "notifyRestaurant" ? (
-              <>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "restaurant-accept",
-                      accepted: true,
-                    })
-                  }
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-                >
-                  Restaurant accept
-                </button>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "restaurant-accept",
-                      accepted: false,
-                      reason: "closed",
-                    })
-                  }
-                  className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
-                >
-                  Restaurant reject
-                </button>
-              </>
-            ) : null}
-            {controller.waitingOn === "assignDriver" ? (
-              <>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "driver-accept",
-                      accepted: true,
-                    })
-                  }
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-                >
-                  Driver accept
-                </button>
-                <button
-                  onClick={() =>
-                    void manualResume({
-                      kind: "driver-accept",
-                      accepted: false,
-                    })
-                  }
-                  className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
-                >
-                  Driver reject
-                </button>
-              </>
-            ) : null}
-            {controller.waitingOn === "trackDelivery" ? (
-              <button
-                onClick={() => void manualResume({ kind: "delivered" })}
-                className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
-              >
-                Mark delivered
-              </button>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
 
       {/* event feed removed — events broadcast to debug drawer via slide:workflow-events */}
-
-      {/* compensations — all slots pre-rendered, fade individually */}
-      {showCompensations && (
-        <div className="mt-6 flex flex-wrap gap-3 min-h-[40px]">
-          {ALL_COMPENSATIONS.map((action) => (
-            <span
-              key={action}
-              className={`rounded-full border border-fuchsia-400/40 bg-black px-4 py-2 font-mono text-sm text-fuchsia-200 transition-opacity duration-300 ${
-                controller.compensations.includes(action) ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {action}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* compensations now render as an "undo timeline" at the top-right of the card */}
 
       {/* error display */}
       <div className={`rounded-xl border p-4 text-sm transition-all duration-300 ${

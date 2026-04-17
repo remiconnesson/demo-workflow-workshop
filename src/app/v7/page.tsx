@@ -24,20 +24,20 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "VALIDATE_ORDER" },
-  { key: "chargePayment", label: "CHARGE_PAYMENT" },
-  { key: "notifyRestaurant", label: "NOTIFY_RESTAURANT" },
-  { key: "assignDriver", label: "ASSIGN_DRIVER" },
+  { key: "chargeCard", label: "CHARGE_PAYMENT" },
+  { key: "pingRestaurant", label: "NOTIFY_RESTAURANT" },
+  { key: "findDriver", label: "ASSIGN_DRIVER" },
   { key: "trackDelivery", label: "TRACK_DELIVERY" },
-  { key: "sendReceipt", label: "SEND_RECEIPT" },
+  { key: "sendReceipts", label: "SEND_RECEIPT" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "HAPPY_PATH" },
   { value: "validateOrder", label: "FAIL_VALIDATE" },
-  { value: "chargePayment", label: "FAIL_PAYMENT" },
-  { value: "notifyRestaurant", label: "FAIL_RESTAURANT" },
-  { value: "assignDriver", label: "FAIL_DRIVER" },
-  { value: "sendReceipt", label: "FAIL_RECEIPT" },
+  { value: "chargeCard", label: "FAIL_PAYMENT" },
+  { value: "pingRestaurant", label: "FAIL_RESTAURANT" },
+  { value: "findDriver", label: "FAIL_DRIVER" },
+  { value: "sendReceipts", label: "FAIL_RECEIPT" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -201,9 +201,9 @@ export default function BloombergTerminal() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

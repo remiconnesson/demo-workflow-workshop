@@ -1,14 +1,15 @@
 import { ClipboardCheck, CreditCard, ChefHat, Bike, MapPin, Receipt } from "lucide-react";
 import { ORDER_STEPS, type OrderStepId } from "@/lib/order-contract";
-import type { FailureGroupSlug } from "../_data/failure-groups";
+import { isAgentGroupSlug, type SlideGroupSlug } from "../_data/agent-groups";
+import type { ScenarioGroupSlug } from "../_data/scenario-groups";
 
 const STEP_ICON: Record<OrderStepId, React.ReactNode> = {
   validateOrder: <ClipboardCheck size={16} strokeWidth={2.5} />,
-  chargePayment: <CreditCard size={16} strokeWidth={2.5} />,
-  notifyRestaurant: <ChefHat size={16} strokeWidth={2.5} />,
-  assignDriver: <Bike size={16} strokeWidth={2.5} />,
+  chargeCard: <CreditCard size={16} strokeWidth={2.5} />,
+  pingRestaurant: <ChefHat size={16} strokeWidth={2.5} />,
+  findDriver: <Bike size={16} strokeWidth={2.5} />,
   trackDelivery: <MapPin size={16} strokeWidth={2.5} />,
-  sendReceipt: <Receipt size={16} strokeWidth={2.5} />,
+  sendReceipts: <Receipt size={16} strokeWidth={2.5} />,
 };
 
 type BadgeTone = "red" | "amber" | "fuchsia" | "sky";
@@ -23,36 +24,20 @@ const TONE_CLASS: Record<BadgeTone, string> = {
 
 // Finished-state snapshot of each scenario's dynamic affordance — same label,
 // same tone as the live badge in LiveOrderConceptLab, frozen for naive/fix.
-const AFFORDANCES: Record<FailureGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
-  "failure-retry": {
-    chargePayment: { label: "×2", tone: "red" },
+const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
+  "retry": {
+    chargeCard: { label: "×2", tone: "red" },
   },
-  "failure-crash": {
-    notifyRestaurant: { label: "💥 replayed", tone: "sky" },
+  "suspend": {
+    pingRestaurant: { label: "waiting…", tone: "amber" },
   },
-  "failure-slow-restaurant": {
-    notifyRestaurant: { label: "💸 burning $", tone: "red" },
-  },
-  "failure-prep-window": {
-    notifyRestaurant: { label: "20m sleep", tone: "amber" },
-  },
-  "failure-admin-cancel": {
-    notifyRestaurant: { label: "cancelled", tone: "fuchsia" },
-    assignDriver: { label: "cancelled", tone: "fuchsia" },
-  },
-  "failure-driver-refuses": {
-    sendReceipt: { label: "disputed", tone: "fuchsia" },
-  },
-  "failure-fan-out": {
-    sendReceipt: { label: "×3 parallel", tone: "sky" },
-  },
-  "failure-live-updates": {
-    trackDelivery: { label: "streaming", tone: "sky" },
+  "rollback": {
+    sendReceipts: { label: "disputed", tone: "fuchsia" },
   },
 };
 
 type FinishedTimelineStripProps = {
-  slide: FailureGroupSlug;
+  slide: SlideGroupSlug;
   highlightSteps?: OrderStepId[];
 };
 
@@ -66,7 +51,14 @@ export function FinishedTimelineStrip({
   slide,
   highlightSteps,
 }: FinishedTimelineStripProps) {
-  const badges = AFFORDANCES[slide] ?? {};
+  // Agent-group slugs don't have a phone/order timeline — render a neutral
+  // spacer instead of crashing. Layouts normally skip this component for
+  // agent slugs; this is the defensive fallback.
+  if (isAgentGroupSlug(slide)) {
+    return <div aria-hidden className="min-h-[108px]" />;
+  }
+
+  const badges = AFFORDANCES[slide as ScenarioGroupSlug] ?? {};
 
   return (
     <div className="rounded-2xl border border-white/5 bg-zinc-950/60 px-8 py-5 opacity-60">
@@ -74,8 +66,8 @@ export function FinishedTimelineStrip({
         {/* Connecting line — behind nodes, clipped by node backgrounds */}
         <div className="pointer-events-none absolute left-8 right-8 top-[18px] h-px bg-white/15" />
         {ORDER_STEPS.map((step) => {
-          const dimmed = highlightSteps && !highlightSteps.includes(step.id);
           const badge = badges[step.id];
+          const dimmed = highlightSteps && !highlightSteps.includes(step.id) && !badge;
           return (
             <div
               key={step.id}

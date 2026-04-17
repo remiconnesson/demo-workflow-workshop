@@ -23,21 +23,21 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Validate" },
-  { key: "chargePayment", label: "Payment" },
-  { key: "notifyRestaurant", label: "Restaurant" },
-  { key: "assignDriver", label: "Driver" },
+  { key: "chargeCard", label: "Payment" },
+  { key: "pingRestaurant", label: "Restaurant" },
+  { key: "findDriver", label: "Driver" },
   { key: "trackDelivery", label: "Delivery" },
-  { key: "sendReceipt", label: "Receipt" },
+  { key: "sendReceipts", label: "Receipt" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Perfect Delivery" },
   { value: "validateOrder", label: "Validation Error" },
-  { value: "chargePayment", label: "Payment Failed" },
-  { value: "notifyRestaurant", label: "Restaurant System Down" },
-  { value: "assignDriver", label: "No Drivers Available" },
+  { value: "chargeCard", label: "Payment Failed" },
+  { value: "pingRestaurant", label: "Restaurant System Down" },
+  { value: "findDriver", label: "No Drivers Available" },
   { value: "trackDelivery", label: "Delivery Disputed" },
-  { value: "sendReceipt", label: "Email System Failure" },
+  { value: "sendReceipts", label: "Email System Failure" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -126,9 +126,9 @@ export default function VisionProPage() {
     const lastEvent = events[events.length - 1];
     if (autoAck && lastEvent?.type === "waiting_for_hook" && currentOrderId) {
       const kind =
-        lastEvent.step === "notifyRestaurant"
+        lastEvent.step === "pingRestaurant"
           ? ("restaurant-accept" as const)
-          : lastEvent.step === "assignDriver"
+          : lastEvent.step === "findDriver"
             ? ("driver-accept" as const)
             : ("delivered" as const);
       

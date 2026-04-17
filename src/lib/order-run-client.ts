@@ -11,7 +11,7 @@ export type ResumeBody =
 
 type HookStep = Extract<
   OrderStepId,
-  "notifyRestaurant" | "assignDriver" | "trackDelivery"
+  "pingRestaurant" | "findDriver" | "trackDelivery"
 >;
 
 export type ScriptedResume = {
@@ -74,9 +74,9 @@ function makeOrderId(source: string, scenarioId: string): string {
 
 function defaultResumeForStep(step: OrderStepId): ResumeBody | null {
   switch (step) {
-    case "notifyRestaurant":
+    case "pingRestaurant":
       return { kind: "restaurant-accept", accepted: true };
-    case "assignDriver":
+    case "findDriver":
       return { kind: "driver-accept", accepted: true };
     case "trackDelivery":
       return { kind: "delivered" };
@@ -371,7 +371,7 @@ export function useOrderRun(
               step,
               strategy,
               driverTimeout:
-                step === "assignDriver"
+                step === "findDriver"
                   ? (scenario.input.driverTimeout ?? "2m")
                   : undefined,
             });
@@ -464,7 +464,7 @@ export function useOrderRun(
           ) {
             setAdminCancelReady(false);
           } else if (
-            event.message === "Dispute window open (5s compressed from 24h)"
+            event.message === "Dispute window open (60s compressed from 24h)"
           ) {
             setDisputeReady(true);
           } else if (

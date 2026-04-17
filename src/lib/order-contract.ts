@@ -1,10 +1,10 @@
 export type OrderStepId =
   | "validateOrder"
-  | "chargePayment"
-  | "notifyRestaurant"
-  | "assignDriver"
+  | "chargeCard"
+  | "pingRestaurant"
+  | "findDriver"
   | "trackDelivery"
-  | "sendReceipt";
+  | "sendReceipts";
 
 export type SlideStepState =
   | "pending"
@@ -16,7 +16,7 @@ export type SlideStepState =
 
 export type FailStep =
   | OrderStepId
-  | "chargePaymentRetryable"
+  | "chargeCardRetryable"
   | null;
 
 export type CompensationAction =
@@ -26,10 +26,10 @@ export type CompensationAction =
 
 export type DemoMode =
   | "standard"
-  | "chargePaymentUnhandledOnce"
-  | "replayProbeBeforeAssignDriver"
+  | "chargeCardUnhandledOnce"
+  | "replayProbeBeforeFindDriver"
   | "prepWindowSleep"
-  | "fanOutSendReceipt"
+  | "fanOutSendReceipts"
   | "adminSleepBeforeDriver"
   | "crashInjectable"
   | "naiveDoubleCharge"
@@ -46,21 +46,21 @@ export const ORDER_STEPS = [
     sub: "Schema & stock",
   },
   {
-    id: "chargePayment",
-    label: "Charge payment",
-    eventLabel: "Charge payment",
+    id: "chargeCard",
+    label: "Charge card",
+    eventLabel: "Charge card",
     sub: "Stripe authorize",
   },
   {
-    id: "notifyRestaurant",
-    label: "Notify bakery",
-    eventLabel: "Notify restaurant",
+    id: "pingRestaurant",
+    label: "Ping restaurant",
+    eventLabel: "Ping restaurant",
     sub: "Await accept",
   },
   {
-    id: "assignDriver",
-    label: "Assign courier",
-    eventLabel: "Assign driver",
+    id: "findDriver",
+    label: "Find driver",
+    eventLabel: "Find driver",
     sub: "Dispatch",
   },
   {
@@ -70,9 +70,9 @@ export const ORDER_STEPS = [
     sub: "Live ETA",
   },
   {
-    id: "sendReceipt",
-    label: "Send receipt",
-    eventLabel: "Send receipt",
+    id: "sendReceipts",
+    label: "Send receipts",
+    eventLabel: "Send receipts",
     sub: "Email + SMS",
   },
 ] as const satisfies readonly {
@@ -85,12 +85,12 @@ export const ORDER_STEPS = [
 export const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "No failure (happy path)" },
   { value: "validateOrder", label: "Fail at validateOrder" },
-  { value: "chargePayment", label: "Fail at chargePayment" },
-  { value: "chargePaymentRetryable", label: "Rate limit payment once" },
-  { value: "notifyRestaurant", label: "Fail at notifyRestaurant" },
-  { value: "assignDriver", label: "Fail at assignDriver" },
+  { value: "chargeCard", label: "Fail at chargeCard" },
+  { value: "chargeCardRetryable", label: "Rate limit payment once" },
+  { value: "pingRestaurant", label: "Fail at pingRestaurant" },
+  { value: "findDriver", label: "Fail at findDriver" },
   { value: "trackDelivery", label: "Fail at trackDelivery" },
-  { value: "sendReceipt", label: "Fail at sendReceipt" },
+  { value: "sendReceipts", label: "Fail at sendReceipts" },
 ];
 
 export const hookTokens = {
@@ -104,10 +104,10 @@ export const hookTokens = {
 // active run per orderId or createHook() will throw hook_conflict.
 
 export const RESUME_KIND_BY_STEP = {
-  notifyRestaurant: "restaurant-accept",
-  assignDriver: "driver-accept",
+  pingRestaurant: "restaurant-accept",
+  findDriver: "driver-accept",
   trackDelivery: "delivered",
 } as const satisfies Record<
-  Extract<OrderStepId, "notifyRestaurant" | "assignDriver" | "trackDelivery">,
+  Extract<OrderStepId, "pingRestaurant" | "findDriver" | "trackDelivery">,
   "restaurant-accept" | "driver-accept" | "delivered"
 >;

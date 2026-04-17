@@ -18,20 +18,20 @@ const MENU_DATA = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Dough Check ✨" },
-  { key: "chargePayment", label: "Payment 💖" },
-  { key: "notifyRestaurant", label: "Baking Time ♨️" },
-  { key: "assignDriver", label: "Courier Found 🛵" },
+  { key: "chargeCard", label: "Payment 💖" },
+  { key: "pingRestaurant", label: "Baking Time ♨️" },
+  { key: "findDriver", label: "Courier Found 🛵" },
   { key: "trackDelivery", label: "En Route 🌸" },
-  { key: "sendReceipt", label: "Delivered 💌" },
+  { key: "sendReceipts", label: "Delivered 💌" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Perfect Day! ☀️" },
   { value: "validateOrder", label: "Oops! Dough Check" },
-  { value: "chargePayment", label: "Oops! Payment" },
-  { value: "notifyRestaurant", label: "Oops! Baking" },
-  { value: "assignDriver", label: "Oops! Courier" },
-  { value: "sendReceipt", label: "Oops! Receipt" },
+  { value: "chargeCard", label: "Oops! Payment" },
+  { value: "pingRestaurant", label: "Oops! Baking" },
+  { value: "findDriver", label: "Oops! Courier" },
+  { value: "sendReceipts", label: "Oops! Receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -178,9 +178,9 @@ export default function KawaiiBakeryDemo() {
           setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
           if (autoAck) {
             const kind =
-              event.step === "notifyRestaurant"
+              event.step === "pingRestaurant"
                 ? "restaurant-accept"
-                : event.step === "assignDriver"
+                : event.step === "findDriver"
                   ? "driver-accept"
                   : "delivered";
             setTimeout(() => {

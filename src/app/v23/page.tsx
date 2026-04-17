@@ -10,11 +10,11 @@ const mono = Geist_Mono({ subsets: ["latin"] });
 type OrderItem = { id: string; name: string; price: number; qty: number; desc: string };
 type FailStep =
   | "validateOrder"
-  | "chargePayment"
-  | "notifyRestaurant"
-  | "assignDriver"
+  | "chargeCard"
+  | "pingRestaurant"
+  | "findDriver"
   | "trackDelivery"
-  | "sendReceipt"
+  | "sendReceipts"
   | null;
 
 type OrderEvent =
@@ -41,11 +41,11 @@ const MENU: OrderItem[] = [
 
 const STEPS = [
   { id: "validateOrder", label: "Validate" },
-  { id: "chargePayment", label: "Charge" },
-  { id: "notifyRestaurant", label: "Restaurant" },
-  { id: "assignDriver", label: "Driver" },
+  { id: "chargeCard", label: "Charge" },
+  { id: "pingRestaurant", label: "Restaurant" },
+  { id: "findDriver", label: "Driver" },
   { id: "trackDelivery", label: "Delivery" },
-  { id: "sendReceipt", label: "Receipt" },
+  { id: "sendReceipts", label: "Receipt" },
 ];
 
 export default function TriangleDonutsV23() {
@@ -168,17 +168,17 @@ export default function TriangleDonutsV23() {
     
     if (e.type === "compensating") {
       let stepId = "";
-      if (e.action === "refundPayment") stepId = "chargePayment";
-      if (e.action === "cancelRestaurantOrder") stepId = "notifyRestaurant";
-      if (e.action === "releaseDriver") stepId = "assignDriver";
+      if (e.action === "refundPayment") stepId = "chargeCard";
+      if (e.action === "cancelRestaurantOrder") stepId = "pingRestaurant";
+      if (e.action === "releaseDriver") stepId = "findDriver";
       if (stepId) setStepStatuses((s) => ({ ...s, [stepId]: "compensating" }));
     }
     
     if (e.type === "compensated") {
       let stepId = "";
-      if (e.action === "refundPayment") stepId = "chargePayment";
-      if (e.action === "cancelRestaurantOrder") stepId = "notifyRestaurant";
-      if (e.action === "releaseDriver") stepId = "assignDriver";
+      if (e.action === "refundPayment") stepId = "chargeCard";
+      if (e.action === "cancelRestaurantOrder") stepId = "pingRestaurant";
+      if (e.action === "releaseDriver") stepId = "findDriver";
       if (stepId) setStepStatuses((s) => ({ ...s, [stepId]: "compensated" }));
     }
 
@@ -190,8 +190,8 @@ export default function TriangleDonutsV23() {
 
   const resumeHook = async (oId: string, step: string, token: string, accept: boolean) => {
     let kind = "";
-    if (step === "notifyRestaurant") kind = "restaurant-accept";
-    else if (step === "assignDriver") kind = "driver-accept";
+    if (step === "pingRestaurant") kind = "restaurant-accept";
+    else if (step === "findDriver") kind = "driver-accept";
     else if (step === "trackDelivery") kind = "delivered";
     else return;
 
@@ -432,7 +432,7 @@ export default function TriangleDonutsV23() {
                     <span className="text-yellow-400 text-2xl font-mono mt-4 block break-all">{activeHook.step}</span>
                   </div>
                   
-                  {activeHook.step === "notifyRestaurant" || activeHook.step === "assignDriver" ? (
+                  {activeHook.step === "pingRestaurant" || activeHook.step === "findDriver" ? (
                     <>
                       <button 
                         onClick={() => resumeHook(orderId!, activeHook.step, activeHook.token, true)}

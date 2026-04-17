@@ -109,9 +109,9 @@ export async function placeOrderWorkflow(
   try {
     await validateOrder(input, failAt === "validateOrder");
 
-    const paymentId = await chargePayment(
+    const paymentId = await chargeCard(
       input,
-      failAt === "chargePayment",
+      failAt === "chargeCard",
     );
     {
       const paymentToRefund = paymentId;
@@ -122,7 +122,7 @@ export async function placeOrderWorkflow(
       await e({
         type: "compensation_pushed",
         action: "refundPayment",
-        forStep: "chargePayment",
+        forStep: "chargeCard",
       });
     }
 
@@ -132,7 +132,7 @@ export async function placeOrderWorkflow(
 
 
     // 2b. Prep-window sleep (demo mode only — visible pause between
-    //     chargePayment and notifyRestaurant for the failure-prep-window
+    //     chargeCard and pingRestaurant for the failure-prep-window
     //     slide). In production this is `await sleep(PREP_WINDOW)` with
     //     PREP_WINDOW = "20m". For stage we compress to 3s so the demo
     //     fits in the 60-second slot. The sleep is recorded by the
@@ -142,10 +142,10 @@ export async function placeOrderWorkflow(
       const PREP_WINDOW = "3s"; // production: "20m"
       await e({
         type: "log",
-        message: `Bakery prep window — sleeping ${PREP_WINDOW} (production: 20m)`,
+        message: `Prep window — sleeping ${PREP_WINDOW} (production: 20m)`,
       });
       await sleep(PREP_WINDOW);
-      await e({ type: "log", message: "Prep window elapsed, notifying bakery" });
+      await e({ type: "log", message: "Prep window elapsed, pinging restaurant" });
     }
 
     if (input.demoMode === "naivePoll") {
@@ -159,15 +159,15 @@ export async function placeOrderWorkflow(
       });
       await e({
         type: "step_failed",
-        step: "notifyRestaurant",
-        label: "Notify restaurant",
+        step: "pingRestaurant",
+        label: "Ping restaurant",
         error: "Naive poll gave up after 10 attempts",
       });
       throw new Error("Naive poll gave up after 10 attempts");
     }
 
-    // 3. Notify restaurant + wait for acceptance hook
-    await notifyRestaurant(input, failAt === "notifyRestaurant");
+    // 3. Ping restaurant + wait for acceptance hook
+    await pingRestaurant(input, failAt === "pingRestaurant");
     compensations.push({
       action: "cancelRestaurantOrder",
       undo: () => cancelRestaurantOrder(orderId),
@@ -175,7 +175,7 @@ export async function placeOrderWorkflow(
     await e({
       type: "compensation_pushed",
       action: "cancelRestaurantOrder",
-      forStep: "notifyRestaurant",
+      forStep: "pingRestaurant",
     });
 
     const restaurantHook = createHook<{ accepted: boolean; reason?: string }>({
@@ -183,9 +183,9 @@ export async function placeOrderWorkflow(
     });
     await e({
       type: "waiting_for_hook",
-      step: "notifyRestaurant",
+      step: "pingRestaurant",
       token: hookTokens.restaurantAccept(orderId),
-      label: "Waiting for restaurant to accept",
+      label: "Pinged restaurant — waiting for accept",
     });
 
     // Optional race: if `restaurantTimeout` is set, wrap the hook in a
@@ -204,8 +204,8 @@ export async function placeOrderWorkflow(
         await e({ type: "log", message: "Restaurant did not accept in time" });
         await e({
           type: "step_failed",
-          step: "notifyRestaurant",
-          label: "Notify restaurant",
+          step: "pingRestaurant",
+          label: "Ping restaurant",
           error: `Restaurant never answered (timed out after ${timeoutLabel})`,
         });
         console.info("[workflow] restaurant_timeout", {
@@ -223,7 +223,7 @@ export async function placeOrderWorkflow(
 
     await e({
       type: "hook_resolved",
-      step: "notifyRestaurant",
+      step: "pingRestaurant",
       token: hookTokens.restaurantAccept(orderId),
       detail: restaurantResult.accepted ? "Restaurant accepted" : "Restaurant rejected",
     });
@@ -275,10 +275,10 @@ export async function placeOrderWorkflow(
       });
     }
 
-    // 3b. Replay probe (demo mode only — injects a retry before assignDriver)
+    // 3b. Replay probe (demo mode only — injects a retry before findDriver)
     await replayProbe(input);
 
-    const driverId = await assignDriver(input, failAt === "assignDriver");
+    const driverId = await findDriver(input, failAt === "findDriver");
     {
       const driverToRelease = driverId;
       compensations.push({
@@ -288,7 +288,7 @@ export async function placeOrderWorkflow(
       await e({
         type: "compensation_pushed",
         action: "releaseDriver",
-        forStep: "assignDriver",
+        forStep: "findDriver",
       });
     }
 
@@ -297,9 +297,9 @@ export async function placeOrderWorkflow(
     });
     await e({
       type: "waiting_for_hook",
-      step: "assignDriver",
+      step: "findDriver",
       token: hookTokens.driverAccept(orderId),
-      label: "Waiting for driver to accept",
+      label: "Finding driver — waiting for accept",
     });
     const driverResult = await Promise.race([
       driverHook.then((r) => ({ kind: "resolved" as const, r })),
@@ -312,8 +312,8 @@ export async function placeOrderWorkflow(
       await e({ type: "log", message: "Driver did not accept in time" });
       await e({
         type: "step_failed",
-        step: "assignDriver",
-        label: "Assign driver",
+        step: "findDriver",
+        label: "Find driver",
         error: `Timed out after ${timeoutLabel}`,
       });
       console.info("[workflow] driver_timeout", {
@@ -324,7 +324,7 @@ export async function placeOrderWorkflow(
     }
     await e({
       type: "hook_resolved",
-      step: "assignDriver",
+      step: "findDriver",
       token: hookTokens.driverAccept(orderId),
       detail: driverResult.r.accepted ? "Driver accepted" : "Driver declined",
     });
@@ -346,7 +346,7 @@ export async function placeOrderWorkflow(
       type: "waiting_for_hook",
       step: "trackDelivery",
       token: hookTokens.delivered(orderId),
-      label: "Waiting for delivery confirmation",
+      label: "Tracking delivery — waiting for confirmation",
     });
     const delivered = await deliveredHook;
     if (failAt === "trackDelivery") {
@@ -365,9 +365,9 @@ export async function placeOrderWorkflow(
       detail: delivered.photo ? "Photo received" : "Delivered",
     });
 
-    await sendReceipt(input, paymentId, failAt === "sendReceipt");
+    await sendReceipts(input, paymentId, failAt === "sendReceipts");
 
-    if (input.demoMode === "fanOutSendReceipt") {
+    if (input.demoMode === "fanOutSendReceipts") {
       await Promise.allSettled([
         sendEmail(input),
         sendPush(input),
@@ -388,11 +388,11 @@ export async function placeOrderWorkflow(
     }
 
     // 7. Post-delivery dispute window (demo mode only — the
-    //    failure-driver-refuses / "Dispute the Order" slide demonstrates
+    //    dispute / "Dispute the Order" slide demonstrates
     //    compensation unwinding a fully-completed happy path. All six
     //    steps are green; we open a short race between a durable
     //    disputeHook (resumed by the /api/orders/[orderId]/dispute
-    //    route) and a short sleep (5s compressed from 24h). If the
+    //    route) and a short sleep (60s compressed from 24h). If the
     //    hook fires, the thrown Error cascades every compensation in reverse.
     if (input.demoMode === "disputeWindow") {
       const disputeHook = createHook<{ reason: string }>({
@@ -400,14 +400,14 @@ export async function placeOrderWorkflow(
       });
       await e({
         type: "log",
-        message: "Dispute window open (5s compressed from 24h)",
+        message: "Dispute window open (60s compressed from 24h)",
       });
       const verdict = await Promise.race([
         disputeHook.then((r) => ({
           kind: "disputed" as const,
           reason: r.reason,
         })),
-        sleep("5s").then(() => ({ kind: "confirmed" as const })),
+        sleep("60s").then(() => ({ kind: "confirmed" as const })),
       ]);
       if (verdict.kind === "disputed") {
         await e({
@@ -565,7 +565,7 @@ async function naiveCrash(): Promise<void> {
 
 async function replayProbe(input: OrderInput): Promise<void> {
   "use step";
-  if (input.demoMode !== "replayProbeBeforeAssignDriver") return;
+  if (input.demoMode !== "replayProbeBeforeFindDriver") return;
   const writer = getWritable<OrderEvent>().getWriter();
   try {
     const { stepId, attempt } = getStepMetadata();
@@ -574,7 +574,7 @@ async function replayProbe(input: OrderInput): Promise<void> {
       message: `replayProbe stepId=${stepId} attempt=${attempt}`,
     }, input.demoMode);
     if (attempt === 1) {
-      throw new Error("Injected replay probe before assignDriver");
+      throw new Error("Injected replay probe before findDriver");
     }
   } finally {
     writer.releaseLock();
@@ -643,7 +643,7 @@ async function validateOrder(
   }
 }
 
-async function chargePayment(
+async function chargeCard(
   input: OrderInput,
   shouldFail: boolean,
 ): Promise<string> {
@@ -653,47 +653,47 @@ async function chargePayment(
     const { stepId, attempt } = getStepMetadata();
     await writeEvent(writer, {
       type: "step_running",
-      step: "chargePayment",
-      label: "Charge payment",
+      step: "chargeCard",
+      label: "Charge card",
     }, input.demoMode);
     if (
       attempt === 1 &&
       consumeCrashFlag(input.orderId, {
         runId: getWorkflowMetadata().workflowRunId,
-        step: "chargePayment",
+        step: "chargeCard",
       })
     ) {
       await writer.write({
         type: "step_failed",
-        step: "chargePayment",
-        label: "Charge payment",
+        step: "chargeCard",
+        label: "Charge card",
         error: "💥 CRASH — process died, runtime will retry",
       });
       await writer.write({
         type: "log",
-        message: `💥 CRASH :: chargePayment attempt 1 throwing RetryableError (stepId=${stepId})`,
+        message: `💥 CRASH :: chargeCard attempt 1 throwing RetryableError (stepId=${stepId})`,
       });
       throw new RetryableError(
-        "💥 CRASH :: simulated process crash mid-chargePayment",
+        "💥 CRASH :: simulated process crash mid-chargeCard",
         { retryAfter: "500ms" },
       );
     }
     await writeEvent(writer, {
       type: "log",
-      message: `chargePayment stepId=${stepId} attempt=${attempt}`,
+      message: `chargeCard stepId=${stepId} attempt=${attempt}`,
     }, input.demoMode);
-    console.info("[workflow] chargePayment", {
+    console.info("[workflow] chargeCard", {
       orderId: input.orderId,
       stepId,
       attempt,
       failAt: input.failAt ?? null,
       demoMode: input.demoMode ?? "standard",
     });
-    if (input.demoMode === "chargePaymentUnhandledOnce" && attempt === 1) {
+    if (input.demoMode === "chargeCardUnhandledOnce" && attempt === 1) {
       await writeEvent(writer, {
         type: "log",
         message:
-          "chargePayment throwing uncaught Error to demonstrate default retry",
+          "chargeCard throwing uncaught Error to demonstrate default retry",
       }, input.demoMode);
       throw new Error("Transient payment gateway outage");
     }
@@ -711,11 +711,20 @@ async function chargePayment(
       });
       if (attempt === 1) {
         naiveAttempt1Ids.set(input.orderId, paymentId);
+        // Money moved — the charge went through on the provider side
         await writeEvent(writer, {
           type: "step_succeeded",
-          step: "chargePayment",
-          label: "Charge payment",
+          step: "chargeCard",
+          label: "Charge card",
           detail: `naive charge #1 ${paymentId} (about to crash)`,
+        }, input.demoMode);
+        // But the API call itself fails (5xx after charging).
+        // Emit step_failed so the UI shows the failure state.
+        await writeEvent(writer, {
+          type: "step_failed",
+          step: "chargeCard",
+          label: "Charge card",
+          error: `Payment API 5xx — money moved but call failed`,
         }, input.demoMode);
         // Embed attempt 1's paymentId in the error so it survives in
         // step_failed / inspect steps `error.message`, making the double
@@ -732,8 +741,8 @@ async function chargePayment(
       }, input.demoMode);
       await writeEvent(writer, {
         type: "step_succeeded",
-        step: "chargePayment",
-        label: "Charge payment",
+        step: "chargeCard",
+        label: "Charge card",
         detail: `Charged twice: naive_pay_attempt_1=${attempt1Id} naive_pay_attempt_2=${paymentId} total=$${total.toFixed(2)}`,
       }, input.demoMode);
       // Return both IDs encoded in the string so `inspect steps -d` surfaces
@@ -742,7 +751,7 @@ async function chargePayment(
       return `${paymentId} | naive_pay_attempt_1=${attempt1Id} naive_pay_attempt_2=${paymentId}`;
     }
     await delay(600);
-    if (input.failAt === "chargePaymentRetryable" && attempt === 1) {
+    if (input.failAt === "chargeCardRetryable" && attempt === 1) {
       await writeEvent(writer, {
         type: "log",
         message: `Payment API rate limited. Retrying with same stepId ${stepId}`,
@@ -754,18 +763,18 @@ async function chargePayment(
     if (shouldFail) {
       await writeEvent(writer, {
         type: "step_failed",
-        step: "chargePayment",
-        label: "Charge payment",
+        step: "chargeCard",
+        label: "Charge card",
         error: "Card declined",
       }, input.demoMode);
-      throw new FatalError(`chargePayment failed for ${input.orderId}`);
+      throw new FatalError(`chargeCard failed for ${input.orderId}`);
     }
     const paymentId = `pay_${stepId}`;
     const total = input.items.reduce((s, i) => s + i.price * i.qty, 0);
     await writeEvent(writer, {
       type: "step_succeeded",
-      step: "chargePayment",
-      label: "Charge payment",
+      step: "chargeCard",
+      label: "Charge card",
       detail: `Charged $${total.toFixed(2)} (${paymentId}) key=${stepId}`,
     }, input.demoMode);
     return paymentId;
@@ -774,7 +783,7 @@ async function chargePayment(
   }
 }
 
-async function notifyRestaurant(
+async function pingRestaurant(
   input: OrderInput,
   shouldFail: boolean,
 ): Promise<void> {
@@ -784,29 +793,29 @@ async function notifyRestaurant(
   try {
     await writeEvent(writer, {
       type: "step_running",
-      step: "notifyRestaurant",
-      label: "Notify restaurant",
+      step: "pingRestaurant",
+      label: "Ping restaurant",
     }, input.demoMode);
     if (
       attempt === 1 &&
       consumeCrashFlag(input.orderId, {
         runId: getWorkflowMetadata().workflowRunId,
-        step: "notifyRestaurant",
+        step: "pingRestaurant",
       })
     ) {
       await writer.write({
         type: "step_failed",
-        step: "notifyRestaurant",
-        label: "Notify restaurant",
+        step: "pingRestaurant",
+        label: "Ping restaurant",
         error: "💥 CRASH — process died, runtime will retry",
       });
       await writer.write({
         type: "log",
-        message: `💥 CRASH :: notifyRestaurant attempt 1 throwing RetryableError (stepId=${stepId})`,
+        message: `💥 CRASH :: pingRestaurant attempt 1 throwing RetryableError (stepId=${stepId})`,
       });
       console.info("[workflow] crash_injected_notify", { stepId, attempt });
       throw new RetryableError(
-        "💥 CRASH :: simulated process crash mid-notifyRestaurant",
+        "💥 CRASH :: simulated process crash mid-pingRestaurant",
         { retryAfter: "500ms" },
       );
     }
@@ -814,22 +823,22 @@ async function notifyRestaurant(
     if (shouldFail) {
       await writeEvent(writer, {
         type: "step_failed",
-        step: "notifyRestaurant",
-        label: "Notify restaurant",
+        step: "pingRestaurant",
+        label: "Ping restaurant",
         error: "Restaurant system unreachable",
       }, input.demoMode);
-      throw new FatalError(`notifyRestaurant failed for ${input.orderId}`);
+      throw new FatalError(`pingRestaurant failed for ${input.orderId}`);
     }
     await writeEvent(writer, {
       type: "log",
-      message: "Restaurant ticket sent to kitchen; awaiting acceptance",
+      message: "Restaurant pinged; awaiting acceptance",
     }, input.demoMode);
   } finally {
     writer.releaseLock();
   }
 }
 
-async function assignDriver(
+async function findDriver(
   input: OrderInput,
   shouldFail: boolean,
 ): Promise<string> {
@@ -839,28 +848,28 @@ async function assignDriver(
   try {
     await writeEvent(writer, {
       type: "step_running",
-      step: "assignDriver",
-      label: "Assign driver",
+      step: "findDriver",
+      label: "Find driver",
     }, input.demoMode);
     if (
       attempt === 1 &&
       consumeCrashFlag(input.orderId, {
         runId: getWorkflowMetadata().workflowRunId,
-        step: "assignDriver",
+        step: "findDriver",
       })
     ) {
       await writer.write({
         type: "step_failed",
-        step: "assignDriver",
-        label: "Assign driver",
+        step: "findDriver",
+        label: "Find driver",
         error: "💥 CRASH — process died, runtime will retry",
       });
       await writer.write({
         type: "log",
-        message: `💥 CRASH :: assignDriver attempt 1 throwing RetryableError (stepId=${stepId})`,
+        message: `💥 CRASH :: findDriver attempt 1 throwing RetryableError (stepId=${stepId})`,
       });
       throw new RetryableError(
-        "💥 CRASH :: simulated process crash mid-assignDriver",
+        "💥 CRASH :: simulated process crash mid-findDriver",
         { retryAfter: "500ms" },
       );
     }
@@ -868,11 +877,11 @@ async function assignDriver(
     if (shouldFail) {
       await writeEvent(writer, {
         type: "step_failed",
-        step: "assignDriver",
-        label: "Assign driver",
+        step: "findDriver",
+        label: "Find driver",
         error: "No drivers available",
       }, input.demoMode);
-      throw new FatalError(`assignDriver failed for ${input.orderId}`);
+      throw new FatalError(`findDriver failed for ${input.orderId}`);
     }
     // Derive from stepId so retries of this step produce the same
     // driverId — teaches idempotency rather than regenerating a random
@@ -888,7 +897,7 @@ async function assignDriver(
   }
 }
 
-async function sendReceipt(
+async function sendReceipts(
   input: OrderInput,
   paymentId: string,
   shouldFail: boolean,
@@ -899,28 +908,28 @@ async function sendReceipt(
   try {
     await writeEvent(writer, {
       type: "step_running",
-      step: "sendReceipt",
-      label: "Send receipt",
+      step: "sendReceipts",
+      label: "Send receipts",
     }, input.demoMode);
     if (
       attempt === 1 &&
       consumeCrashFlag(input.orderId, {
         runId: getWorkflowMetadata().workflowRunId,
-        step: "sendReceipt",
+        step: "sendReceipts",
       })
     ) {
       await writer.write({
         type: "step_failed",
-        step: "sendReceipt",
-        label: "Send receipt",
+        step: "sendReceipts",
+        label: "Send receipts",
         error: "💥 CRASH — process died, runtime will retry",
       });
       await writer.write({
         type: "log",
-        message: `💥 CRASH :: sendReceipt attempt 1 throwing RetryableError (stepId=${stepId})`,
+        message: `💥 CRASH :: sendReceipts attempt 1 throwing RetryableError (stepId=${stepId})`,
       });
       throw new RetryableError(
-        "💥 CRASH :: simulated process crash mid-sendReceipt",
+        "💥 CRASH :: simulated process crash mid-sendReceipts",
         { retryAfter: "500ms" },
       );
     }
@@ -928,16 +937,16 @@ async function sendReceipt(
     if (shouldFail) {
       await writeEvent(writer, {
         type: "step_failed",
-        step: "sendReceipt",
-        label: "Send receipt",
+        step: "sendReceipts",
+        label: "Send receipts",
         error: "Email provider error",
       }, input.demoMode);
-      throw new FatalError(`sendReceipt failed for ${input.orderId}`);
+      throw new FatalError(`sendReceipts failed for ${input.orderId}`);
     }
     await writeEvent(writer, {
       type: "step_succeeded",
-      step: "sendReceipt",
-      label: "Send receipt",
+      step: "sendReceipts",
+      label: "Send receipts",
       detail: `Receipt for ${paymentId} emailed to ${input.customerName}`,
     }, input.demoMode);
   } finally {

@@ -27,7 +27,7 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" });
 const karla = Karla({ subsets: ["latin"], variable: "--font-karla" });
 
 type OrderItem = { id: string; name: string; price: number; qty: number; desc: string };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 
 type OrderEvent =
   | { type: "step_running"; step: string; label: string }
@@ -53,11 +53,11 @@ const MENU: OrderItem[] = [
 
 const STEPS = [
   { id: "validateOrder", label: "Dough check" },
-  { id: "chargePayment", label: "Payment" },
-  { id: "notifyRestaurant", label: "Baking" },
-  { id: "assignDriver", label: "Courier dispatch" },
+  { id: "chargeCard", label: "Payment" },
+  { id: "pingRestaurant", label: "Baking" },
+  { id: "findDriver", label: "Courier dispatch" },
   { id: "trackDelivery", label: "En route" },
-  { id: "sendReceipt", label: "Delivered" },
+  { id: "sendReceipts", label: "Delivered" },
 ];
 
 export default function PapercraftDonutsDemo() {
@@ -86,8 +86,8 @@ export default function PapercraftDonutsDemo() {
       const timer = setTimeout(() => {
         let kind = "";
         const accepted = true;
-        if (lastEvent.step === "notifyRestaurant") kind = "restaurant-accept";
-        else if (lastEvent.step === "assignDriver") kind = "driver-accept";
+        if (lastEvent.step === "pingRestaurant") kind = "restaurant-accept";
+        else if (lastEvent.step === "findDriver") kind = "driver-accept";
         else if (lastEvent.step === "trackDelivery") kind = "delivered";
         
         if (kind) {
@@ -458,14 +458,14 @@ export default function PapercraftDonutsDemo() {
         {/* Manual Hook Controls */}
         {!autoAck && events.some(e => e.type === "waiting_for_hook") && (
           <div className="flex flex-wrap gap-4 bg-[#fef9f1] border-2 border-[#c48b5a] p-4 shadow-[4px_4px_0_#c48b5a]">
-            {events.some(e => e.type === "waiting_for_hook" && e.step === "notifyRestaurant") && !events.some(e => e.type === "hook_resolved" && e.step === "notifyRestaurant") && (
+            {events.some(e => e.type === "waiting_for_hook" && e.step === "pingRestaurant") && !events.some(e => e.type === "hook_resolved" && e.step === "pingRestaurant") && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-black uppercase tracking-wider text-[#c48b5a]">Restaurant:</span>
                 <button onClick={() => manualHook("restaurant-accept", true)} className="bg-[#9bb796] border-2 border-[#1a1a1a] shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-[#1a1a1a] px-4 py-1 text-sm font-bold">Accept</button>
                 <button onClick={() => manualHook("restaurant-accept", false)} className="bg-[#c24e4e] border-2 border-[#1a1a1a] shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-[#1a1a1a] px-4 py-1 text-sm font-bold">Reject</button>
               </div>
             )}
-            {events.some(e => e.type === "waiting_for_hook" && e.step === "assignDriver") && !events.some(e => e.type === "hook_resolved" && e.step === "assignDriver") && (
+            {events.some(e => e.type === "waiting_for_hook" && e.step === "findDriver") && !events.some(e => e.type === "hook_resolved" && e.step === "findDriver") && (
               <div className="flex items-center gap-3">
                 <span className="text-sm font-black uppercase tracking-wider text-[#c48b5a]">Driver:</span>
                 <button onClick={() => manualHook("driver-accept", true)} className="bg-[#9bb796] border-2 border-[#1a1a1a] shadow-[2px_2px_0_#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all text-[#1a1a1a] px-4 py-1 text-sm font-bold">Accept</button>

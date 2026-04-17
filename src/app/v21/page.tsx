@@ -9,11 +9,11 @@ const archivo = Archivo({ subsets: ["latin"], weight: ["400", "700", "900"] });
 type OrderItem = { id: string; name: string; price: number; qty: number };
 type FailStep =
   | "validateOrder"
-  | "chargePayment"
-  | "notifyRestaurant"
-  | "assignDriver"
+  | "chargeCard"
+  | "pingRestaurant"
+  | "findDriver"
   | "trackDelivery"
-  | "sendReceipt"
+  | "sendReceipts"
   | null;
 
 type OrderEvent =
@@ -55,11 +55,11 @@ const DONUTS = [
 
 const STEPS = [
   "validateOrder",
-  "chargePayment",
-  "notifyRestaurant",
-  "assignDriver",
+  "chargeCard",
+  "pingRestaurant",
+  "findDriver",
   "trackDelivery",
-  "sendReceipt",
+  "sendReceipts",
 ];
 
 const DonutShape = ({ index }: { index: number }) => {
@@ -167,9 +167,9 @@ export default function BauhausTriangleDonuts() {
 
       setTimeout(() => {
         const kind =
-          latest.step === "notifyRestaurant"
+          latest.step === "pingRestaurant"
             ? "restaurant-accept"
-            : latest.step === "assignDriver"
+            : latest.step === "findDriver"
             ? "driver-accept"
             : "delivered";
 

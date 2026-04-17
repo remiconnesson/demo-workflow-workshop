@@ -52,20 +52,20 @@ const MENU_DATA: (OrderItem & { desc: string; img: string; category: string })[]
 
 const STEPS: { key: string; label: string; desc: string }[] = [
   { key: "validateOrder", label: "Validate order", desc: "Checking availability" },
-  { key: "chargePayment", label: "Charge payment", desc: "Processing payment" },
-  { key: "notifyRestaurant", label: "Notify restaurant", desc: "Sending to kitchen" },
-  { key: "assignDriver", label: "Assign driver", desc: "Looking for a rider" },
+  { key: "chargeCard", label: "Charge payment", desc: "Processing payment" },
+  { key: "pingRestaurant", label: "Notify restaurant", desc: "Sending to kitchen" },
+  { key: "findDriver", label: "Assign driver", desc: "Looking for a rider" },
   { key: "trackDelivery", label: "Track delivery", desc: "Rider on the way" },
-  { key: "sendReceipt", label: "Send receipt", desc: "Emailed to you" },
+  { key: "sendReceipts", label: "Send receipt", desc: "Emailed to you" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "notifyRestaurant", label: "Fail at restaurant" },
-  { value: "assignDriver", label: "Fail at driver" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "pingRestaurant", label: "Fail at restaurant" },
+  { value: "findDriver", label: "Fail at driver" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -210,7 +210,7 @@ export default function DeliverooDemo() {
       case "waiting_for_hook": {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
-          const kind = event.step === "notifyRestaurant" ? "restaurant-accept" : event.step === "assignDriver" ? "driver-accept" : "delivered";
+          const kind = event.step === "pingRestaurant" ? "restaurant-accept" : event.step === "findDriver" ? "driver-accept" : "delivered";
           setTimeout(() => {
             void resume(kind as any, kind === "delivered" ? {} : { accepted: true });
           }, 800);
@@ -474,8 +474,8 @@ export default function DeliverooDemo() {
                   {result === "completed" ? "Order Delivered!" : 
                    result === "rolled_back" ? "Order Cancelled" : 
                    stepStatuses["trackDelivery"] === "success" ? "Arriving soon" :
-                   stepStatuses["assignDriver"] === "success" ? "Rider heading to restaurant" :
-                   stepStatuses["notifyRestaurant"] === "success" ? "Preparing your food" : "Processing order..."}
+                   stepStatuses["findDriver"] === "success" ? "Rider heading to restaurant" :
+                   stepStatuses["pingRestaurant"] === "success" ? "Preparing your food" : "Processing order..."}
                 </h1>
                 
                 {result !== "rolled_back" && result !== "completed" && (

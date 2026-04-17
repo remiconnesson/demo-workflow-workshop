@@ -29,20 +29,20 @@ const MENU: MenuExt[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Order placed" },
-  { key: "chargePayment", label: "Payment confirmed" },
-  { key: "notifyRestaurant", label: "Sending to store" },
-  { key: "assignDriver", label: "Finding a shopper" },
+  { key: "chargeCard", label: "Payment confirmed" },
+  { key: "pingRestaurant", label: "Sending to store" },
+  { key: "findDriver", label: "Finding a shopper" },
   { key: "trackDelivery", label: "Shopping & on the way" },
-  { key: "sendReceipt", label: "Delivered" },
+  { key: "sendReceipts", label: "Delivered" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path (Success)" },
   { value: "validateOrder", label: "Fail: Validation" },
-  { value: "chargePayment", label: "Fail: Payment" },
-  { value: "notifyRestaurant", label: "Fail: Restaurant Hook" },
-  { value: "assignDriver", label: "Fail: Driver Hook" },
-  { value: "sendReceipt", label: "Fail: Receipt" },
+  { value: "chargeCard", label: "Fail: Payment" },
+  { value: "pingRestaurant", label: "Fail: Restaurant Hook" },
+  { value: "findDriver", label: "Fail: Driver Hook" },
+  { value: "sendReceipts", label: "Fail: Receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -140,9 +140,9 @@ export default function InstacartClone() {
             setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
             if (autoAckRef.current) {
               const kind =
-                event.step === "notifyRestaurant"
+                event.step === "pingRestaurant"
                   ? ("restaurant-accept" as const)
-                  : event.step === "assignDriver"
+                  : event.step === "findDriver"
                   ? ("driver-accept" as const)
                   : ("delivered" as const);
               setTimeout(() => {

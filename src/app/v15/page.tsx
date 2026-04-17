@@ -22,20 +22,20 @@ const MENU: OrderItem[] = [
 
 const STEPS = [
   { key: "validateOrder", label: "Dough check" },
-  { key: "chargePayment", label: "Payment" },
-  { key: "notifyRestaurant", label: "Baking" },
-  { key: "assignDriver", label: "Courier dispatched" },
+  { key: "chargeCard", label: "Payment" },
+  { key: "pingRestaurant", label: "Baking" },
+  { key: "findDriver", label: "Courier dispatched" },
   { key: "trackDelivery", label: "En route" },
-  { key: "sendReceipt", label: "Delivered" },
+  { key: "sendReceipts", label: "Delivered" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at dough check" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "notifyRestaurant", label: "Fail at baking" },
-  { value: "assignDriver", label: "Fail at courier" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "pingRestaurant", label: "Fail at baking" },
+  { value: "findDriver", label: "Fail at courier" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus =
@@ -175,9 +175,9 @@ export default function V15Page() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
               ? ("driver-accept" as const)
               : ("delivered" as const);
           setTimeout(() => {

@@ -27,20 +27,20 @@ const MENU: (OrderItem & { emoji: string })[] = [
 
 const STEPS: { key: string; label: string; icon: string }[] = [
   { key: "validateOrder", label: "Check-it!", icon: "📝" },
-  { key: "chargePayment", label: "Ka-ching!", icon: "💰" },
-  { key: "notifyRestaurant", label: "Cooking!", icon: "👨‍🍳" },
-  { key: "assignDriver", label: "Zooming!", icon: "🛵" },
+  { key: "chargeCard", label: "Ka-ching!", icon: "💰" },
+  { key: "pingRestaurant", label: "Cooking!", icon: "👨‍🍳" },
+  { key: "findDriver", label: "Zooming!", icon: "🛵" },
   { key: "trackDelivery", label: "Almost!", icon: "📍" },
-  { key: "sendReceipt", label: "Donezo!", icon: "💌" },
+  { key: "sendReceipts", label: "Donezo!", icon: "💌" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Perfect Day! ☀️" },
   { value: "validateOrder", label: "Oops, Bad Order ❌" },
-  { value: "chargePayment", label: "No Money! 💸" },
-  { value: "notifyRestaurant", label: "Kitchen Fire! 🔥" },
-  { value: "assignDriver", label: "Flat Tire! 🚲" },
-  { value: "sendReceipt", label: "Email Broke! 📧" },
+  { value: "chargeCard", label: "No Money! 💸" },
+  { value: "pingRestaurant", label: "Kitchen Fire! 🔥" },
+  { value: "findDriver", label: "Flat Tire! 🚲" },
+  { value: "sendReceipts", label: "Email Broke! 📧" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -162,9 +162,9 @@ export default function PlayfulCartoonPage() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? "restaurant-accept"
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? "driver-accept"
                 : "delivered";
           setTimeout(() => {

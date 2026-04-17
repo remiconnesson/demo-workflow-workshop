@@ -257,10 +257,10 @@ function CheckoutView({
                 >
                   <option value="null">Happy path (No failure)</option>
                   <option value="validateOrder">Fail at validate</option>
-                  <option value="chargePayment">Fail at payment</option>
-                  <option value="notifyRestaurant">Fail at restaurant</option>
-                  <option value="assignDriver">Fail at driver</option>
-                  <option value="sendReceipt">Fail at receipt</option>
+                  <option value="chargeCard">Fail at payment</option>
+                  <option value="pingRestaurant">Fail at restaurant</option>
+                  <option value="findDriver">Fail at driver</option>
+                  <option value="sendReceipts">Fail at receipt</option>
                 </select>
               </div>
               <label className="flex items-start gap-3 cursor-pointer group">
@@ -378,11 +378,11 @@ function TrackingView({
 }) {
   const steps = [
     { key: "validateOrder", label: "Validating" },
-    { key: "chargePayment", label: "Payment" },
-    { key: "notifyRestaurant", label: "Restaurant" },
-    { key: "assignDriver", label: "Driver" },
+    { key: "chargeCard", label: "Payment" },
+    { key: "pingRestaurant", label: "Restaurant" },
+    { key: "findDriver", label: "Driver" },
     { key: "trackDelivery", label: "Delivery" },
-    { key: "sendReceipt", label: "Receipt" },
+    { key: "sendReceipts", label: "Receipt" },
   ];
 
   const activeStepIndex = steps.reduce((acc, curr, i) => {
@@ -688,9 +688,9 @@ export default function GrubhubClonePage() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

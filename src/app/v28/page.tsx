@@ -8,7 +8,7 @@ const geistMono = Geist_Mono({ subsets: ['latin'] });
 
 // Types
 type OrderItem = { id: string; name: string; price: number; qty: number; desc: string };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 
 type OrderEvent =
   | { type: "step_running"; step: string; label: string }

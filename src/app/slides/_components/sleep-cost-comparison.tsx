@@ -39,9 +39,9 @@ export function SleepCostComparison({
   const rafRef = useRef<number>(0);
   const startTimeRef = useRef<number>(0);
 
-  // Detect sleep phase: chargePayment succeeded, notifyRestaurant not yet running
-  const chargeState = stepState.chargePayment;
-  const notifyState = stepState.notifyRestaurant;
+  // Detect sleep phase: chargeCard succeeded, pingRestaurant not yet running
+  const chargeState = stepState.chargeCard;
+  const notifyState = stepState.pingRestaurant;
   const isSleeping =
     running &&
     chargeState === "success" &&

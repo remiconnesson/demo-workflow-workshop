@@ -6,7 +6,7 @@ import { Geist_Mono } from "next/font/google";
 const font = Geist_Mono({ subsets: ["latin"], display: "swap" });
 
 type OrderItem = { id: string; name: string; price: number; qty: number };
-type FailStep = "validateOrder" | "chargePayment" | "notifyRestaurant" | "assignDriver" | "trackDelivery" | "sendReceipt" | null;
+type FailStep = "validateOrder" | "chargeCard" | "pingRestaurant" | "findDriver" | "trackDelivery" | "sendReceipts" | null;
 type OrderInput = {
   orderId: string;
   customerName: string;
@@ -39,16 +39,16 @@ const MENU = [
 
 const SAGA_STEPS = [
   "validateOrder",
-  "chargePayment",
-  "notifyRestaurant",
-  "assignDriver",
+  "chargeCard",
+  "pingRestaurant",
+  "findDriver",
   "trackDelivery",
-  "sendReceipt"
+  "sendReceipts"
 ];
 
 const getHookKind = (step: string) => {
-  if (step === "notifyRestaurant") return "restaurant-accept";
-  if (step === "assignDriver") return "driver-accept";
+  if (step === "pingRestaurant") return "restaurant-accept";
+  if (step === "findDriver") return "driver-accept";
   if (step === "trackDelivery") return "delivered";
   return "restaurant-accept";
 };

@@ -20,20 +20,20 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Validate order" },
-  { key: "chargePayment", label: "Charge payment" },
-  { key: "notifyRestaurant", label: "Notify restaurant" },
-  { key: "assignDriver", label: "Assign driver" },
+  { key: "chargeCard", label: "Charge payment" },
+  { key: "pingRestaurant", label: "Notify restaurant" },
+  { key: "findDriver", label: "Assign driver" },
   { key: "trackDelivery", label: "Track delivery" },
-  { key: "sendReceipt", label: "Send receipt" },
+  { key: "sendReceipts", label: "Send receipt" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "Happy path" },
   { value: "validateOrder", label: "Fail at validate" },
-  { value: "chargePayment", label: "Fail at payment" },
-  { value: "notifyRestaurant", label: "Fail at restaurant" },
-  { value: "assignDriver", label: "Fail at driver" },
-  { value: "sendReceipt", label: "Fail at receipt" },
+  { value: "chargeCard", label: "Fail at payment" },
+  { value: "pingRestaurant", label: "Fail at restaurant" },
+  { value: "findDriver", label: "Fail at driver" },
+  { value: "sendReceipts", label: "Fail at receipt" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -156,9 +156,9 @@ export default function WoltCloneDemo() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? "restaurant-accept"
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
               ? "driver-accept"
               : "delivered";
           setTimeout(() => {

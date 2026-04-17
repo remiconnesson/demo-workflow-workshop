@@ -1,0 +1,24 @@
+import { getRun, start } from "workflow/api";
+import { supportSuspendAgentWorkflow } from "@/workflows/experiments/support-suspend";
+import { setLatestRunId } from "@/lib/latest-run-store";
+
+export async function POST() {
+  const run = await start(supportSuspendAgentWorkflow);
+  setLatestRunId(run.runId);
+  const readable = getRun(run.runId).getReadable();
+
+  const encoder = new TextEncoder();
+  const ndjson = new TransformStream<unknown, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(encoder.encode(JSON.stringify(chunk) + "\n"));
+    },
+  });
+
+  return new Response(readable.pipeThrough(ndjson), {
+    headers: {
+      "Content-Type": "application/x-ndjson",
+      "Cache-Control": "no-cache, no-transform",
+      "X-Run-Id": run.runId,
+    },
+  });
+}

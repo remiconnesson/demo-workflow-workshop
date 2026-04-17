@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
-import { getSlideNav } from "./config";
+import { getSlideNav, SLIDES } from "./config";
+import { WorkflowMark } from "./_components/workflow-mark";
 
 export default function SlidesLayout({
   children,
@@ -12,10 +13,12 @@ export default function SlidesLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const slug = pathname.split("/").pop() ?? "";
+  const slug = pathname.replace(/^\/slides\//, "");
   const { current, prev, next, total } = getSlideNav(slug);
-  const [showNotes, setShowNotes] = useState(false);
+
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   // Listen for workflow run events from child slides
   useEffect(() => {
@@ -34,12 +37,51 @@ export default function SlidesLayout({
     setRunInfo(null);
   }, [slug]);
 
+  // Close picker on slide change
+  useEffect(() => {
+    setPickerOpen(false);
+  }, [slug]);
+
+  // Close picker on outside click
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", onClick);
+    return () => window.removeEventListener("mousedown", onClick);
+  }, [pickerOpen]);
+
+  // Prefetch all slide routes on mount so dev server compiles them eagerly
+  useEffect(() => {
+    for (const slide of SLIDES) {
+      router.prefetch(`/slides/${slide.slug}`);
+    }
+  }, [router]);
+
   useEffect(() => {
     console.info("[slides] open", { slug });
   }, [slug]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setPickerOpen(false);
+      }
+
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      const isEditable =
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        !!target?.isContentEditable;
+      if (isEditable) return;
+
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
       if (e.key === "ArrowRight" && next) {
         e.preventDefault();
         router.push(`/slides/${next.slug}`);
@@ -66,36 +108,33 @@ export default function SlidesLayout({
           new CustomEvent("slide:reset", { detail: { slug } }),
         );
       }
-      if (e.key === "n") {
+      if (e.key === "g") {
         e.preventDefault();
-        setShowNotes((s) => !s);
+        setPickerOpen((v) => !v);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [prev, next, router]);
+  }, [prev, next, router, slug]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {children}
 
-      {/* speaker notes overlay */}
-      {showNotes && current?.notes && (
-        <div className="fixed inset-x-0 bottom-0 z-50 max-h-[40vh] overflow-y-auto border-t border-white/10 bg-zinc-950/95 px-10 py-6 backdrop-blur font-mono text-base leading-relaxed text-zinc-300">
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Speaker Notes
-            </span>
-            <button
-              onClick={() => setShowNotes(false)}
-              className="text-sm text-zinc-500 hover:text-white"
-            >
-              Close (n)
-            </button>
-          </div>
-          <pre className="whitespace-pre-wrap">{current.notes}</pre>
+      {slug !== "title" && (
+        <div className="pointer-events-none fixed top-8 right-8 z-50">
+          <WorkflowMark size={32} className="text-white/70" />
         </div>
       )}
+
+      {current?.breadcrumb && (
+        <div className="pointer-events-none fixed top-8 left-8 z-50">
+          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
+            {current.breadcrumb}
+          </span>
+        </div>
+      )}
+
 
       {/* navigation bar */}
       <div className="fixed bottom-6 right-8 z-50 flex items-center gap-0 rounded-full border border-white/10 bg-zinc-950/80 backdrop-blur font-mono text-lg select-none">
@@ -112,10 +151,42 @@ export default function SlidesLayout({
           &larr;
         </button>
 
-        {/* slide number */}
-        <span className="px-2 py-2 text-zinc-500">
-          {current?.number ?? "?"} / {total}
-        </span>
+        {/* slide number — click to open picker */}
+        <div className="relative" ref={pickerRef}>
+          <button
+            onClick={() => setPickerOpen((v) => !v)}
+            className="px-2 py-2 text-zinc-500 hover:text-white transition-colors cursor-pointer"
+          >
+            {current?.number ?? "?"} / {total}
+          </button>
+
+          {/* slide picker popover */}
+          {pickerOpen && (
+            <div className="absolute bottom-full mb-2 right-1/2 translate-x-1/2 w-72 max-h-[70vh] overflow-y-auto rounded-xl border border-white/10 bg-zinc-950/95 backdrop-blur shadow-2xl">
+              <div className="p-2">
+                {SLIDES.map((slide) => (
+                  <button
+                    key={slide.slug}
+                    onClick={() => {
+                      router.push(`/slides/${slide.slug}`);
+                      setPickerOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-base font-mono transition-colors flex items-center gap-3 cursor-pointer ${
+                      slide.slug === slug
+                        ? "bg-white/10 text-white"
+                        : "text-zinc-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <span className="text-zinc-600 w-6 text-right shrink-0">
+                      {slide.number}
+                    </span>
+                    <span className="truncate">{slide.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* right arrow (clickable) */}
         <button
@@ -131,24 +202,10 @@ export default function SlidesLayout({
         </button>
       </div>
 
-      {/* slide title + notes hint + debug toggle */}
-      <div className="fixed bottom-6 left-8 z-50 flex items-center gap-4 font-mono text-lg select-none">
-        <span className="text-zinc-600">{current?.title}</span>
-        <button
-          onClick={() => setShowNotes((s) => !s)}
-          className={`rounded border px-2 py-0.5 text-sm transition-colors ${
-            showNotes
-              ? "border-white/20 text-zinc-300"
-              : "border-white/10 text-zinc-600 hover:text-zinc-400"
-          }`}
-        >
-          n
-        </button>
-      </div>
 
       {/* debug drawer — always open when a run is active */}
       {runInfo && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-8">
+        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">
             <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
           </div>

@@ -23,20 +23,20 @@ const MENU: (OrderItem & { desc: string })[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "Dough check" },
-  { key: "chargePayment", label: "Payment" },
-  { key: "notifyRestaurant", label: "Baking" },
-  { key: "assignDriver", label: "Courier dispatched" },
+  { key: "chargeCard", label: "Payment" },
+  { key: "pingRestaurant", label: "Baking" },
+  { key: "findDriver", label: "Courier dispatched" },
   { key: "trackDelivery", label: "En route" },
-  { key: "sendReceipt", label: "Delivered" },
+  { key: "sendReceipts", label: "Delivered" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "NULL (Happy path)" },
   { value: "validateOrder", label: "ERR_1 (Fail at Dough check)" },
-  { value: "chargePayment", label: "ERR_2 (Fail at Payment)" },
-  { value: "notifyRestaurant", label: "ERR_3 (Fail at Baking)" },
-  { value: "assignDriver", label: "ERR_4 (Fail at Dispatch)" },
-  { value: "sendReceipt", label: "ERR_5 (Fail at Receipt)" },
+  { value: "chargeCard", label: "ERR_2 (Fail at Payment)" },
+  { value: "pingRestaurant", label: "ERR_3 (Fail at Baking)" },
+  { value: "findDriver", label: "ERR_4 (Fail at Dispatch)" },
+  { value: "sendReceipts", label: "ERR_5 (Fail at Receipt)" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -111,9 +111,9 @@ export default function BlueprintDemo() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAckRef.current) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {

@@ -28,21 +28,21 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string; chapter: string }[] = [
   { key: "validateOrder", label: "Validate order", chapter: "01" },
-  { key: "chargePayment", label: "Charge payment", chapter: "02" },
-  { key: "notifyRestaurant", label: "Notify restaurant", chapter: "03" },
-  { key: "assignDriver", label: "Assign driver", chapter: "04" },
+  { key: "chargeCard", label: "Charge payment", chapter: "02" },
+  { key: "pingRestaurant", label: "Notify restaurant", chapter: "03" },
+  { key: "findDriver", label: "Assign driver", chapter: "04" },
   { key: "trackDelivery", label: "Track delivery", chapter: "05" },
-  { key: "sendReceipt", label: "Send receipt", chapter: "06" },
+  { key: "sendReceipts", label: "Send receipt", chapter: "06" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "The Perfect Run" },
   { value: "validateOrder", label: "Validation Fault" },
-  { value: "chargePayment", label: "Payment Decline" },
-  { value: "notifyRestaurant", label: "Kitchen Exhaustion" },
-  { value: "assignDriver", label: "Courier Unavailability" },
+  { value: "chargeCard", label: "Payment Decline" },
+  { value: "pingRestaurant", label: "Kitchen Exhaustion" },
+  { value: "findDriver", label: "Courier Unavailability" },
   { value: "trackDelivery", label: "Missing Shipment" },
-  { value: "sendReceipt", label: "Communications Failure" },
+  { value: "sendReceipts", label: "Communications Failure" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -111,9 +111,9 @@ export default function EditorialV2Page() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {
@@ -388,13 +388,13 @@ export default function EditorialV2Page() {
                         {/* Manual Hook Controls if status is waiting and autoAck is off */}
                         {status === "waiting" && !autoAck && (
                           <div className="mt-6 grid grid-cols-2 gap-4 border-2 border-black p-4 bg-white/50">
-                            {step.key === "notifyRestaurant" && (
+                            {step.key === "pingRestaurant" && (
                               <>
                                 <button onClick={() => resume("restaurant-accept", { accepted: true })} className="text-[10px] font-black uppercase border border-black py-2 hover:bg-black hover:text-white transition-all">Kitchen Accept</button>
                                 <button onClick={() => resume("restaurant-accept", { accepted: false, reason: "86'd" })} className="text-[10px] font-black uppercase border border-black py-2 hover:bg-black hover:text-white transition-all">Kitchen Deny</button>
                               </>
                             )}
-                            {step.key === "assignDriver" && (
+                            {step.key === "findDriver" && (
                               <>
                                 <button onClick={() => resume("driver-accept", { accepted: true })} className="text-[10px] font-black uppercase border border-black py-2 hover:bg-black hover:text-white transition-all">Driver Accept</button>
                                 <button onClick={() => resume("driver-accept", { accepted: false })} className="text-[10px] font-black uppercase border border-black py-2 hover:bg-black hover:text-white transition-all">Driver Deny</button>

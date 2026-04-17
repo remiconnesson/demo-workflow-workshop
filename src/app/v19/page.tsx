@@ -22,20 +22,20 @@ const MENU: OrderItem[] = [
 
 const STEPS: { key: string; label: string }[] = [
   { key: "validateOrder", label: "01 // DOUGH CHECK" },
-  { key: "chargePayment", label: "02 // PAYMENT_SYS" },
-  { key: "notifyRestaurant", label: "03 // BAKING_INIT" },
-  { key: "assignDriver", label: "04 // COURIER_REQ" },
+  { key: "chargeCard", label: "02 // PAYMENT_SYS" },
+  { key: "pingRestaurant", label: "03 // BAKING_INIT" },
+  { key: "findDriver", label: "04 // COURIER_REQ" },
   { key: "trackDelivery", label: "05 // EN_ROUTE" },
-  { key: "sendReceipt", label: "06 // DELIVERED" },
+  { key: "sendReceipts", label: "06 // DELIVERED" },
 ];
 
 const FAIL_OPTIONS: { value: FailStep; label: string }[] = [
   { value: null, label: "NULL (Happy path)" },
   { value: "validateOrder", label: "ERR_AT_VALIDATE" },
-  { value: "chargePayment", label: "ERR_AT_PAYMENT" },
-  { value: "notifyRestaurant", label: "ERR_AT_BAKING" },
-  { value: "assignDriver", label: "ERR_AT_COURIER" },
-  { value: "sendReceipt", label: "ERR_AT_DELIVER" },
+  { value: "chargeCard", label: "ERR_AT_PAYMENT" },
+  { value: "pingRestaurant", label: "ERR_AT_BAKING" },
+  { value: "findDriver", label: "ERR_AT_COURIER" },
+  { value: "sendReceipts", label: "ERR_AT_DELIVER" },
 ];
 
 type StepStatus = "pending" | "running" | "waiting" | "success" | "failed" | "skipped";
@@ -154,9 +154,9 @@ export default function V19Page() {
         setStepStatuses((s) => ({ ...s, [event.step]: "waiting" }));
         if (autoAck) {
           const kind =
-            event.step === "notifyRestaurant"
+            event.step === "pingRestaurant"
               ? ("restaurant-accept" as const)
-              : event.step === "assignDriver"
+              : event.step === "findDriver"
                 ? ("driver-accept" as const)
                 : ("delivered" as const);
           setTimeout(() => {
@@ -193,9 +193,9 @@ export default function V19Page() {
   };
 
   const dronePos = useMemo(() => {
-    if (stepStatuses["sendReceipt"] === "success" || stepStatuses["sendReceipt"] === "running" || stepStatuses["trackDelivery"] === "success") return { x: 280, y: 20, rot: 75 };
+    if (stepStatuses["sendReceipts"] === "success" || stepStatuses["sendReceipts"] === "running" || stepStatuses["trackDelivery"] === "success") return { x: 280, y: 20, rot: 75 };
     if (stepStatuses["trackDelivery"] === "running" || stepStatuses["trackDelivery"] === "waiting") return { x: 150, y: 40, rot: 75 };
-    if (stepStatuses["assignDriver"] === "success") return { x: 20, y: 70, rot: 75 };
+    if (stepStatuses["findDriver"] === "success") return { x: 20, y: 70, rot: 75 };
     return { x: 20, y: 70, rot: 75 };
   }, [stepStatuses]);
 
