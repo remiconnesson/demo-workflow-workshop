@@ -84,10 +84,18 @@ export default function SlidesLayout({
 
       if (e.key === "ArrowRight" && next) {
         e.preventDefault();
+        const consumed = !window.dispatchEvent(
+          new CustomEvent("slide:nav-forward", { cancelable: true, detail: { slug } }),
+        );
+        if (consumed) return;
         router.push(`/slides/${next.slug}`);
       }
       if (e.key === "ArrowLeft" && prev) {
         e.preventDefault();
+        const consumed = !window.dispatchEvent(
+          new CustomEvent("slide:nav-back", { cancelable: true, detail: { slug } }),
+        );
+        if (consumed) return;
         router.push(`/slides/${prev.slug}`);
       }
       if (e.key === "Home") {

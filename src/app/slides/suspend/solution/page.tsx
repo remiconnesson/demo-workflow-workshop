@@ -15,7 +15,11 @@ export default function SuspendFixSlide() {
           detail: <><span className="text-zinc-300">createWebhook()</span> — one line, no custom route</>,
         },
         {
-          label: <><code className="font-mono">Race</code> webhook vs 24h <code className="font-mono">sleep</code></>,
+          label: <><code className="font-mono">Await</code> the webhook</>,
+          detail: <>suspends until the restaurant taps accept — but waits forever</>,
+        },
+        {
+          label: <><code className="font-mono">Race</code> it against a 24h <code className="font-mono">sleep</code></>,
           detail: <><span className="text-zinc-300">Promise.race</span> — whichever resolves first</>,
         },
         {
@@ -24,33 +28,80 @@ export default function SuspendFixSlide() {
         },
       ]}
       workflowFix={{
-        highlightLines: {
-          6: "Creates a [unique URL](https://workflow-sdk.dev/docs/api-reference/workflow/create-webhook) that [wakes this workflow up](https://workflow-sdk.dev/docs/foundations/hooks) — no custom API route needed",
-          12: "**First one wins**: restaurant taps accept, or 24 hours pass",
-          13: "",
-          14: "[Durable sleep](https://workflow-sdk.dev/docs/api-reference/workflow/sleep) — the process can shut down and restart; the **timer survives**",
-          18: "Throwing enters the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) — your rollback steps [run in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
-        },
-        code: `async function placeOrder(orderId: string) {
+        progression: [
+          {
+            code: `async function placeOrder(orderId: string) {
+  // how do you wait 24h for a human to tap accept?
+  await pingRestaurant(orderId)
+  // ...then poll? block? timeout after 30s?
+}`,
+          },
+          {
+            highlightLines: {
+              4: "Creates a [unique URL](https://workflow-sdk.dev/docs/api-reference/workflow/create-webhook) that [wakes this workflow up](https://workflow-sdk.dev/docs/foundations/hooks) — **no custom route, no polling**",
+            },
+            code: `async function placeOrder(orderId: string) {
   "use workflow"
-
-  // createWebhook suspends the workflow.
-  // One URL. No route. No polling.
+  // one URL the restaurant can hit to resume us
   using webhook = createWebhook()
-
-  // Send the accept link to the restaurant
+  await pingRestaurant(orderId, webhook.url)
+}`,
+          },
+          {
+            highlightLines: {
+              7: "Suspends the workflow until the restaurant [hits the webhook URL](https://workflow-sdk.dev/docs/foundations/hooks) — **but what if they never do?**",
+            },
+            code: `async function placeOrder(orderId: string) {
+  "use workflow"
+  using webhook = createWebhook()
   await pingRestaurant(orderId, webhook.url)
 
-  // Race: restaurant taps accept vs 24h timeout
+  // await the webhook — but this blocks forever
+  await webhook
+}`,
+          },
+          {
+            highlightLines: {
+              7: "**First one wins**: the restaurant taps accept, or 24 hours pass",
+              8: "",
+              9: "[Durable sleep](https://workflow-sdk.dev/docs/api-reference/workflow/sleep) — the process can shut down and restart; the **timer survives**",
+              10: "",
+            },
+            code: `async function placeOrder(orderId: string) {
+  "use workflow"
+  using webhook = createWebhook()
+  await pingRestaurant(orderId, webhook.url)
+
+  // race the webhook against a 24h durable timer
+  const accepted = await Promise.race([
+    webhook.then(() => true),
+    sleep("24h").then(() => false),
+  ])
+}`,
+          },
+          {
+            highlightLines: {
+              12: "Throwing enters the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) — your rollback steps [run in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
+              13: "",
+              14: "",
+            },
+            code: `async function placeOrder(orderId: string) {
+  "use workflow"
+  using webhook = createWebhook()
+  await pingRestaurant(orderId, webhook.url)
+
   const accepted = await Promise.race([
     webhook.then(() => true),
     sleep("24h").then(() => false),
   ])
 
+  // throw on timeout → compensation unwinds the order
   if (!accepted) {
     throw new Error("Restaurant never accepted")
   }
 }`,
+          },
+        ],
       }}
     />
   );

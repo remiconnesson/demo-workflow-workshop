@@ -6,28 +6,59 @@ import { AgentBeatStrip } from "./agent-beat-strip";
 import { CodeBlock } from "./code-block";
 import { CodeEditorTabs, type CodeEditorTab, type TabTone } from "./code-editor-tabs";
 import { FinishedTimelineStrip } from "./finished-timeline-strip";
+import { ProgressiveFixContent } from "./progressive-fix-content";
 
-export type WorkflowFixTab = {
-  filename: string;
-  code: string;
-  lang?: "ts" | "tsx" | "js" | "jsx";
-  /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
-  highlightLines?: Record<number, string>;
-  /** Optional semantic tone — adds a colored dot in the tab strip. */
-  tone?: TabTone;
-};
-
-export type WorkflowFix = {
+export type ProgressionState = {
   code: string;
   /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
   highlightLines?: Record<number, string>;
-  /**
-   * Optional additional tabs. When provided, the code pane renders as a
-   * tabbed editor with the primary `code` as the first tab (labelled
-   * `filename` with the `use workflow` directive) and these as extras.
-   */
-  tabs?: WorkflowFixTab[];
 };
+
+export type WorkflowFixTab =
+  | {
+      filename: string;
+      code: string;
+      lang?: "ts" | "tsx" | "js" | "jsx";
+      /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
+      highlightLines?: Record<number, string>;
+      /** Optional semantic tone — adds a colored dot in the tab strip. */
+      tone?: TabTone;
+      progression?: never;
+    }
+  | {
+      filename: string;
+      /** Progressive states — scrubs alongside the primary tab. */
+      progression: ProgressionState[];
+      lang?: "ts" | "tsx" | "js" | "jsx";
+      tone?: TabTone;
+      code?: never;
+      highlightLines?: never;
+    };
+
+/**
+ * Single-code mode: the full snippet is rendered at once, with optional
+ * per-line hover tooltips and optional secondary tabs.
+ *
+ * Progressive mode: the presenter scrubs through an ordered series of code
+ * states (via ArrowRight/ArrowLeft) that build the snippet up one primitive
+ * at a time. `progression.length` should equal `steps.length + 1` — state 0
+ * is the baseline (no concepts yet), each subsequent state corresponds to the
+ * concept described by the matching step.
+ */
+export type WorkflowFix =
+  | {
+      code: string;
+      highlightLines?: Record<number, string>;
+      tabs?: WorkflowFixTab[];
+      progression?: never;
+    }
+  | {
+      progression: ProgressionState[];
+      /** Static supplementary tabs rendered beside the scrubbing primary file. */
+      tabs?: WorkflowFixTab[];
+      code?: never;
+      highlightLines?: never;
+    };
 
 export type FixStep = { label: ReactNode; detail: ReactNode };
 
@@ -41,7 +72,7 @@ type FixSlideLayoutProps = {
   markerLabel?: string;
   highlightSteps?: OrderStepId[];
   workflowFix: WorkflowFix;
-  steps: [FixStep, FixStep, FixStep];
+  steps: FixStep[];
   filename?: string;
   statusLabel?: string;
   statusTone?: StatusTone;
@@ -80,20 +111,32 @@ async function highlight(code: string, lang: "ts" | "tsx" | "js" | "jsx" = "ts",
   return wrapLines(html, highlightLines);
 }
 
+type SingleCodeFix = Extract<WorkflowFix, { code: string }>;
+
 async function buildTabs(
   primaryFilename: string,
-  workflowFix: WorkflowFix,
+  workflowFix: SingleCodeFix,
 ): Promise<CodeEditorTab[]> {
   const primary: CodeEditorTab = {
     filename: primaryFilename,
     html: await highlight(workflowFix.code, "ts", workflowFix.highlightLines),
   };
   const extras = await Promise.all(
-    (workflowFix.tabs ?? []).map(async (tab) => ({
-      filename: tab.filename,
-      html: await highlight(tab.code, tab.lang ?? "ts", tab.highlightLines),
-      tone: tab.tone,
-    })),
+    (workflowFix.tabs ?? []).map(async (tab) => {
+      if ("progression" in tab && tab.progression) {
+        const last = tab.progression[tab.progression.length - 1];
+        return {
+          filename: tab.filename,
+          html: await highlight(last.code, tab.lang ?? "ts", last.highlightLines),
+          tone: tab.tone,
+        };
+      }
+      return {
+        filename: tab.filename,
+        html: await highlight(tab.code, tab.lang ?? "ts", tab.highlightLines),
+        tone: tab.tone,
+      };
+    }),
   );
   return [primary, ...extras];
 }
@@ -132,14 +175,54 @@ export async function FixSlideLayout({
 }: FixSlideLayoutProps) {
   const isAgent = isAgentGroupSlug(slide);
   const pillLabel = statusLabel ?? markerLabel;
+  const strip = isAgent ? (
+    <AgentBeatStrip slug={slide as AgentGroupSlug} />
+  ) : (
+    <FinishedTimelineStrip slide={slide} highlightSteps={highlightSteps} />
+  );
+
+  if ("progression" in workflowFix && workflowFix.progression) {
+    const codeHtmls = await Promise.all(
+      workflowFix.progression.map((state) =>
+        highlight(state.code, "ts", state.highlightLines),
+      ),
+    );
+    const extraTabs = await Promise.all(
+      (workflowFix.tabs ?? []).map(async (tab) => {
+        if ("progression" in tab && tab.progression) {
+          const htmls = await Promise.all(
+            tab.progression.map((state) =>
+              highlight(state.code, tab.lang ?? "ts", state.highlightLines),
+            ),
+          );
+          return { filename: tab.filename, htmls, tone: tab.tone };
+        }
+        const html = await highlight(tab.code, tab.lang ?? "ts", tab.highlightLines);
+        return { filename: tab.filename, htmls: [html], tone: tab.tone };
+      }),
+    );
+    return (
+      <div className="flex h-full w-full flex-col gap-0 px-14 pt-14 pb-8">
+        {strip}
+        <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
+          <ProgressiveFixContent
+            headline={headline}
+            filename={filename}
+            textClass="text-[26px]"
+            steps={steps}
+            codeHtmls={codeHtmls}
+            extraTabs={extraTabs}
+            pillLabel={pillLabel}
+            statusTone={statusTone}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full w-full flex-col gap-0 px-14 pt-14 pb-8">
-      {isAgent ? (
-        <AgentBeatStrip slug={slide as AgentGroupSlug} />
-      ) : (
-        <FinishedTimelineStrip slide={slide} highlightSteps={highlightSteps} />
-      )}
+      {strip}
 
       <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
         <div className="flex flex-col">
