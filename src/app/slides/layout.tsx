@@ -3,9 +3,195 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
-import { getSlideNav, SLIDES } from "./config";
+import { getSlideNav, SLIDES, type SlideInfo } from "./config";
 import { WorkflowMark } from "./_components/workflow-mark";
 import { SlidesDebugProvider } from "./_components/slides-debug-context";
+
+type RailTone =
+  | "zinc"
+  | "sky"
+  | "amber"
+  | "fuchsia"
+  | "emerald"
+  | "amber-fuchsia";
+
+type AudienceRailInfo = {
+  act: string;
+  family: string;
+  beat: string;
+  tone: RailTone;
+  proof?: string;
+};
+
+const THREE_BEATS = ["Demo", "Solution", "Pattern"] as const;
+
+const RAIL_TONE_CLASS: Record<
+  RailTone,
+  {
+    dot: string;
+    line: string;
+    proof: string;
+  }
+> = {
+  zinc: {
+    dot: "bg-zinc-500",
+    line: "bg-white/35",
+    proof: "border-white/10 bg-white/5 text-zinc-300",
+  },
+  sky: {
+    dot: "bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.55)]",
+    line: "bg-sky-400",
+    proof: "border-sky-400/30 bg-sky-500/10 text-sky-300",
+  },
+  amber: {
+    dot: "bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.55)]",
+    line: "bg-amber-400",
+    proof: "border-amber-400/30 bg-amber-500/10 text-amber-300",
+  },
+  fuchsia: {
+    dot: "bg-fuchsia-400 shadow-[0_0_18px_rgba(232,121,249,0.55)]",
+    line: "bg-fuchsia-400",
+    proof: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-300",
+  },
+  emerald: {
+    dot: "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.55)]",
+    line: "bg-emerald-400",
+    proof: "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
+  },
+  "amber-fuchsia": {
+    dot: "bg-gradient-to-r from-amber-400 to-fuchsia-400 shadow-[0_0_18px_rgba(232,121,249,0.45)]",
+    line: "bg-gradient-to-r from-amber-400 to-fuchsia-400",
+    proof:
+      "border-fuchsia-400/30 bg-gradient-to-r from-amber-500/10 to-fuchsia-500/10 text-white",
+  },
+};
+
+function beatForTriplet(number: number, start: number) {
+  return THREE_BEATS[number - start] ?? "Demo";
+}
+
+function getAudienceRailInfo(
+  slide: SlideInfo | null,
+): AudienceRailInfo | null {
+  if (!slide || slide.slug === "title") return null;
+  const n = slide.number;
+  if (n >= 2 && n <= 5) {
+    const beatByNumber: Record<number, string> = {
+      2: "Happy path",
+      3: "Starting code",
+      4: "Three verbs",
+      5: "Workshop map",
+    };
+    return {
+      act: "Act I",
+      family: "Setup",
+      beat: beatByNumber[n] ?? slide.title,
+      tone: "zinc",
+    };
+  }
+  if (n >= 6 && n <= 8) {
+    return { act: "Act II", family: "Retry", beat: beatForTriplet(n, 6), tone: "sky" };
+  }
+  if (n >= 9 && n <= 11) {
+    return { act: "Act II", family: "Suspend", beat: beatForTriplet(n, 9), tone: "amber" };
+  }
+  if (n >= 12 && n <= 14) {
+    return {
+      act: "Act II",
+      family: "Rollback",
+      beat: beatForTriplet(n, 12),
+      tone: "fuchsia",
+    };
+  }
+  if (n === 15) {
+    return {
+      act: "Act III",
+      family: "Pivot",
+      beat: "Workflows → Agents",
+      tone: "zinc",
+    };
+  }
+  if (n >= 16 && n <= 18) {
+    return {
+      act: "Act IV",
+      family: "First Agent",
+      proof: "STREAM · RESUME",
+      beat: beatForTriplet(n, 16),
+      tone: "emerald",
+    };
+  }
+  if (n >= 19 && n <= 21) {
+    return {
+      act: "Act V",
+      family: "Observer",
+      proof: "RETRY · REPLAY",
+      beat: beatForTriplet(n, 19),
+      tone: "sky",
+    };
+  }
+  if (n >= 22 && n <= 24) {
+    return {
+      act: "Act VI",
+      family: "Analyst",
+      proof: "SUSPEND + ROLLBACK",
+      beat: beatForTriplet(n, 22),
+      tone: "amber-fuchsia",
+    };
+  }
+  if (n === 25) {
+    return {
+      act: "Act VII",
+      family: "Close",
+      proof: "WORKFLOW → AGENT",
+      beat: "Mirror",
+      tone: "zinc",
+    };
+  }
+  if (n === 26) {
+    return {
+      act: "Act VII",
+      family: "Close",
+      beat: "Original function",
+      tone: "emerald",
+    };
+  }
+  const closerBeatByNumber: Record<number, AudienceRailInfo> = {
+    27: { act: "Act VII", family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
+    28: {
+      act: "Act VII",
+      family: "Close",
+      proof: "2 / 6",
+      beat: "Idempotency",
+      tone: "sky",
+    },
+    29: { act: "Act VII", family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
+    30: {
+      act: "Act VII",
+      family: "Close",
+      proof: "4 / 6",
+      beat: "Sleep + Race",
+      tone: "amber",
+    },
+    31: {
+      act: "Act VII",
+      family: "Close",
+      proof: "5 / 6",
+      beat: "Compensation",
+      tone: "fuchsia",
+    },
+    32: { act: "Act VII", family: "Close", proof: "6 / 6", beat: "Replay", tone: "sky" },
+  };
+  if (closerBeatByNumber[n]) return closerBeatByNumber[n];
+  if (n === 33) {
+    return { act: "Act VII", family: "Close", beat: "Ship it", tone: "zinc" };
+  }
+  return {
+    act: `Slide ${slide.number}`,
+    family: slide.title,
+    beat: "",
+    tone: "zinc",
+  };
+}
 
 export default function SlidesLayout({
   children,
@@ -16,6 +202,10 @@ export default function SlidesLayout({
   const router = useRouter();
   const slug = pathname.replace(/^\/slides\//, "");
   const { current, prev, next, total } = getSlideNav(slug);
+  const railInfo = getAudienceRailInfo(current);
+  const railTone = railInfo ? RAIL_TONE_CLASS[railInfo.tone] : null;
+  const progressPercent =
+    current && total > 0 ? `${(current.number / total) * 100}%` : "0%";
 
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -143,12 +333,49 @@ export default function SlidesLayout({
         </div>
       )}
 
-      {current?.breadcrumb && (
-        <div className="pointer-events-none fixed top-8 left-8 z-50">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            {current.breadcrumb}
-          </span>
-        </div>
+      {railInfo && railTone && (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] bg-white/[0.06]"
+          >
+            <div
+              className={`h-full transition-[width] duration-300 ease-out ${railTone.line}`}
+              style={{ width: progressPercent }}
+            />
+          </div>
+          <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex max-w-[calc(100vw-12rem)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/45 px-5 py-2 shadow-[0_18px_60px_rgba(0,0,0,0.38)] backdrop-blur-md">
+            <span
+              aria-hidden
+              className={`h-2.5 w-2.5 shrink-0 rounded-full ${railTone.dot}`}
+            />
+            <span className="whitespace-nowrap font-mono text-lg font-semibold uppercase leading-none tracking-[0.22em] text-zinc-500">
+              {railInfo.act}
+            </span>
+            <span aria-hidden className="h-5 w-px bg-white/15" />
+            <span className="whitespace-nowrap text-xl font-semibold leading-none text-zinc-100">
+              {railInfo.family}
+            </span>
+            {railInfo.proof ? (
+              <>
+                <span aria-hidden className="h-5 w-px bg-white/15" />
+                <span
+                  className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-base font-semibold uppercase leading-none tracking-[0.16em] ${railTone.proof}`}
+                >
+                  {railInfo.proof}
+                </span>
+              </>
+            ) : null}
+            {railInfo.beat ? (
+              <>
+                <span aria-hidden className="h-5 w-px bg-white/15" />
+                <span className="whitespace-nowrap font-mono text-lg font-semibold uppercase leading-none tracking-[0.18em] text-zinc-400">
+                  {railInfo.beat}
+                </span>
+              </>
+            ) : null}
+          </div>
+        </>
       )}
 
 
