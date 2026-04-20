@@ -94,57 +94,57 @@ const RAIL_BY_SLUG: Record<string, AudienceRailInfo> = {
 
   "first-agent/demo": {
     family: "Hello World",
-    proof: "Run survives refresh",
+
     beat: "Demo",
     tone: "emerald",
   },
   "first-agent/solution": {
     family: "Hello World",
-    proof: "Run survives refresh",
+
     beat: "Code",
     tone: "emerald",
   },
   "first-agent/pattern": {
     family: "Hello World",
-    proof: "Run survives refresh",
+
     beat: "Pattern",
     tone: "emerald",
   },
 
   "observer/demo": {
     family: "Autonomous",
-    proof: "Forever loop",
+
     beat: "Demo",
     tone: "sky",
   },
   "observer/solution": {
     family: "Autonomous",
-    proof: "Forever loop",
+
     beat: "Code",
     tone: "sky",
   },
   "observer/pattern": {
     family: "Autonomous",
-    proof: "Forever loop",
+
     beat: "Pattern",
     tone: "sky",
   },
 
   "analyst/demo": {
     family: "Optimize",
-    proof: "Approval + Undo",
+
     beat: "Demo",
     tone: "amber-fuchsia",
   },
   "analyst/solution": {
     family: "Optimize",
-    proof: "Approval + Undo",
+
     beat: "Code",
     tone: "amber-fuchsia",
   },
   "analyst/pattern": {
     family: "Optimize",
-    proof: "Approval + Undo",
+
     beat: "Pattern",
     tone: "amber-fuchsia",
   },
