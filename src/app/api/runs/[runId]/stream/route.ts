@@ -12,8 +12,8 @@ export async function GET(
     ? run.getReadable({ startIndex })
     : run.getReadable();
 
-  // The workflow stream contains structured objects. Encode each to
-  // newline-delimited JSON bytes so it can be sent over HTTP.
+  const tailIndex = await source.getTailIndex();
+
   const encoder = new TextEncoder();
   const ndjson = new TransformStream<unknown, Uint8Array>({
     transform(chunk, controller) {
@@ -27,6 +27,7 @@ export async function GET(
     headers: {
       "Content-Type": "application/x-ndjson",
       "Cache-Control": "no-cache, no-transform",
+      "x-workflow-stream-tail-index": String(tailIndex),
     },
   });
 }

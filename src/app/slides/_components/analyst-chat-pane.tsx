@@ -539,7 +539,7 @@ export function AnalystChatPane({
           return;
         }
 
-        const runId = res.headers.get("X-Run-Id");
+        const runId = res.headers.get("x-workflow-run-id");
         if (runId) {
           activeRunIdRef.current = runId;
           onRunIdChange?.(runId);

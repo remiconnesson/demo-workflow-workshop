@@ -190,7 +190,7 @@ export default function SupportRollbackPage() {
       const res = await fetch("/api/experiments/support-rollback/start", {
         method: "POST",
       });
-      setRunId(res.headers.get("X-Run-Id"));
+      setRunId(res.headers.get("x-workflow-run-id"));
       if (!res.body) throw new Error("no stream");
 
       const reader = res.body.getReader();

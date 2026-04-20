@@ -78,29 +78,33 @@ async function appendToReport({ entries }: { entries: ReportEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Workflow-level tool: human ack via hook
+// Workflow-level tool: human ack via hook (factory — closure captures counter)
 // ---------------------------------------------------------------------------
 
-async function flagForHuman({
-  summary,
-  severity,
-}: {
-  summary: string;
-  severity: "info" | "warn" | "critical";
-}) {
-  // No "use step" — hooks must be awaited at the workflow level.
-  const token = `observer-flag:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const hook = approvalHook.create({ token });
+function makeFlagForHuman() {
+  let flagCallCount = 0;
 
-  const ack = await hook;
-  hook.dispose();
-
-  return {
-    acknowledged: ack.approved,
-    reason: ack.reason ?? null,
-    severity,
+  return async function flagForHuman({
     summary,
-    token,
+    severity,
+  }: {
+    summary: string;
+    severity: "info" | "warn" | "critical";
+  }) {
+    // No "use step" — hooks must be awaited at the workflow level.
+    const token = `observer-flag:${++flagCallCount}`;
+    const hook = approvalHook.create({ token });
+
+    const ack = await hook;
+    hook.dispose();
+
+    return {
+      acknowledged: ack.approved,
+      reason: ack.reason ?? null,
+      severity,
+      summary,
+      token,
+    };
   };
 }
 
@@ -112,6 +116,7 @@ export async function observerAgentWorkflow() {
   "use workflow";
 
   const writable = getWritable<UIMessageChunk>();
+  const flagForHuman = makeFlagForHuman();
 
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
