@@ -15,6 +15,11 @@ import {
   type Scenario,
 } from "@/lib/ops-data";
 import { approvalHook } from "./_hooks";
+import {
+  isGatewayFailure,
+  runMockAgentTurn,
+  shouldForceMockAgent,
+} from "./_shared/mock-agent";
 
 // ---------------------------------------------------------------------------
 // Step-backed tools
@@ -214,12 +219,37 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
     },
   });
 
-  const result = await agent.stream({
-    messages,
-    writable,
-    collectUIMessages: true,
-    maxSteps: 12,
-  });
+  const runFallback = async () => {
+    await runMockAgentTurn({
+      writable,
+      script: {
+        preludeText: [
+          "The AI Gateway is unreachable right now, so I'm running in",
+          "offline-demo mode — interactive proposals, approvals, and",
+          "rollbacks need the live model to drive them end-to-end.",
+          "Restore the gateway connection and retry.",
+        ].join(" "),
+      },
+    });
+  };
 
-  return { messages: result.messages, uiMessages: result.uiMessages };
+  if (shouldForceMockAgent()) {
+    await runFallback();
+    return { messages: [] as unknown[], uiMessages: [] as unknown[] };
+  }
+
+  try {
+    const result = await agent.stream({
+      messages,
+      writable,
+      collectUIMessages: true,
+      maxSteps: 12,
+    });
+
+    return { messages: result.messages, uiMessages: result.uiMessages };
+  } catch (err) {
+    if (!isGatewayFailure(err)) throw err;
+    await runFallback();
+    return { messages: [] as unknown[], uiMessages: [] as unknown[] };
+  }
 }

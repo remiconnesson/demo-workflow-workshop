@@ -10,6 +10,11 @@ import {
   type ReportEntry,
 } from "@/lib/ops-data";
 import { approvalHook } from "./_hooks";
+import {
+  isGatewayFailure,
+  runMockAgentTurn,
+  shouldForceMockAgent,
+} from "./_shared/mock-agent";
 
 // ---------------------------------------------------------------------------
 // Step-backed tools
@@ -158,23 +163,86 @@ export async function observerAgentWorkflow() {
     },
   });
 
-  const MAX_LOOPS = 20;
-  for (let i = 0; i < MAX_LOOPS; i++) {
-    await agent.stream({
-      messages: [
+  const runLoopFallback = async (loopIndex: number) => {
+    const orders = await fetchRecentOrders({ limit: 25 });
+    const window = await analyzeWindow({ orders });
+    const summary = [
+      `Loop ${loopIndex + 1}: scanned ${window.total} orders,`,
+      `${window.slowWaits} slow waits, ${window.highRetries} retry-heavy,`,
+      `${window.compensations} compensations.`,
+    ].join(" ");
+    await appendToReport({
+      entries: [
         {
-          role: "user",
-          content: [
-            `Loop ${i + 1} of ${MAX_LOOPS}.`,
-            "Fetch the last 25 orders, analyze them, and append 1-3 short",
-            "report entries covering any notable metrics or flags.",
-            "Only call flagForHuman if severity is critical.",
-          ].join(" "),
+          at: new Date().toISOString(),
+          kind: "summary",
+          text: summary,
         },
       ],
-      writable,
-      maxSteps: 6,
     });
+    await runMockAgentTurn({
+      writable,
+      script: {
+        preludeText: `Loop ${loopIndex + 1}: starting scan.`,
+        toolCalls: [
+          {
+            toolName: "fetchRecentOrders",
+            toolCallId: `mock-observer-fetch-${loopIndex}`,
+            input: { limit: 25 },
+            output: orders,
+          },
+          {
+            toolName: "analyzeWindow",
+            toolCallId: `mock-observer-analyze-${loopIndex}`,
+            input: { orders },
+            output: window,
+          },
+          {
+            toolName: "appendToReport",
+            toolCallId: `mock-observer-append-${loopIndex}`,
+            input: {
+              entries: [
+                {
+                  at: new Date().toISOString(),
+                  kind: "summary",
+                  text: summary,
+                },
+              ],
+            },
+            output: { appended: 1 },
+          },
+        ],
+        closingText: summary,
+      },
+    });
+  };
+
+  const MAX_LOOPS = 20;
+  for (let i = 0; i < MAX_LOOPS; i++) {
+    if (shouldForceMockAgent()) {
+      await runLoopFallback(i);
+    } else {
+      try {
+        await agent.stream({
+          messages: [
+            {
+              role: "user",
+              content: [
+                `Loop ${i + 1} of ${MAX_LOOPS}.`,
+                "Fetch the last 25 orders, analyze them, and append 1-3 short",
+                "report entries covering any notable metrics or flags.",
+                "Only call flagForHuman if severity is critical.",
+              ].join(" "),
+            },
+          ],
+          writable,
+          maxSteps: 6,
+        });
+      } catch (err) {
+        if (!isGatewayFailure(err)) throw err;
+        await runLoopFallback(i);
+      }
+    }
 
     await sleep("30s");
   }
