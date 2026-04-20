@@ -75,6 +75,74 @@ const GLOW_STYLE: Record<SlideStepState, string> = {
   skipped: "bg-transparent",
 };
 
+type ConceptCueTone = "sky" | "amber" | "fuchsia" | "emerald" | "zinc";
+
+type ConceptCue = {
+  eyebrow: string;
+  headline: string;
+  detail: string;
+  tone: ConceptCueTone;
+};
+
+const CONCEPT_CUE_BY_SLIDE: Partial<Record<string, ConceptCue>> = {
+  retry: {
+    eyebrow: "Retry proof",
+    headline: "Same payment step. Two attempts.",
+    detail:
+      "Watch the charge fail once, retry, and show why duplicate side effects are dangerous.",
+    tone: "sky",
+  },
+  suspend: {
+    eyebrow: "Suspend proof",
+    headline: "The workflow parks for a human.",
+    detail:
+      "The restaurant taps Accept, and the same run resumes from the waiting step.",
+    tone: "amber",
+  },
+  rollback: {
+    eyebrow: "Rollback proof",
+    headline: "A finished order gets disputed.",
+    detail:
+      "Let the happy path finish, then trigger the dispute and watch the undo path light up.",
+    tone: "fuchsia",
+  },
+};
+
+const CUE_TONE_CLASS: Record<
+  ConceptCueTone,
+  {
+    card: string;
+    dot: string;
+    eyebrow: string;
+  }
+> = {
+  sky: {
+    card: "border-sky-400/25 bg-sky-500/[0.06]",
+    dot: "bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.55)]",
+    eyebrow: "text-sky-300",
+  },
+  amber: {
+    card: "border-amber-400/25 bg-amber-500/[0.06]",
+    dot: "bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.55)]",
+    eyebrow: "text-amber-300",
+  },
+  fuchsia: {
+    card: "border-fuchsia-400/25 bg-fuchsia-500/[0.06]",
+    dot: "bg-fuchsia-400 shadow-[0_0_18px_rgba(232,121,249,0.55)]",
+    eyebrow: "text-fuchsia-300",
+  },
+  emerald: {
+    card: "border-emerald-400/25 bg-emerald-500/[0.06]",
+    dot: "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.55)]",
+    eyebrow: "text-emerald-300",
+  },
+  zinc: {
+    card: "border-white/10 bg-black/30",
+    dot: "bg-zinc-500",
+    eyebrow: "text-zinc-500",
+  },
+};
+
 
 export function LiveOrderConceptLab({
   slide,
@@ -116,6 +184,14 @@ export function LiveOrderConceptLab({
   const waitStrategy = controller.waitStrategy;
   const showManualControls =
     controller.waitingOn !== null && waitStrategy === "manual";
+
+  const cue = CONCEPT_CUE_BY_SLIDE[slide] ?? {
+    eyebrow: "Live run",
+    headline: scenario.title,
+    detail: scenario.subtitle || "Press Run to start the workflow.",
+    tone: "zinc" as const,
+  };
+  const cueTone = CUE_TONE_CLASS[cue.tone];
 
   // Count chargePayment successes — naiveDoubleCharge emits step_succeeded twice.
   const chargeCount = controller.events.reduce(
@@ -317,18 +393,58 @@ export function LiveOrderConceptLab({
 
   return (
     <div className="relative rounded-2xl border border-white/10 bg-zinc-950 p-8 flex flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-4 min-h-[88px]">
-        {/* hook controls on the left — only visible when actively waiting */}
-        {showManualControls ? (
-          <div className="flex items-center gap-4 rounded-xl border border-amber-500/30 bg-amber-500/5 px-5 py-3">
-            <div className="text-sm font-semibold uppercase tracking-[0.2em] text-amber-300 whitespace-nowrap">
-              {controller.waitingOn === "pingRestaurant"
-                ? "Waiting on restaurant"
-                : controller.waitingOn === "findDriver"
-                  ? "Waiting on driver"
-                  : "Waiting on delivery"}
+      <div className="grid min-h-[124px] grid-cols-[minmax(0,1fr)_auto] items-stretch gap-5">
+        <div
+          className={`relative min-w-0 overflow-hidden rounded-2xl border transition-colors duration-500 ${cueTone.card}`}
+        >
+          {/* Default semantic cue — always occupies the same slot */}
+          <div
+            className={`absolute inset-0 flex items-center gap-5 px-6 py-5 transition-opacity duration-300 ${
+              showManualControls
+                ? "pointer-events-none opacity-0"
+                : "opacity-100"
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`h-3.5 w-3.5 shrink-0 rounded-full ${cueTone.dot}`}
+            />
+            <div className="min-w-0">
+              <p
+                className={`font-mono text-base font-semibold uppercase tracking-[0.22em] ${cueTone.eyebrow}`}
+              >
+                {cue.eyebrow}
+              </p>
+              <p className="mt-1 text-3xl font-semibold leading-tight text-white">
+                {cue.headline}
+              </p>
+              <p className="mt-1 max-w-4xl text-xl leading-snug text-zinc-400">
+                {cue.detail}
+              </p>
             </div>
-            <div className="flex flex-wrap gap-3">
+          </div>
+
+          {/* Human/manual resume controls — opacity-gated, no layout shift */}
+          <div
+            className={`absolute inset-0 flex items-center gap-5 px-6 py-5 transition-opacity duration-300 ${
+              showManualControls
+                ? "opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
+          >
+            <div className="min-w-[280px]">
+              <p className="font-mono text-base font-semibold uppercase tracking-[0.22em] text-amber-300">
+                {controller.waitingOn === "pingRestaurant"
+                  ? "Waiting on restaurant"
+                  : controller.waitingOn === "findDriver"
+                    ? "Waiting on driver"
+                    : "Waiting on delivery"}
+              </p>
+              <p className="mt-1 text-3xl font-semibold leading-tight text-white">
+                Human decision required.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
               {controller.waitingOn === "pingRestaurant" ? (
                 <>
                   <button
@@ -338,7 +454,7 @@ export function LiveOrderConceptLab({
                         accepted: true,
                       })
                     }
-                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                    className="rounded-xl bg-white px-6 py-3 text-lg font-semibold text-black transition hover:bg-zinc-200"
                   >
                     Accept
                   </button>
@@ -350,7 +466,7 @@ export function LiveOrderConceptLab({
                         reason: "closed",
                       })
                     }
-                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                    className="rounded-xl border border-red-500/40 bg-red-500/10 px-6 py-3 text-lg font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
                   >
                     Reject
                   </button>
@@ -365,7 +481,7 @@ export function LiveOrderConceptLab({
                         accepted: true,
                       })
                     }
-                    className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                    className="rounded-xl bg-white px-6 py-3 text-lg font-semibold text-black transition hover:bg-zinc-200"
                   >
                     Accept
                   </button>
@@ -376,7 +492,7 @@ export function LiveOrderConceptLab({
                         accepted: false,
                       })
                     }
-                    className="rounded-lg border border-red-500/40 px-4 py-2 text-sm text-red-300"
+                    className="rounded-xl border border-red-500/40 bg-red-500/10 px-6 py-3 text-lg font-semibold text-red-300 transition hover:border-red-400 hover:text-red-200"
                   >
                     Decline
                   </button>
@@ -385,27 +501,22 @@ export function LiveOrderConceptLab({
               {controller.waitingOn === "trackDelivery" ? (
                 <button
                   onClick={() => void manualResume({ kind: "delivered" })}
-                  className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black"
+                  className="rounded-xl bg-white px-6 py-3 text-lg font-semibold text-black transition hover:bg-zinc-200"
                 >
                   Mark delivered
                 </button>
               ) : null}
             </div>
           </div>
-        ) : (
-          <div className="flex-1">
-            <div className="text-3xl text-white/80 h-[88px] overflow-hidden line-clamp-2">
-              {scenario.subtitle ?? scenario.title}
-            </div>
-          </div>
-        )}
-        <div className="flex gap-2">
+        </div>
+
+        <div className="flex shrink-0 items-center gap-3">
           <button
             onClick={() => void controller.start()}
             disabled={controller.running}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
+            className={`rounded-xl px-5 py-3 text-base font-semibold transition-all ${
               controller.running
-                ? "border border-white/10 text-zinc-500 cursor-not-allowed"
+                ? "cursor-not-allowed border border-white/10 text-zinc-500"
                 : "bg-white text-black hover:bg-zinc-200"
             }`}
           >
@@ -419,9 +530,9 @@ export function LiveOrderConceptLab({
                 !controller.orderId ||
                 controller.doneStatus !== null
               }
-              className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-300 hover:border-red-400 hover:text-red-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="rounded-xl border border-red-500/40 bg-red-500/10 px-5 py-3 text-base font-semibold text-red-300 transition-colors hover:border-red-400 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
-              💥 Crash
+              Crash
             </button>
           ) : null}
           {allowAdminCancel ? (
@@ -433,7 +544,7 @@ export function LiveOrderConceptLab({
                 !controller.adminCancelReady ||
                 controller.doneStatus !== null
               }
-              className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-300 hover:border-amber-400 hover:text-amber-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="rounded-xl border border-amber-500/40 bg-amber-500/10 px-5 py-3 text-base font-semibold text-amber-300 transition-colors hover:border-amber-400 hover:text-amber-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Admin cancel
             </button>
@@ -447,14 +558,14 @@ export function LiveOrderConceptLab({
                 !controller.disputeReady ||
                 controller.doneStatus !== null
               }
-              className="rounded-lg border border-fuchsia-500/40 bg-fuchsia-500/10 px-4 py-2 text-sm text-fuchsia-300 hover:border-fuchsia-400 hover:text-fuchsia-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="rounded-xl border border-fuchsia-500/40 bg-fuchsia-500/10 px-5 py-3 text-base font-semibold text-fuchsia-300 transition-colors hover:border-fuchsia-400 hover:text-fuchsia-200 disabled:cursor-not-allowed disabled:opacity-30"
             >
               Dispute order
             </button>
           ) : null}
           <button
             onClick={() => controller.reset()}
-            className="rounded-lg border border-white/10 px-4 py-2 text-sm hover:border-white/30 hover:text-white transition-colors"
+            className="rounded-xl border border-white/10 px-5 py-3 text-base font-semibold text-zinc-400 transition-colors hover:border-white/30 hover:text-white"
           >
             Reset
           </button>
