@@ -47,7 +47,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "how-it-works",
     title: "How This Workshop Works",
     number: 5,
-    notes: "SAY: \"Here's the shape of the next hour. Three scenarios, three verbs. Each one gets three beats: demo, workflow code, pattern. See it break, see the fix, learn the name. Then we pivot to agents.\"",
+    notes: "SAY: \"Here's the shape of the next hour. Three verbs. Each one gets three beats: break it, fix it, name it. Same rhythm for nine slides. Then we pivot to agents.\"",
   },
 
   // ─── Act II · Three scenarios × 3 beats ───────────────────
@@ -126,7 +126,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "the-pivot",
     title: "The Pivot",
     number: 15,
-    notes: "SAY: \"Same primitives — steps, hooks, compensations — now power something that looks completely different. Agents.\"\n\nPAUSE. Let the audience re-orient.",
+    notes: "SAY: \"Same durable run. Now the caller is an agent. Same steps, hooks, compensations — new surface.\"\n\nPAUSE. Let the audience re-orient.",
   },
 
   // ─── Act IV · Agents ───────────────────────────────────────
