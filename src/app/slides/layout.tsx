@@ -22,8 +22,6 @@ type AudienceRailInfo = {
   proof?: string;
 };
 
-const THREE_BEATS = ["Demo", "Code", "Pattern"] as const;
-
 const RAIL_TONE_CLASS: Record<
   RailTone,
   {
@@ -65,119 +63,139 @@ const RAIL_TONE_CLASS: Record<
   },
 };
 
-function beatForTriplet(number: number, start: number) {
-  return THREE_BEATS[number - start] ?? "Demo";
-}
+// Slug-indexed rail metadata. Numeric ranges used to live here and bit
+// us every time a slide got renumbered; keying off `slug` keeps the rail
+// stable when the order shifts.
+const RAIL_BY_SLUG: Record<string, AudienceRailInfo> = {
+  "the-demo": { family: "Setup", beat: "Happy path", tone: "zinc" },
+  "the-setup": { family: "Setup", beat: "Starting code", tone: "zinc" },
+  "reliable-software": { family: "Setup", beat: "Three properties", tone: "zinc" },
+  "how-it-works": { family: "Setup", beat: "Workshop map", tone: "zinc" },
+  observability: {
+    family: "Setup",
+    proof: "Human + Agent",
+    beat: "Observability",
+    tone: "emerald",
+  },
+
+  "retry/demo": { family: "Stable", beat: "Demo", tone: "sky" },
+  "retry/solution": { family: "Stable", beat: "Code", tone: "sky" },
+  "retry/pattern": { family: "Stable", beat: "Pattern", tone: "sky" },
+
+  "suspend/demo": { family: "Suspendable", beat: "Demo", tone: "amber" },
+  "suspend/solution": { family: "Suspendable", beat: "Code", tone: "amber" },
+  "suspend/pattern": { family: "Suspendable", beat: "Pattern", tone: "amber" },
+
+  "rollback/demo": { family: "Undoable", beat: "Demo", tone: "fuchsia" },
+  "rollback/solution": { family: "Undoable", beat: "Code", tone: "fuchsia" },
+  "rollback/pattern": { family: "Undoable", beat: "Pattern", tone: "fuchsia" },
+
+  "the-pivot": { family: "Pivot", beat: "Workflows → Agents", tone: "zinc" },
+
+  "first-agent/demo": {
+    family: "Hello World",
+    proof: "Run survives refresh",
+    beat: "Demo",
+    tone: "emerald",
+  },
+  "first-agent/solution": {
+    family: "Hello World",
+    proof: "Run survives refresh",
+    beat: "Code",
+    tone: "emerald",
+  },
+  "first-agent/pattern": {
+    family: "Hello World",
+    proof: "Run survives refresh",
+    beat: "Pattern",
+    tone: "emerald",
+  },
+
+  "observer/demo": {
+    family: "Autonomous",
+    proof: "Forever loop",
+    beat: "Demo",
+    tone: "sky",
+  },
+  "observer/solution": {
+    family: "Autonomous",
+    proof: "Forever loop",
+    beat: "Code",
+    tone: "sky",
+  },
+  "observer/pattern": {
+    family: "Autonomous",
+    proof: "Forever loop",
+    beat: "Pattern",
+    tone: "sky",
+  },
+
+  "analyst/demo": {
+    family: "Optimize",
+    proof: "Approval + Undo",
+    beat: "Demo",
+    tone: "amber-fuchsia",
+  },
+  "analyst/solution": {
+    family: "Optimize",
+    proof: "Approval + Undo",
+    beat: "Code",
+    tone: "amber-fuchsia",
+  },
+  "analyst/pattern": {
+    family: "Optimize",
+    proof: "Approval + Undo",
+    beat: "Pattern",
+    tone: "amber-fuchsia",
+  },
+
+  "the-mirror": {
+    family: "Close",
+    proof: "Workflow → Agent",
+    beat: "Mirror",
+    tone: "zinc",
+  },
+  "it-is-that-easy": {
+    family: "Close",
+    beat: "Original function",
+    tone: "emerald",
+  },
+  "closer/step": { family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
+  "closer/idempotency": {
+    family: "Close",
+    proof: "2 / 6",
+    beat: "Idempotency",
+    tone: "sky",
+  },
+  "closer/hook": { family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
+  "closer/sleep": {
+    family: "Close",
+    proof: "4 / 6",
+    beat: "Sleep + Race",
+    tone: "amber",
+  },
+  "closer/compensation": {
+    family: "Close",
+    proof: "5 / 6",
+    beat: "Compensation",
+    tone: "fuchsia",
+  },
+  "closer/replay": {
+    family: "Close",
+    proof: "6 / 6",
+    beat: "Replay",
+    tone: "sky",
+  },
+  close: { family: "Close", beat: "Ship it", tone: "zinc" },
+};
 
 function getAudienceRailInfo(
   slide: SlideInfo | null,
 ): AudienceRailInfo | null {
   if (!slide || slide.slug === "title") return null;
-  const n = slide.number;
-  if (n >= 2 && n <= 5) {
-    const beatByNumber: Record<number, string> = {
-      2: "Happy path",
-      3: "Starting code",
-      4: "Three properties",
-      5: "Workshop map",
-    };
-    return {
-      family: "Setup",
-      beat: beatByNumber[n] ?? slide.title,
-      tone: "zinc",
-    };
-  }
-  if (n >= 6 && n <= 8) {
-    return { family: "Stable", beat: beatForTriplet(n, 6), tone: "sky" };
-  }
-  if (n >= 9 && n <= 11) {
-    return { family: "Suspendable", beat: beatForTriplet(n, 9), tone: "amber" };
-  }
-  if (n >= 12 && n <= 14) {
-    return {
-      family: "Undoable",
-      beat: beatForTriplet(n, 12),
-      tone: "fuchsia",
-    };
-  }
-  if (n === 15) {
-    return {
-      family: "Pivot",
-      beat: "Workflows → Agents",
-      tone: "zinc",
-    };
-  }
-  if (n >= 16 && n <= 18) {
-    return {
-      family: "Hello World",
-      proof: "Run survives refresh",
-      beat: beatForTriplet(n, 16),
-      tone: "emerald",
-    };
-  }
-  if (n >= 19 && n <= 21) {
-    return {
-      family: "Autonomous",
-      proof: "Forever loop",
-      beat: beatForTriplet(n, 19),
-      tone: "sky",
-    };
-  }
-  if (n >= 22 && n <= 24) {
-    return {
-      family: "Optimize",
-      proof: "Approval + Undo",
-      beat: beatForTriplet(n, 22),
-      tone: "amber-fuchsia",
-    };
-  }
-  if (n === 25) {
-    return {
-      family: "Close",
-      proof: "Workflow → Agent",
-      beat: "Mirror",
-      tone: "zinc",
-    };
-  }
-  if (n === 26) {
-    return {
-      family: "Close",
-      beat: "Original function",
-      tone: "emerald",
-    };
-  }
-  const closerBeatByNumber: Record<number, AudienceRailInfo> = {
-    27: { family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
-    28: {
-      family: "Close",
-      proof: "2 / 6",
-      beat: "Idempotency",
-      tone: "sky",
-    },
-    29: { family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
-    30: {
-      family: "Close",
-      proof: "4 / 6",
-      beat: "Sleep + Race",
-      tone: "amber",
-    },
-    31: {
-      family: "Close",
-      proof: "5 / 6",
-      beat: "Compensation",
-      tone: "fuchsia",
-    },
-    32: { family: "Close", proof: "6 / 6", beat: "Replay", tone: "sky" },
-  };
-  if (closerBeatByNumber[n]) return closerBeatByNumber[n];
-  if (n === 33) {
-    return { family: "Close", beat: "Ship it", tone: "zinc" };
-  }
-  return {
-    family: slide.title,
-    beat: "",
-    tone: "zinc",
-  };
+  const hit = RAIL_BY_SLUG[slide.slug];
+  if (hit) return hit;
+  return { family: slide.title, beat: "", tone: "zinc" };
 }
 
 export default function SlidesLayout({

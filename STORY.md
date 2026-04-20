@@ -22,7 +22,7 @@
 
 ---
 
-## The arc — 33 slides
+## The arc — 34 slides
 
 | # | Route | Family | Beat |
 |---|---|---|---|
@@ -31,34 +31,35 @@
 | 3 | `the-setup` | Setup | "Wouldn't it be nice if it was this simple?" |
 | 4 | `three-verbs` | Setup | Stable · Suspendable · Undoable |
 | 5 | `how-it-works` | Setup | Break → Fix → Name rhythm |
-| 6 | `retry/demo` | Stable | "What happens when an API call fails?" |
-| 7 | `retry/solution` | Stable | Workflow code · `stepId` |
-| 8 | `retry/pattern` | Stable | Idempotency |
-| 9 | `suspend/demo` | Suspendable | "What happens when your code needs to wait for humans?" |
-| 10 | `suspend/solution` | Suspendable | Workflow code · `createHook` |
-| 11 | `suspend/pattern` | Suspendable | Human-in-the-Loop |
-| 12 | `rollback/demo` | Undoable | "What happens when you need to undo everything?" |
-| 13 | `rollback/solution` | Undoable | Workflow code · `compensations` |
-| 14 | `rollback/pattern` | Undoable | Rollbacks (Saga) |
-| 15 | `the-pivot` | Pivot | Agents, meet reliability · same durable run, new caller |
-| 16 | `first-agent/demo` | Hello World | "…an Agent loses its stream?" (F5 proof) |
-| 17 | `first-agent/solution` | Hello World | Workflow code · `DurableAgent` + `WorkflowChatTransport` |
-| 18 | `first-agent/pattern` | Hello World | Resumable streams |
-| 19 | `observer/demo` | Autonomous | "…an Agent loses its server?" (kill-server proof) |
-| 20 | `observer/solution` | Autonomous | Workflow code · tools-as-steps |
-| 21 | `observer/pattern` | Autonomous | Autonomous durable agents |
-| 22 | `analyst/demo` | Optimize | "…an Agent needs approval / undo?" (suspend + approve + roll back) |
-| 23 | `analyst/solution` | Optimize | Workflow code · `defineHook` inside the agent |
-| 24 | `analyst/pattern` | Optimize | Human-in-the-loop agents |
-| 25 | `the-mirror` | Close | Foundation + workflow → agent mapping |
-| 26 | `it-is-that-easy` | Close | Setup closer |
-| 27 | `closer/step` | Close | Closer · step |
-| 28 | `closer/idempotency` | Close | Closer · idempotency |
-| 29 | `closer/hook` | Close | Closer · hook |
-| 30 | `closer/sleep` | Close | Closer · sleep + race |
-| 31 | `closer/compensation` | Close | Closer · compensation |
-| 32 | `closer/replay` | Close | Closer · replay |
-| 33 | `close` | Close | Ship it tonight · workflows and agents that finish what they start |
+| 6 | `observability` | Setup | Every run is observable · `npx workflow web` for humans, `npx workflow inspect` for agents |
+| 7 | `retry/demo` | Stable | "What happens when an API call fails?" |
+| 8 | `retry/solution` | Stable | Workflow code · `stepId` |
+| 9 | `retry/pattern` | Stable | Idempotency |
+| 10 | `suspend/demo` | Suspendable | "What happens when your code needs to wait for humans?" |
+| 11 | `suspend/solution` | Suspendable | Workflow code · `createHook` |
+| 12 | `suspend/pattern` | Suspendable | Human-in-the-Loop |
+| 13 | `rollback/demo` | Undoable | "What happens when you need to undo everything?" |
+| 14 | `rollback/solution` | Undoable | Workflow code · `compensations` |
+| 15 | `rollback/pattern` | Undoable | Rollbacks (Saga) |
+| 16 | `the-pivot` | Pivot | Agents, meet reliability · same durable run, new caller |
+| 17 | `first-agent/demo` | Hello World | "…an Agent loses its stream?" (F5 proof) |
+| 18 | `first-agent/solution` | Hello World | Workflow code · `DurableAgent` + `WorkflowChatTransport` |
+| 19 | `first-agent/pattern` | Hello World | Resumable streams |
+| 20 | `observer/demo` | Autonomous | "…an Agent loses its server?" (kill-server proof) |
+| 21 | `observer/solution` | Autonomous | Workflow code · tools-as-steps |
+| 22 | `observer/pattern` | Autonomous | Autonomous durable agents |
+| 23 | `analyst/demo` | Optimize | "…an Agent needs approval / undo?" (suspend + approve + roll back) |
+| 24 | `analyst/solution` | Optimize | Workflow code · `defineHook` inside the agent |
+| 25 | `analyst/pattern` | Optimize | Human-in-the-loop agents |
+| 26 | `the-mirror` | Close | Foundation + workflow → agent mapping |
+| 27 | `it-is-that-easy` | Close | Setup closer |
+| 28 | `closer/step` | Close | Closer · step |
+| 29 | `closer/idempotency` | Close | Closer · idempotency |
+| 30 | `closer/hook` | Close | Closer · hook |
+| 31 | `closer/sleep` | Close | Closer · sleep + race |
+| 32 | `closer/compensation` | Close | Closer · compensation |
+| 33 | `closer/replay` | Close | Closer · replay |
+| 34 | `close` | Close | Ship it tonight · workflows and agents that finish what they start |
 
 ---
 

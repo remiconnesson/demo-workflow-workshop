@@ -66,10 +66,10 @@ Real agent calls are unchanged — the fallback only engages when the gateway ac
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
+The deck is defined in `src/app/slides/config.ts` — a 34-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
 
-- **Setup** (1–5) — cold open, happy-path demo, the setup code with the `Observable` callout, the three properties, Break → Fix → Name rhythm.
-- **Three properties × three beats** (6–14) — each property runs the same three-beat rhythm:
+- **Setup** (1–6) — cold open, happy-path demo, the setup code with the `Observable` callout, the three properties, Break → Fix → Name rhythm, and the **Observability** payoff slide (`/slides/observability`) that makes the human + agent dual-consumer story explicit before the first failure demo.
+- **Three properties × three beats** (7–15) — each property runs the same three-beat rhythm:
   1. **Demo** — a real run fires, the scenario plays out on stage.
   2. **Code** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
   3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the inspector band (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
@@ -77,9 +77,9 @@ The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour worksh
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
 - **The Pivot** (15) — same durable run, new caller: agents.
 - **Hello World agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
-- **Autonomous agent** (19–21) — demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
-- **Optimize agent** (22–24) — demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
-- **Close** (25–33) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
+- **Autonomous agent** (20–22) — demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
+- **Optimize agent** (23–25) — demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
+- **Close** (26–34) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
 
 Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths keep the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for backlink stability.
 
@@ -95,17 +95,18 @@ Important routes:
 - `/slides/the-setup` slide 3 — 15-line starter code + Observable callout
 - `/slides/three-verbs` slide 4 — introduces the stable / suspendable / undoable framing (URL kept for backlink stability)
 - `/slides/how-it-works` slide 5 — Break → Fix → Name rhythm
+- `/slides/observability` slide 6 — "Every run is observable." Human (`npx workflow web`) + Agent (`npx workflow inspect`) payoff slide
 - `/slides/retry/demo` ... `/slides/retry/pattern` — **stable** property group (URL retained)
 - `/slides/suspend/demo` ... `/slides/suspend/pattern` — **suspendable** property group (URL retained)
 - `/slides/rollback/demo` ... `/slides/rollback/pattern` — **undoable** property group (URL retained)
-- `/slides/the-pivot` slide 15 — the workflows-to-agents hinge
+- `/slides/the-pivot` slide 16 — the workflows-to-agents hinge
 - `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — **Hello World** agent group (F5 proof; routes unchanged for stability)
 - `/slides/observer/demo` ... `/slides/observer/pattern` — **Autonomous** agent group (kill-server proof of a forever loop)
 - `/slides/analyst/demo` ... `/slides/analyst/pattern` — **Optimize** agent group (suspend + undo inside a restaurant-manager agent)
-- `/slides/the-mirror` slide 25 — foundation + workflow → agent mapping
-- `/slides/it-is-that-easy` slide 26 — original placeOrder overview
-- `/slides/closer/step` ... `/slides/closer/replay` slides 27–32 — per-line primitive recap
-- `/slides/close` slide 33 — Ship it tonight + `npx skills add …` hero
+- `/slides/the-mirror` slide 26 — foundation + workflow → agent mapping
+- `/slides/it-is-that-easy` slide 27 — original placeOrder overview
+- `/slides/closer/step` ... `/slides/closer/replay` slides 28–33 — per-line primitive recap
+- `/slides/close` slide 34 — Ship it tonight + `npx skills add …` hero
 - `/experiments` 21 DurableAgent experiment demos for narrative exploration
 - `/variations` index of older visual experiments
 
