@@ -13,6 +13,17 @@ pnpm dev
 
 Then open `http://localhost:3000/`.
 
+### One-time setup for the AI features
+
+The three `DurableAgent` demos (Hello World, Autonomous, Optimize) call the Vercel AI Gateway, which authenticates with an **OIDC token** pulled from your Vercel project environment. Before the first run, link the repo and pull the env once:
+
+```bash
+npx vercel link            # associate this checkout with a Vercel project
+npx vercel env pull        # writes .env.local with the OIDC token used by the gateway
+```
+
+If you skip this step the AI calls will fall back to the scripted **mock mode** described below — fine for working on visuals, but the real Haiku/Anthropic completions won't run. Re-run `npx vercel env pull` whenever the token rotates.
+
 ### Observing runs — `npx workflow web`
 
 Every scenario slide fires a real Workflow run. Two CLI tools, used throughout the demo, let you watch and poke at those runs from another terminal while `pnpm dev` is up:
@@ -29,10 +40,12 @@ npx workflow inspect steps -d     # step outputs and errors
 npx workflow inspect sleeps -r <runId>  # sleeping timers for a run
 ```
 
-The deck surfaces these commands in three places so the audience never has to guess how to pivot from the presentation to a real run:
+The deck surfaces these commands in five places so the audience never has to guess how to pivot from the presentation to a real run:
 
-- **Observable callout** (slide 3 — `the-setup`): an ambient emerald strip under the setup code prints `npx workflow web <run_id>` with the live run ID filled in. Clicking it opens the workflow web UI at the exact run.
-- **Inspector band** (every pattern slide — 8, 11, 14, 18, 21, 24): a 180px static band at the bottom renders `npx workflow inspect run <run_id>` on the left and a "Paste to your agent" caption on the right with a **Coding-Agent Friendly** badge. Inspector output is LLM-readable — hand it to Claude / Cursor / any coding agent and ask it to explain the pattern or apply it to your codebase.
+- **`ObservableCallout`** (slide 3 — `the-setup`): an ambient emerald strip under the setup code prints `npx workflow web <run_id>` with the live run ID filled in. Clicking it opens the workflow web UI at the exact run.
+- **Observability slide** (slide 6 — `/slides/observability`): the dedicated "Every run is observable" payoff beat. Three cards — **Human surface** (`npx workflow web`), **Event log**, **Agent surface** (`npx workflow inspect`) — make the dual-consumer story explicit before the first failure demo. Static; no polling.
+- **`RunInspectCallout`** (every demo slide — 7, 10, 13, 17, 20, 23): a fixed-height emerald chip next to the headline prints `npx workflow inspect run <run_id>` with the latest run ID filled in, clickable to the workflow web UI. Lives in `DemoSlideLayout`, so every demo teaches the inspect surface passively.
+- **`InspectorBand`** (every pattern slide — 9, 12, 15, 19, 22, 25): a 180px static band at the bottom renders `npx workflow inspect run <run_id>` on the left and a "Paste to your agent" caption on the right with a **Coding-Agent Friendly** badge. Inspector output is LLM-readable — hand it to Claude / Cursor / any coding agent and ask it to explain the pattern or apply it to your codebase.
 - **Debug drawer** (`Shift+D` from any slide): a single clickable `npx workflow inspect run <id>` line. The older scrolling event feed was removed — the drawer is now just the link, per the "no developer consoles on stage" rule in `.impeccable.md`.
 
 The workflow code itself (`src/workflows/place-order.ts`) also references these commands in comments next to the behaviour they expose.
@@ -68,20 +81,20 @@ Real agent calls are unchanged — the fallback only engages when the gateway ac
 
 The deck is defined in `src/app/slides/config.ts` — a 34-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
 
-- **Setup** (1–6) — cold open, happy-path demo, the setup code with the `Observable` callout, the three properties, Break → Fix → Name rhythm, and the **Observability** payoff slide (`/slides/observability`) that makes the human + agent dual-consumer story explicit before the first failure demo.
+- **Setup** (1–6) — cold open, happy-path demo, the `placeOrder` starter code with the `ObservableCallout`, the three properties (`/slides/reliable-software`), the Break → Fix → Name rhythm (`/slides/how-it-works`), and the **Observability** payoff slide (`/slides/observability`) that makes the human + agent dual-consumer story explicit before the first failure demo.
 - **Three properties × three beats** (7–15) — each property runs the same three-beat rhythm:
-  1. **Demo** — a real run fires, the scenario plays out on stage.
+  1. **Demo** — a real run fires, the scenario plays out on stage. The demo header carries a live `RunInspectCallout` with the current run ID.
   2. **Code** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
-  3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the inspector band (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
+  3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the `InspectorBand` (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
 
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
-- **The Pivot** (15) — same durable run, new caller: agents.
-- **Hello World agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
+- **The Pivot** (16) — same durable run, new caller: agents.
+- **Hello World agent** (17–19) — demo / code / pattern for resumable streams (F5 proof).
 - **Autonomous agent** (20–22) — demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
 - **Optimize agent** (23–25) — demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
-- **Close** (26–34) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
+- **Close** (26–34) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides (**Stable / Suspendable / Undoable** titles, one per line of the original function) with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
 
-Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths keep the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for backlink stability.
+Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths retain the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for dev-link and test stability. The only route that was actually renamed is `/slides/three-verbs` → `/slides/reliable-software`, which matched the slide's own title and removed the last verb-era URL.
 
 Presenter voice deliberately uses verbs ("retry safely", "park", "unwind") as the bridge into each property, but every audience-visible label is a property.
 
@@ -92,7 +105,7 @@ Important routes:
 - `/` redirects to `/slides/title`
 - `/slides/title` slide 1 — workshop intro
 - `/slides/the-demo` slide 2 — happy-path order demo
-- `/slides/the-setup` slide 3 — 15-line starter code + Observable callout
+- `/slides/the-setup` slide 3 — 15-line starter code + `ObservableCallout`
 - `/slides/reliable-software` slide 4 — introduces the stable / suspendable / undoable framing
 - `/slides/how-it-works` slide 5 — Break → Fix → Name rhythm
 - `/slides/observability` slide 6 — "Every run is observable." Human (`npx workflow web`) + Agent (`npx workflow inspect`) payoff slide
@@ -159,9 +172,14 @@ High-signal files:
 - `src/app/slides/config.ts` — deck registry, slide ordering, breadcrumbs, and speaker notes
 - `src/app/slides/layout.tsx` — slide shell, navigation, and keyboard controls
 - `src/app/slides/*/page.tsx` — individual slide routes
+- `src/app/slides/observability/page.tsx` — dedicated observability payoff slide (slide 6)
+- `src/app/slides/reliable-software/page.tsx` — the three-properties slide (slide 4; renamed from `three-verbs`)
+- `src/app/slides/_components/demo-slide-layout.tsx` — shared Demo slide template; wires the `RunInspectCallout` into every demo header
 - `src/app/slides/_components/pattern-slide-layout.tsx` — shared Pattern slide template (includes the inspector band)
+- `src/app/slides/_components/run-inspect-callout.tsx` — fixed-height emerald `npx workflow inspect run <id>` chip lifted into every demo
 - `src/app/slides/_components/inspector-band.tsx` — live `npx workflow inspect run <id>` band with the Coding-Agent Friendly badge
 - `src/app/slides/_components/observable-callout.tsx` — `npx workflow web <id>` ambient callout used on `the-setup`
+- `src/app/slides/_components/closer-recap-slide.tsx` — shared template for the six `/closer/*` per-line recap slides (Stable / Suspendable / Undoable titles)
 - `src/app/slides/_components/agent-debug-drawer.tsx` — link-only debug drawer (`Shift+D`)
 - `src/app/slides/_data/scenario-groups.ts` — three workflow-demo headlines (stable / suspendable / undoable)
 - `src/app/slides/_data/agent-groups.ts` — three agent-demo configs with property labels
