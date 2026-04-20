@@ -49,7 +49,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           {
             highlightLines: {
               2: "",
-              3: "**stable** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as Act II's charge)",
+              3: "**stable** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as the earlier charge scenario)",
             },
             code: `async function queryOrders({ limit }) {
   // stable: tool call replays from the event log on restart

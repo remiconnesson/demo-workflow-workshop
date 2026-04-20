@@ -9,16 +9,16 @@ export type SlideInfo = {
 /**
  * The 33-slide workshop arc (~1 hour).
  *
- * Act I — Setup (1–5): cold open, happy-path demo, code, reliability properties, workshop map.
- * Act II — Three properties × 3 beats each (6–14): stable, suspendable, undoable.
- * Act III — Pivot (15): workflows → agents.
- * Act IV — First agent (16–18): demo (F5 proof), workflow code, pattern.
- * Act V — Observer agent (19–21): demo, fix, pattern.
- * Act VI — Analyst agent (22–24): demo, fix, pattern.
- * Act VII — Close (25–33): the mirror, closer overview, six per-line recaps, ship it.
+ * Setup (1–5): cold open, happy-path demo, code, reliability properties, workshop map.
+ * Three properties × 3 beats each (6–14): stable, suspendable, undoable.
+ * Pivot (15): workflows → agents.
+ * First agent (16–18): demo (F5 proof), workflow code, pattern.
+ * Observer agent (19–21): demo, code, pattern.
+ * Analyst agent (22–24): demo, code, pattern.
+ * Close (25–33): the mirror, closer overview, six per-line recaps, ship it.
  */
 export const SLIDES: SlideInfo[] = [
-  // ─── Act I · Setup ─────────────────────────────────────────
+  // ─── Setup ─────────────────────────────────────────────────
   {
     slug: "title",
     title: "Cold Open",
@@ -50,7 +50,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"Here's the shape of the next hour. Three properties. Each one gets three beats: break it, fix it, name it. Same rhythm for nine slides. Then we pivot to agents.\"",
   },
 
-  // ─── Act II · Three properties × 3 beats ───────────────────
+  // ─── Three properties × 3 beats ────────────────────────────
 
   // --- Stable ---
   {
@@ -121,7 +121,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Act III · The Pivot ───────────────────────────────────
+  // ─── The Pivot ─────────────────────────────────────────────
   {
     slug: "the-pivot",
     title: "The Pivot",
@@ -129,7 +129,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"Same durable run. Now the caller is an agent. Same steps, hooks, compensations — new surface.\"\n\nPAUSE. Let the audience re-orient.",
   },
 
-  // ─── Act IV · Agents ───────────────────────────────────────
+  // ─── Agents ────────────────────────────────────────────────
 
   // --- First agent (the F5 proof) ---
   {
@@ -154,7 +154,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we make the agent stable, suspendable, and undoable.\"",
   },
 
-  // ─── Act V · Observer agent ────────────────────────────────
+  // ─── Observer agent ────────────────────────────────────────
 
   // --- Observer agent ---
   {
@@ -179,7 +179,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Act VI · Analyst agent ─────────────────────────────────
+  // ─── Analyst agent ─────────────────────────────────────────
   {
     slug: "analyst/demo",
     title: "Analyst · Demo",
@@ -192,7 +192,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Analyst · Workflow Code",
     number: 23,
     breadcrumb: "analyst / solution",
-    notes: "THIS IS THE RECAP. Point at each property in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nSTABLE — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent in Act II.\n\nSUSPENDABLE — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nUNDOABLE — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nStable, suspendable, undoable. Three properties, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (stable), 19 (suspendable), 25 (undoable).",
+    notes: "THIS IS THE RECAP. Point at each property in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nSTABLE — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent earlier.\n\nSUSPENDABLE — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nUNDOABLE — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nStable, suspendable, undoable. Three properties, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (stable), 19 (suspendable), 25 (undoable).",
   },
   {
     slug: "analyst/pattern",
@@ -202,7 +202,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "SAY: \"Human-in-the-Loop Agent pattern. A DurableAgent plus a handful of workflow-level tools. One hook — created and awaited inside requestApproval — gates every change behind a human tap. A separate rollback tool stands by; the operator can point the agent at any prior applied change, any turn, and the agent calls that tool to compensate.\n\nSame primitives the workflow slides opened with — suspend and rollback — now running inside an agent loop. The operator never talks to the server directly; they talk to the agent, and the agent owns every write.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Act VII · Close ───────────────────────────────────────
+  // ─── Close ─────────────────────────────────────────────────
   {
     slug: "the-mirror",
     title: "The Payoff",

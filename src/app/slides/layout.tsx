@@ -16,14 +16,13 @@ type RailTone =
   | "amber-fuchsia";
 
 type AudienceRailInfo = {
-  act: string;
   family: string;
   beat: string;
   tone: RailTone;
   proof?: string;
 };
 
-const THREE_BEATS = ["Demo", "Solution", "Pattern"] as const;
+const THREE_BEATS = ["Demo", "Code", "Pattern"] as const;
 
 const RAIL_TONE_CLASS: Record<
   RailTone,
@@ -79,33 +78,30 @@ function getAudienceRailInfo(
     const beatByNumber: Record<number, string> = {
       2: "Happy path",
       3: "Starting code",
-      4: "Three verbs",
+      4: "Three properties",
       5: "Workshop map",
     };
     return {
-      act: "Act I",
       family: "Setup",
       beat: beatByNumber[n] ?? slide.title,
       tone: "zinc",
     };
   }
   if (n >= 6 && n <= 8) {
-    return { act: "Act II", family: "Retry", beat: beatForTriplet(n, 6), tone: "sky" };
+    return { family: "Stable", beat: beatForTriplet(n, 6), tone: "sky" };
   }
   if (n >= 9 && n <= 11) {
-    return { act: "Act II", family: "Suspend", beat: beatForTriplet(n, 9), tone: "amber" };
+    return { family: "Suspendable", beat: beatForTriplet(n, 9), tone: "amber" };
   }
   if (n >= 12 && n <= 14) {
     return {
-      act: "Act II",
-      family: "Rollback",
+      family: "Undoable",
       beat: beatForTriplet(n, 12),
       tone: "fuchsia",
     };
   }
   if (n === 15) {
     return {
-      act: "Act III",
       family: "Pivot",
       beat: "Workflows → Agents",
       tone: "zinc",
@@ -113,80 +109,71 @@ function getAudienceRailInfo(
   }
   if (n >= 16 && n <= 18) {
     return {
-      act: "Act IV",
       family: "First Agent",
-      proof: "STREAM · RESUME",
+      proof: "Run survives refresh",
       beat: beatForTriplet(n, 16),
       tone: "emerald",
     };
   }
   if (n >= 19 && n <= 21) {
     return {
-      act: "Act V",
       family: "Observer",
-      proof: "RETRY · REPLAY",
+      proof: "Stable replay",
       beat: beatForTriplet(n, 19),
       tone: "sky",
     };
   }
   if (n >= 22 && n <= 24) {
     return {
-      act: "Act VI",
       family: "Analyst",
-      proof: "SUSPEND + ROLLBACK",
+      proof: "Suspendable + Undoable",
       beat: beatForTriplet(n, 22),
       tone: "amber-fuchsia",
     };
   }
   if (n === 25) {
     return {
-      act: "Act VII",
       family: "Close",
-      proof: "WORKFLOW → AGENT",
+      proof: "Workflow → Agent",
       beat: "Mirror",
       tone: "zinc",
     };
   }
   if (n === 26) {
     return {
-      act: "Act VII",
       family: "Close",
       beat: "Original function",
       tone: "emerald",
     };
   }
   const closerBeatByNumber: Record<number, AudienceRailInfo> = {
-    27: { act: "Act VII", family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
+    27: { family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
     28: {
-      act: "Act VII",
       family: "Close",
       proof: "2 / 6",
       beat: "Idempotency",
       tone: "sky",
     },
-    29: { act: "Act VII", family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
+    29: { family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
     30: {
-      act: "Act VII",
       family: "Close",
       proof: "4 / 6",
       beat: "Sleep + Race",
       tone: "amber",
     },
     31: {
-      act: "Act VII",
       family: "Close",
       proof: "5 / 6",
       beat: "Compensation",
       tone: "fuchsia",
     },
-    32: { act: "Act VII", family: "Close", proof: "6 / 6", beat: "Replay", tone: "sky" },
+    32: { family: "Close", proof: "6 / 6", beat: "Replay", tone: "sky" },
   };
   if (closerBeatByNumber[n]) return closerBeatByNumber[n];
   if (n === 33) {
-    return { act: "Act VII", family: "Close", beat: "Ship it", tone: "zinc" };
+    return { family: "Close", beat: "Ship it", tone: "zinc" };
   }
   return {
-    act: `Slide ${slide.number}`,
     family: slide.title,
     beat: "",
     tone: "zinc",
@@ -366,10 +353,6 @@ export default function SlidesLayout({
               aria-hidden
               className={`h-2.5 w-2.5 shrink-0 rounded-full ${railTone.dot}`}
             />
-            <span className="whitespace-nowrap font-mono text-lg font-semibold uppercase leading-none tracking-[0.22em] text-zinc-500">
-              {railInfo.act}
-            </span>
-            <span aria-hidden className="h-5 w-px bg-white/15" />
             <span className="whitespace-nowrap text-xl font-semibold leading-none text-zinc-100">
               {railInfo.family}
             </span>
@@ -377,7 +360,7 @@ export default function SlidesLayout({
               <>
                 <span aria-hidden className="h-5 w-px bg-white/15" />
                 <span
-                  className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-base font-semibold uppercase leading-none tracking-[0.16em] ${railTone.proof}`}
+                  className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-base font-semibold leading-none tracking-tight ${railTone.proof}`}
                 >
                   {railInfo.proof}
                 </span>
@@ -386,7 +369,7 @@ export default function SlidesLayout({
             {railInfo.beat ? (
               <>
                 <span aria-hidden className="h-5 w-px bg-white/15" />
-                <span className="whitespace-nowrap font-mono text-lg font-semibold uppercase leading-none tracking-[0.18em] text-zinc-400">
+                <span className="whitespace-nowrap text-lg font-medium leading-none text-zinc-400">
                   {railInfo.beat}
                 </span>
               </>
