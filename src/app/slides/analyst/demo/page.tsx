@@ -47,7 +47,7 @@ export default function AgentAnalystDemoSlide() {
     <DemoSlideLayout
       slide={group.slug}
       eyebrow={group.eyebrow}
-      headline="...an Agent that needs undo?"
+      headline="…an Agent needs approval / undo?"
       verbMapping={group.verbMapping}
       rightPanel={<AnalystDemoSurface />}
     />

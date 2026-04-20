@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const WORKFLOW_WEB_PORT = 3456;
 const RUN_ID_PLACEHOLDER = "<run_id>";
 
-// Ambient chip under Act I slides that surfaces the `npx workflow web run <id>`
+// Ambient chip under the setup slide that surfaces the `npx workflow web run <id>`
 // dashboard command. Auto-fills from the most recent run so the presenter can
 // point at it after the happy-path demo. No feed, no logs — per
 // .impeccable.md rule #8, just a single static command + short eyebrow.
