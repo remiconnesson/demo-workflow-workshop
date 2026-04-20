@@ -11,6 +11,7 @@ import {
   type SlideGroupSlug,
 } from "../_data/agent-groups";
 import { LiveOrderConceptLab } from "./live-order-concept-lab";
+import { RunInspectCallout } from "./run-inspect-callout";
 
 const VERB_MAPPING_TONE_CLASS: Record<AgentVerbMappingTone, string> = {
   emerald:
@@ -97,11 +98,14 @@ export function DemoSlideLayout({
     (isAgentGroupSlug(slide) ? AGENT_GROUPS[slide].verbMapping : undefined);
   return (
     <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-8 px-10 pt-20 pb-12">
-      <div className="flex flex-col gap-3">
-        <h2 className="text-[56px] font-semibold leading-[1.0] tracking-tight">
-          {headline}
-        </h2>
-        <AgentVerbMappingRow mapping={resolvedVerbMapping} />
+      <div className="grid grid-cols-[minmax(0,1fr)_520px] items-start gap-6">
+        <div className="flex min-w-0 flex-col gap-3">
+          <h2 className="text-[56px] font-semibold leading-[1.0] tracking-tight">
+            {headline}
+          </h2>
+          <AgentVerbMappingRow mapping={resolvedVerbMapping} />
+        </div>
+        <RunInspectCallout />
       </div>
 
       <div className="min-h-0 flex-1">
