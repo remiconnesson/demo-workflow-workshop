@@ -17,7 +17,7 @@
 5. **The Mirror is the payoff; the setup closer is the proof.** Slide 25 makes the mirror explicit: First Agent is the foundation, then stable, suspendable, and undoable map workflow → agent. Slide 26 returns to the original `placeOrder` with the overview headline ("It is that easy."), and slides 27–32 walk six primitive sites — step, idempotency, hook, sleep + race, compensation, replay — as the same three properties in six places, with a cumulative cadence footer. Slide 33 closes on "Ship it tonight" and hands the audience the `npx skills add …` command.
 6. **Presenter voice: casual / stage-comic.** First-person, contractions, short sentences. The bridge beat — "so what do you need from the system now?" — only has rhythm in this voice.
 7. **Experiments, not failures.** Additional DurableAgent demos live under `src/app/experiments/` (21 total, 7 per verb × 3 verbs) for narrative discovery. They are not part of the main deck.
-8. **One visual vocabulary across workflows and agents.** Timeline nodes with glows, state-colored badges, status pills, color-coded event kinds in the debug drawer, crash overlays, cached badges. The audience learns it once in Act II and reads it unchanged through Act VI.
+8. **One visual vocabulary across workflows and agents.** Timeline nodes with glows, state-colored badges, status pills, color-coded event kinds in the debug drawer, crash overlays, cached badges. The audience learns it once in the workflow section and reads it unchanged through the agent section.
 9. **No developer consoles on stage.** Scrolling logs, terminal-style event feeds, and dense config chips are banned from the presentation surface. Developer detail lives in the opt-in debug drawer (press `Shift+D`), never in the slide.
 
 ---
@@ -94,13 +94,13 @@ The agent headlines and API primitives live in `src/app/slides/_data/agent-group
 
 ## Visual vocabulary (one language, every demo)
 
-The same affordances appear in Act II and Acts IV–VI so the audience never has to relearn what they're looking at. A top-center audience rail shows Act · family · proof · beat, with a 2px progress spine across the deck.
+The same affordances appear in the workflow section and the three agent demos so the audience never has to relearn what they're looking at. A top-center audience rail shows family · proof · beat, with a 2px progress spine across the deck.
 
-- **Timeline nodes** — 96px circles, state-colored (emerald success, red error, amber waiting, fuchsia compensation, sky running), connected by 2px lines. Same component renders workflow steps in Act II and agent tool calls in Act V.
+- **Timeline nodes** — 96px circles, state-colored (emerald success, red error, amber waiting, fuchsia compensation, sky running), connected by 2px lines. Same component renders workflow steps in the three-property section and agent tool calls in the Observer demo.
 - **Color system** — Emerald = success, red = error, amber = waiting/suspendable, fuchsia = compensation/undoable, sky = stable/running. The colors map 1:1 to the three properties in `the-mirror`.
 - **Status pills & inline badges** — `cached` badge in emerald when a tool call replays from the event log instead of re-executing. Used in Observer to make replay visible.
 - **Crash overlay** — Dark full-frame overlay with "SERVER DOWN" → "REPLAYING EVENT LOG" copy. Used in Observer to narrate the kill-server beat.
-- **Approval phone** — The same phone mockup from Act II, now with an amber border glow when the Analyst agent is suspended awaiting approval.
+- **Approval phone** — The same phone mockup from the workflow demos, now with an amber border glow when the Analyst agent is suspended awaiting approval.
 - **F5 hint card** — Sky-blue pulsing "agent working — reload safe" card that transitions to emerald on reconnect. Exclusive to the First Agent demo.
 - **Inline undo timeline** — Compensation pills render above the rollback step they reverse, so the audience sees the saga unwind without a separate log.
 - **Debug drawer** (`Shift+D` to toggle) — Run ID (clickable to the local workflow web UI), color-coded event feed (`OK` · `ERR` · `WAI` · `HOK` · `CMP` · `RUN` · `RPL` · `SLP` · `END`). Developer surface only — never on the presentation slide.

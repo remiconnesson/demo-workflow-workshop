@@ -68,18 +68,18 @@ Real agent calls are unchanged — the fallback only engages when the gateway ac
 
 The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
 
-- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code with the `Observable` callout, the three properties, Break → Fix → Name rhythm.
-- **Act II · Three properties × three beats** (6–14) — each property runs the same three-beat rhythm:
+- **Setup** (1–5) — cold open, happy-path demo, the setup code with the `Observable` callout, the three properties, Break → Fix → Name rhythm.
+- **Three properties × three beats** (6–14) — each property runs the same three-beat rhythm:
   1. **Demo** — a real run fires, the scenario plays out on stage.
   2. **Code** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
   3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the inspector band (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
 
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
-- **Act III · The Pivot** (15) — same durable run, new caller: agents.
-- **Act IV · First Agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
-- **Act V · Observer agent** (19–21) — demo / code / pattern for a long-running durable agent.
-- **Act VI · Analyst agent** (22–24) — demo / code / pattern for a human-in-the-loop + undoable durable agent.
-- **Act VII · Close** (25–33) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
+- **The Pivot** (15) — same durable run, new caller: agents.
+- **First Agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
+- **Observer agent** (19–21) — demo / code / pattern for a long-running durable agent.
+- **Analyst agent** (22–24) — demo / code / pattern for a human-in-the-loop + undoable durable agent.
+- **Close** (25–33) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
 
 Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths keep the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for backlink stability.
 
@@ -164,7 +164,7 @@ High-signal files:
 - `src/app/slides/_components/agent-debug-drawer.tsx` — link-only debug drawer (`Shift+D`)
 - `src/app/slides/_data/scenario-groups.ts` — three workflow-demo headlines (stable / suspendable / undoable)
 - `src/app/slides/_data/agent-groups.ts` — three agent-demo configs with property labels
-- `src/workflows/place-order.ts` — workflow logic used by the Act II demos
+- `src/workflows/place-order.ts` — workflow logic used by the three-property demos
 - `src/workflows/observer-agent.ts`, `src/workflows/analyst-agent.ts`, `src/workflows/experiments/our-first-agent.ts` — DurableAgent workflows
 - `src/workflows/_shared/mock-agent.ts` — AI-gateway fallback helper (`WORKFLOW_MOCK_AGENT=1` forces mock mode)
 - `src/lib/order-run-client.ts` — client-side run orchestration and resume helpers
