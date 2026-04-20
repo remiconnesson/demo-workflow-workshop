@@ -3,7 +3,7 @@ import { Fragment } from "react";
 const BEATS = [
   {
     formal: "Demo",
-    title: "BREAK",
+    title: "Break",
     promise: "Watch the failure happen.",
     visual: (
       <div className="flex h-[220px] items-center justify-center gap-7 rounded-2xl border border-white/10 bg-black/35 p-6">
@@ -31,8 +31,8 @@ const BEATS = [
     ),
   },
   {
-    formal: "Solution",
-    title: "FIX",
+    formal: "Code",
+    title: "Fix",
     promise: "See the durable change.",
     visual: (
       <div className="h-[220px] overflow-hidden rounded-2xl border border-white/10 bg-black/35 p-5 font-mono">
@@ -71,7 +71,7 @@ const BEATS = [
   },
   {
     formal: "Pattern",
-    title: "NAME",
+    title: "Name",
     promise: "Leave with the pattern.",
     visual: (
       <div className="flex h-[220px] flex-col justify-center rounded-2xl border border-white/10 bg-black/35 p-7">
@@ -117,7 +117,7 @@ export default function HowItWorksSlide() {
                 <p className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-mono text-base font-semibold uppercase tracking-[0.22em] text-zinc-500">
                   {beat.formal}
                 </p>
-                <h3 className="mt-6 text-[52px] font-semibold leading-none tracking-[0.08em] text-white">
+                <h3 className="mt-6 text-[64px] font-semibold leading-none tracking-tight text-white">
                   {beat.title}
                 </h3>
               </div>

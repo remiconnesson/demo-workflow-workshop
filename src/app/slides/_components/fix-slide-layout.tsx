@@ -258,7 +258,7 @@ export async function FixSlideLayout({
               className={`inline-block h-2.5 w-2.5 rounded-full ${DOT_COLOR[statusTone]}`}
               style={{ boxShadow: DOT_GLOW[statusTone] }}
             />
-            <span className="font-mono text-base leading-none uppercase tracking-[0.20em] text-zinc-400">
+            <span className="font-mono text-base font-semibold leading-none tracking-tight text-zinc-400">
               {pillLabel ?? "\u00A0"}
             </span>
           </div>

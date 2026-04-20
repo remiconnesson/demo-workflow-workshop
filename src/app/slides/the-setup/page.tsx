@@ -4,7 +4,7 @@ import { PLACE_ORDER_SETUP } from "../_components/place-order-code";
 
 const RISK_GROUPS = [
   {
-    property: "STABLE",
+    property: "Stable",
     tone: "sky",
     items: [
       { line: "03", label: "Invalid input" },
@@ -13,7 +13,7 @@ const RISK_GROUPS = [
     ],
   },
   {
-    property: "SUSPENDABLE",
+    property: "Suspendable",
     tone: "amber",
     items: [
       { line: "07", label: "Restaurant timeout" },
@@ -21,7 +21,7 @@ const RISK_GROUPS = [
     ],
   },
   {
-    property: "UNDOABLE",
+    property: "Undoable",
     tone: "fuchsia",
     items: [{ line: "11", label: "Driver cancellation" }],
   },
@@ -129,7 +129,7 @@ export default async function TheSetupSlide() {
                       className={`h-3 w-3 rounded-full ${tone.dot}`}
                     />
                     <p
-                      className={`font-mono text-[20px] font-semibold uppercase tracking-[0.12em] ${tone.label}`}
+                      className={`font-mono text-[22px] font-semibold leading-none tracking-tight ${tone.label}`}
                     >
                       {group.property}
                     </p>

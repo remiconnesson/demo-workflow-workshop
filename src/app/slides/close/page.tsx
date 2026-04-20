@@ -2,17 +2,17 @@ import { WorkflowMark } from "../_components/workflow-mark";
 
 const PROPERTIES = [
   {
-    label: "STABLE",
+    label: "Stable",
     className:
       "border-sky-400/35 bg-sky-500/10 text-sky-300 shadow-[0_0_36px_rgba(56,189,248,0.12)]",
   },
   {
-    label: "SUSPENDABLE",
+    label: "Suspendable",
     className:
       "border-amber-400/35 bg-amber-500/10 text-amber-300 shadow-[0_0_36px_rgba(251,191,36,0.12)]",
   },
   {
-    label: "UNDOABLE",
+    label: "Undoable",
     className:
       "border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300 shadow-[0_0_36px_rgba(232,121,249,0.12)]",
   },
@@ -34,7 +34,7 @@ export default function CloseSlide() {
           {PROPERTIES.map((property) => (
             <span
               key={property.label}
-              className={`rounded-full border px-6 py-3 font-mono text-[24px] font-semibold uppercase leading-none tracking-[0.12em] ${property.className}`}
+              className={`rounded-full border px-6 py-3 font-mono text-[28px] font-semibold leading-none tracking-tight ${property.className}`}
             >
               {property.label}
             </span>

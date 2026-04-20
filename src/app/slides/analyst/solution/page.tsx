@@ -12,18 +12,18 @@ export default function AgentAnalystFixSlide() {
       marker="span"
       filename="analystAgent.ts"
       statusTone="emerald"
-      statusLabel="stable · suspendable · undoable"
+      statusLabel="Stable · Suspendable · Undoable"
       steps={[
         {
-          label: <><span className="font-mono text-emerald-300">stable</span> — tools become <code className="font-mono">steps</code></>,
+          label: <><span className="font-mono text-emerald-300">Stable</span> — tools become <code className="font-mono">steps</code></>,
           detail: <>tool calls <span className="text-zinc-300">replay from the log</span></>,
         },
         {
-          label: <><span className="font-mono text-amber-300">suspendable</span> — <code className="font-mono">await approvalHook</code></>,
+          label: <><span className="font-mono text-amber-300">Suspendable</span> — <code className="font-mono">await approvalHook</code></>,
           detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span></>,
         },
         {
-          label: <><span className="font-mono text-fuchsia-300">undoable</span> — <code className="font-mono">rollbackMenuChange</code></>,
+          label: <><span className="font-mono text-fuchsia-300">Undoable</span> — <code className="font-mono">rollbackMenuChange</code></>,
           detail: <>undo is <span className="text-zinc-300">another durable tool</span></>,
         },
       ]}

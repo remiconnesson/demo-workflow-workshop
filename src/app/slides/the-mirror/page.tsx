@@ -25,21 +25,21 @@ const TONE = {
 
 const MAPPINGS = [
   {
-    label: "STABLE",
+    label: "Stable",
     tone: "sky",
     workflow: "Charge once, even when the step retries.",
     agent: "Tool calls replay without re-executing.",
     detail: "Finished work returns from the event log.",
   },
   {
-    label: "SUSPENDABLE",
+    label: "Suspendable",
     tone: "amber",
     workflow: "Wait for the restaurant.",
     agent: "Await human approval mid-loop.",
     detail: "The run parks, then resumes at the same line.",
   },
   {
-    label: "UNDOABLE",
+    label: "Undoable",
     tone: "fuchsia",
     workflow: "Unwind a disputed order.",
     agent: "Roll back an applied change.",
@@ -65,9 +65,9 @@ export default function TheMirrorSlide() {
       <div className="rounded-3xl border border-emerald-400/20 bg-emerald-500/[0.04] px-8 py-6 text-left">
         <div className="flex items-center gap-6">
           <span
-            className={`rounded-full border border-emerald-400/35 bg-emerald-500/10 px-5 py-2.5 text-xl font-semibold uppercase tracking-[0.18em] text-emerald-300 ${geistMono.className}`}
+            className={`rounded-full border border-emerald-400/35 bg-emerald-500/10 px-5 py-2.5 text-[22px] font-semibold leading-none tracking-tight text-emerald-300 ${geistMono.className}`}
           >
-            FOUNDATION
+            Foundation
           </span>
           <p className="text-2xl leading-snug text-zinc-300">
             <span className="font-semibold text-white">First Agent</span>{" "}
@@ -86,22 +86,22 @@ export default function TheMirrorSlide() {
             >
               <div className="flex items-center justify-between gap-4">
                 <span
-                  className={`rounded-full border px-5 py-2.5 text-[22px] font-semibold uppercase leading-none tracking-[0.12em] ${tone.pill} ${geistMono.className}`}
+                  className={`rounded-full border px-5 py-2.5 text-[22px] font-semibold leading-none tracking-tight ${tone.pill} ${geistMono.className}`}
                 >
                   {m.label}
                 </span>
                 <span
-                  className={`text-sm uppercase tracking-[0.24em] text-zinc-600 ${geistMono.className}`}
+                  className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 ${geistMono.className}`}
                 >
-                  workflow → agent
+                  Workflow → Agent
                 </span>
               </div>
               <div className="mt-8 flex flex-1 flex-col justify-center gap-6">
                 <div>
                   <p
-                    className={`text-sm uppercase tracking-[0.24em] text-zinc-600 ${geistMono.className}`}
+                    className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 ${geistMono.className}`}
                   >
-                    workflow
+                    Workflow
                   </p>
                   <p className="mt-2 text-3xl font-semibold leading-tight text-white">
                     {m.workflow}
@@ -110,9 +110,9 @@ export default function TheMirrorSlide() {
                 <div className="h-px bg-white/10" />
                 <div>
                   <p
-                    className={`text-sm uppercase tracking-[0.24em] ${tone.label} ${geistMono.className}`}
+                    className={`text-sm font-semibold uppercase tracking-[0.2em] ${tone.label} ${geistMono.className}`}
                   >
-                    agent
+                    Agent
                   </p>
                   <p className="mt-2 text-3xl font-semibold leading-tight text-white">
                     {m.agent}
@@ -128,9 +128,9 @@ export default function TheMirrorSlide() {
       </div>
 
       <p
-        className={`text-lg tracking-[0.35em] text-zinc-600 ${geistMono.className}`}
+        className={`text-lg leading-none tracking-tight text-zinc-500 ${geistMono.className}`}
       >
-        ONE SDK &nbsp;·&nbsp; ONE MENTAL MODEL
+        One SDK &nbsp;·&nbsp; One mental model
       </p>
     </div>
   );
