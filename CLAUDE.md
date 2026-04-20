@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Deck Shape
 
-The deck is a 33-slide, ~1-hour workshop organized around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Each property follows a three-beat rhythm: **Demo → Code → Pattern**. Three durable-agent demos (First Agent, Observer, Analyst) reuse the same properties, and the close sequence lands on `the-mirror`, `it-is-that-easy`, six `closer/*` per-line recap slides, and `close` — the side-by-side payoff, the overview, the line-by-line walk, and the shipping coda with the `npx skills add …` CTA.
+The deck is a 33-slide, ~1-hour workshop organized around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Each property follows a three-beat rhythm: **Demo → Code → Pattern**. Three durable-agent demos (Hello World, Autonomous, Optimize) reuse the same properties, and the close sequence lands on `the-mirror`, `it-is-that-easy`, six `closer/*` per-line recap slides, and `close` — the side-by-side payoff, the overview, the line-by-line walk, and the shipping coda with the `npx skills add …` CTA.
 
 Route dirs retain the original verb slugs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for backlink stability; only the audience-facing labels, breadcrumbs (`stable / demo`, `suspendable / code`, `undoable / pattern`, …), and presenter notes use the new vocabulary. Presenter voice still uses verbs ("retry safely", "park", "unwind") as the bridge into each property.
 

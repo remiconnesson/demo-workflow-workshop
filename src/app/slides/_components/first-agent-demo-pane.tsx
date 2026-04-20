@@ -10,7 +10,7 @@ const STORAGE_KEY = "slides:first-agent:run-id";
 const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
 
 /**
- * Presenter-scale chat pane for the "Our First Agent" slide.
+ * Presenter-scale chat pane for the "Hello World" agent demo slide.
  *
  * Reuses the `/api/experiments/our-first-agent` routes. The slide's job
  * is to let the presenter:

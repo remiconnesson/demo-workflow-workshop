@@ -70,7 +70,7 @@ export default function TheMirrorSlide() {
             Foundation
           </span>
           <p className="text-2xl leading-snug text-zinc-300">
-            <span className="font-semibold text-white">First Agent</span>{" "}
+            <span className="font-semibold text-white">Hello World</span>{" "}
             proved the run itself can survive: one stream, one run ID, F5 safe.
           </p>
         </div>

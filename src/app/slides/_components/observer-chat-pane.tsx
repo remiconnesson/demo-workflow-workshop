@@ -250,7 +250,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
               }`}
             />
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Observer agent · autonomous loop
+              Autonomous agent · forever loop
             </span>
             <span
               className={`rounded-full border border-white/10 bg-white/5 px-3 py-0.5 font-mono text-sm tabular-nums text-zinc-300 transition-opacity duration-500 ${
@@ -517,7 +517,7 @@ function LoopBlock({
       <div className="flex justify-start">
         <div className="max-w-[86%] flex-1 rounded-2xl border border-white/10 bg-black px-6 py-5">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-            Observer agent
+            Autonomous agent
           </p>
           <p className="mt-2 text-lg leading-[1.35] text-zinc-100">
             {isCrashed

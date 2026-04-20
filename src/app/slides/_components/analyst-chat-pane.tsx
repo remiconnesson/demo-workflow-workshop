@@ -348,7 +348,7 @@ export function AnalystChatPane({
             patch: cached?.patch ?? {},
             rationale:
               cached?.rationale ??
-              "Analyst proposed a menu change. Review and decide.",
+              "Agent proposed a menu optimization. Review and decide.",
           });
         }
         return;
@@ -714,7 +714,7 @@ export function AnalystChatPane({
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Analyst
+            Optimize agent
           </span>
           <span className="font-mono text-sm text-zinc-500">
             anthropic/claude-haiku-4.5

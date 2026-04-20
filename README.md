@@ -58,9 +58,9 @@ Detection is handled by `src/workflows/_shared/mock-agent.ts`. The fallback trig
 
 In mock mode:
 
-- **First Agent** emits a scripted `fetchOrderDetails` turn for `ord-8842`.
-- **Observer** still runs `fetchRecentOrders` / `analyzeWindow` / `appendToReport` as real workflow steps, then emits synthetic text chunks so the chat shows the scan — the report keeps growing even offline.
-- **Analyst** emits a one-line offline notice (the interactive proposal / approval / rollback dance needs the live model).
+- **Hello World agent** emits a scripted `fetchOrderDetails` turn for `ord-8842`.
+- **Autonomous agent** still runs `fetchRecentOrders` / `analyzeWindow` / `appendToReport` as real workflow steps, then emits synthetic text chunks so the chat shows the scan — the report keeps growing even offline.
+- **Optimize agent** emits a one-line offline notice (the interactive proposal / manager-approval / rollback dance needs the live model).
 
 Real agent calls are unchanged — the fallback only engages when the gateway actually fails.
 
@@ -76,9 +76,9 @@ The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour worksh
 
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
 - **The Pivot** (15) — same durable run, new caller: agents.
-- **First Agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
-- **Observer agent** (19–21) — demo / code / pattern for a long-running durable agent.
-- **Analyst agent** (22–24) — demo / code / pattern for a human-in-the-loop + undoable durable agent.
+- **Hello World agent** (16–18) — demo / code / pattern for resumable streams (F5 proof).
+- **Autonomous agent** (19–21) — demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
+- **Optimize agent** (22–24) — demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
 - **Close** (25–33) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
 
 Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths keep the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for backlink stability.
@@ -99,9 +99,9 @@ Important routes:
 - `/slides/suspend/demo` ... `/slides/suspend/pattern` — **suspendable** property group (URL retained)
 - `/slides/rollback/demo` ... `/slides/rollback/pattern` — **undoable** property group (URL retained)
 - `/slides/the-pivot` slide 15 — the workflows-to-agents hinge
-- `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — first agent group (F5 proof)
-- `/slides/observer/demo` ... `/slides/observer/pattern` — observer agent group (kill-server proof)
-- `/slides/analyst/demo` ... `/slides/analyst/pattern` — analyst agent group (suspend + undo inside an agent)
+- `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — **Hello World** agent group (F5 proof; routes unchanged for stability)
+- `/slides/observer/demo` ... `/slides/observer/pattern` — **Autonomous** agent group (kill-server proof of a forever loop)
+- `/slides/analyst/demo` ... `/slides/analyst/pattern` — **Optimize** agent group (suspend + undo inside a restaurant-manager agent)
 - `/slides/the-mirror` slide 25 — foundation + workflow → agent mapping
 - `/slides/it-is-that-easy` slide 26 — original placeOrder overview
 - `/slides/closer/step` ... `/slides/closer/replay` slides 27–32 — per-line primitive recap
