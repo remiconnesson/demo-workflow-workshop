@@ -77,11 +77,16 @@ export function InspectorBand() {
         )}
       </div>
       <div className="flex min-w-0 flex-col justify-between border-l border-white/10 pl-5">
-        <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
-          Paste to your agent
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Paste to your agent
+          </p>
+          <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
+            Coding-Agent Friendly
+          </span>
+        </div>
         <p className="text-xl leading-snug text-zinc-300">
-          Paste the inspector output into your agent and ask it to explain the pattern.
+          Inspector output is LLM-readable — hand it to an agent and ask it to explain the pattern or apply it to your codebase.
         </p>
       </div>
     </div>
