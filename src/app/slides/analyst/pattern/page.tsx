@@ -4,7 +4,7 @@ import { AGENT_GROUPS } from "../../_data/agent-groups";
 const INSPECT_PROMPT = `npx workflow inspect run <run_id>
 
 Explain this run to me in detail. Walk me through how the durable
-agent paused for operator approval — what state it was in when it
+agent paused for manager approval — what state it was in when it
 suspended, how the hook delivered the human's response, and how
 the agent resumed exactly where it left off.`;
 
@@ -24,7 +24,7 @@ export default function AgentAnalystPatternSlide() {
     <PatternSlideLayout
       eyebrow={group.eyebrow}
       patternName="Human-in-the-loop agents"
-      description={<>A <code className="font-mono text-zinc-200">DurableAgent</code> loop that can <code className="font-mono text-zinc-200">pause</code> mid-task for operator <code className="font-mono text-zinc-200">approval</code> and <code className="font-mono text-zinc-200">resume</code> exactly where it left off — no retries, no lost state.</>}
+      description={<>A <code className="font-mono text-zinc-200">DurableAgent</code> loop that can <code className="font-mono text-zinc-200">pause</code> mid-task for manager <code className="font-mono text-zinc-200">approval</code> and <code className="font-mono text-zinc-200">resume</code> exactly where it left off — no retries, no lost state.</>}
       apiPrimitive={group.pattern.apiPrimitive}
       docSection={group.pattern.docSection}
       docUrl={group.pattern.docUrl}

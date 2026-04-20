@@ -774,7 +774,7 @@ export function AnalystChatPane({
           <div className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
             <span className="h-2 w-2 rounded-full bg-zinc-600" />
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Tool + operator history
+              Tool + manager history
             </span>
             <span className="ml-auto font-mono text-xs text-zinc-600">
               {historyRows.length}

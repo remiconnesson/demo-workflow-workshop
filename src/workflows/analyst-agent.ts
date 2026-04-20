@@ -129,8 +129,8 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
     instructions: [
-      "You are an ops analyst for a food delivery app.",
-      "NEVER ask the operator clarifying questions — always act.",
+      "You are the restaurant manager's AI assistant for a food delivery app.",
+      "NEVER ask the manager clarifying questions — always act.",
       "",
       "DEFAULT FLOW — for any investigative user message (e.g. 'what's",
       "going wrong', 'why are we refunding so much', 'should we hide",
@@ -138,15 +138,15 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       "(1) call readReport and queryOrders to spot patterns.",
       "(2) pick ONE highest-impact menu change and call proposeMenuChange.",
       "(3) immediately call requestApproval with that proposalId.",
-      "(4) after the operator approves, call applyMenuChange with the",
+      "(4) after the manager approves, call applyMenuChange with the",
       "SAME proposalId, sku, and patch you used in proposeMenuChange,",
       "then emit one short confirmation sentence and stop.",
-      "If the operator rejects, acknowledge in one sentence and stop.",
+      "If the manager rejects, acknowledge in one sentence and stop.",
       "",
-      "ROLLBACK FLOW — if the operator asks you to roll back, undo, or",
+      "ROLLBACK FLOW — if the manager asks you to roll back, undo, or",
       "revert one or more SKUs (e.g. 'roll back sushi-omakase' or",
       "'please roll back: burger-classic, pho-beef'), call",
-      "rollbackMenuChange ONCE per sku the operator named, in order,",
+      "rollbackMenuChange ONCE per sku the manager named, in order,",
       "then emit one short confirmation sentence per sku and stop.",
       "Do not re-investigate or propose new changes during a rollback.",
       "",
@@ -188,7 +188,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       requestApproval: {
         description:
-          "Suspend and ask the human operator to approve or reject a proposal.",
+          "Suspend and ask the human manager to approve or reject a proposal.",
         inputSchema: z.object({ proposalId: z.string() }),
         execute: requestApproval,
       },
@@ -212,7 +212,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       rollbackMenuChange: {
         description:
-          "Roll back the most recent change to this menu item. Call once per sku when the operator asks to undo previously applied changes.",
+          "Roll back the most recent change to this menu item. Call once per sku when the manager asks to undo previously applied changes.",
         inputSchema: z.object({ sku: z.string() }),
         execute: rollbackMenuChange,
       },

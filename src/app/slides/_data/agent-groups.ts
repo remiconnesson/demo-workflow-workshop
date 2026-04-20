@@ -50,7 +50,7 @@ export type AgentGroup = {
 export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   "agent-first": {
     slug: "agent-first",
-    eyebrow: "Durable agent · resumable stream",
+    eyebrow: "Durable agent · refresh-safe Hello World",
     verbMapping: {
       proves: ["foundation"],
       label: "Stream · Resume",
@@ -68,7 +68,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   },
   "agent-observer": {
     slug: "agent-observer",
-    eyebrow: "Durable agent · autonomous monitoring",
+    eyebrow: "Durable agent · autonomous forever loop",
     verbMapping: {
       proves: ["retry"],
       label: "Stable",
@@ -86,7 +86,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   },
   "agent-analyst": {
     slug: "agent-analyst",
-    eyebrow: "Durable agent · human-in-the-loop",
+    eyebrow: "Durable agent · restaurant manager optimization",
     verbMapping: {
       proves: ["suspend", "rollback"],
       label: "Suspendable + Undoable",

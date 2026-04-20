@@ -12,9 +12,9 @@ export type SlideInfo = {
  * Setup (1–5): cold open, happy-path demo, code, reliability properties, workshop map.
  * Three properties × 3 beats each (6–14): stable, suspendable, undoable.
  * Pivot (15): workflows → agents.
- * First agent (16–18): demo (F5 proof), workflow code, pattern.
- * Observer agent (19–21): demo, code, pattern.
- * Analyst agent (22–24): demo, code, pattern.
+ * Hello World agent (16–18): demo (F5 proof), workflow code, pattern.
+ * Autonomous agent (19–21): demo, code, pattern — the forever loop.
+ * Optimize agent (22–24): demo, code, pattern — restaurant manager approvals + undo.
  * Close (25–33): the mirror, closer overview, six per-line recaps, ship it.
  */
 export const SLIDES: SlideInfo[] = [
@@ -131,75 +131,73 @@ export const SLIDES: SlideInfo[] = [
 
   // ─── Agents ────────────────────────────────────────────────
 
-  // --- First agent (the F5 proof) ---
+  // --- Hello World agent (the F5 proof) ---
   {
     slug: "first-agent/demo",
-    title: "Our First Agent · Demo",
+    title: "Hello World · Demo",
     number: 16,
-    breadcrumb: "first agent / demo",
+    breadcrumb: "hello world / demo",
     notes: "PRESS 'Open ticket'. Let the agent stream its acknowledgement and start the tool call. While the sky-blue 'agent working — reload safe' card is pulsing, HIT F5.\n\nSAY: \"Every chat you've ever built loses the response on refresh. This one doesn't. Same run id. Same sentence. Same tool call. The stream just reconnects.\"",
   },
   {
     slug: "first-agent/solution",
-    title: "Our First Agent · Workflow Code",
+    title: "Hello World · Code",
     number: 17,
-    breadcrumb: "first agent / solution",
+    breadcrumb: "hello world / code",
     notes: "SAY: \"Two directives. 'use step' makes the tool call durable. 'use workflow' makes the agent loop a run. WorkflowChatTransport on the client handles the reconnect.\"\n\nPOINT at the three numbered steps.\n\nIF ASKED about idempotency: DurableAgent handles replay automatically — no caller-supplied idempotency key needed. Run-level: start() auto-generates a runId, returned via x-workflow-run-id header. Step-level: each 'use step' tool call is cached in the event log — on reconnect the SDK replays results without re-executing. For outbound side effects (e.g. charging a card), you should still pass getStepMetadata().stepId as an idempotency key to the external API.",
   },
   {
     slug: "first-agent/pattern",
-    title: "Our First Agent · Pattern",
+    title: "Hello World · Pattern",
     number: 18,
-    breadcrumb: "first agent / pattern",
+    breadcrumb: "hello world / pattern",
     notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we make the agent stable, suspendable, and undoable.\"",
   },
 
-  // ─── Observer agent ────────────────────────────────────────
-
-  // --- Observer agent ---
+  // ─── Autonomous agent (forever loop) ───────────────────────
   {
     slug: "observer/demo",
-    title: "Observer · Demo",
+    title: "Autonomous · Demo",
     number: 19,
-    breadcrumb: "observer / demo",
-    notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"Same retry primitive you already learned. Step-backed tools are durable — the event log replays them. Zero re-execution.\"",
+    breadcrumb: "autonomous / demo",
+    notes: "PRESS r. Watch the three tool-call nodes light up — scan, analyze, report — then the loop sleeps and starts again.\n\nOn Loop 2, the 'Kill server' button glows red. CLICK it mid-tool-call.\n\nWatch: dark overlay — 'SERVER DOWN'. Then 'REPLAYING EVENT LOG'. The first node comes back with a green 'cached' badge. The agent finishes without re-executing.\n\nSAY: \"A forever loop the server can't kill. Same stable primitive you already learned — step-backed tools are durable, the event log replays them. Zero re-execution.\"",
   },
   {
     slug: "observer/solution",
-    title: "Observer · Workflow Code",
+    title: "Autonomous · Code",
     number: 20,
-    breadcrumb: "observer / solution",
-    notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow. Restarts resume mid-thought from the last tool call.\"",
+    breadcrumb: "autonomous / code",
+    notes: "SAY: \"DurableAgent. Tools are steps. The agent loop is a workflow that never stops. Restarts resume mid-thought from the last tool call.\"",
   },
   {
     slug: "observer/pattern",
-    title: "Observer · Pattern",
+    title: "Autonomous · Pattern",
     number: 21,
-    breadcrumb: "observer / pattern",
-    notes: "SAY: \"This is the Durable Agent pattern. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop.\"\n\nPOINT at the URL.",
+    breadcrumb: "autonomous / pattern",
+    notes: "SAY: \"This is the Durable Agent pattern — autonomous forever loop. The same workflow primitives — steps, replay, idempotency — now wrap an LLM loop that runs unattended.\"\n\nPOINT at the URL.",
   },
 
-  // ─── Analyst agent ─────────────────────────────────────────
+  // ─── Optimize agent (restaurant manager) ───────────────────
   {
     slug: "analyst/demo",
-    title: "Analyst · Demo",
+    title: "Optimize · Demo",
     number: 22,
-    breadcrumb: "analyst / demo",
-    notes: "POINT at the phone — it IS the operator surface. Live menu up top, suggestion chips, text input, Reset and Undo at the bottom. The big panel to the left is a read-only record of what the agent and operator are doing together.\n\nTAP \"What's going wrong?\" on the phone. The analyst queries orders, proposes a menu change, and suspends on requestApproval. Phone glows amber and flips to the approval card: sku, item name, price → price, rationale.\n\nTAP Approve. An emerald dashed \"operator approved\" pill lands in the unified history column, right between requestApproval and applyMenuChange. Menu on the phone updates live — the affected item dims and picks up a hidden badge. Phone returns to idle. \"Undo previous (1)\" now lights up fuchsia.\n\nTAP a suggestion chip again or type a new question. Agent proposes another change and suspends. Approval card now also offers an Undo… button.\n\nTAP Undo previous. Checklist slides in over the phone. CHECK one or more applied changes → TAP Roll back. A fuchsia dashed \"operator requested undo\" pill lands in the history, the current approval clears, a synthetic user turn reaches the agent, and one fuchsia rollbackMenuChange pill drops for every sku.\n\nSAY: \"One phone. One history. The agent and the operator both write to the same timeline — approve, continue, undo, any decision, any time.\"",
+    breadcrumb: "optimize / demo",
+    notes: "POINT at the phone — it IS the restaurant manager's surface. Live menu up top, suggestion chips, text input, Reset and Undo at the bottom. The big panel to the left is a read-only record of what the agent and manager are doing together.\n\nTAP \"What's going wrong?\" on the phone. The agent queries orders, proposes a menu optimization, and suspends on requestApproval. Phone glows amber and flips to the approval card: sku, item name, price → price, rationale.\n\nTAP Approve. An emerald dashed \"manager approved\" pill lands in the unified history column, right between requestApproval and applyMenuChange. Menu on the phone updates live — the affected item dims and picks up a hidden badge. Phone returns to idle. \"Undo previous (1)\" now lights up fuchsia.\n\nTAP a suggestion chip again or type a new question. Agent proposes another optimization and suspends. Approval card now also offers an Undo… button.\n\nTAP Undo previous. Checklist slides in over the phone. CHECK one or more applied changes → TAP Roll back. A fuchsia dashed \"manager requested undo\" pill lands in the history, the current approval clears, a synthetic user turn reaches the agent, and one fuchsia rollbackMenuChange pill drops for every sku.\n\nSAY: \"One phone. One history. The agent and the manager both write to the same timeline — approve, continue, undo, any decision, any time.\"",
   },
   {
     slug: "analyst/solution",
-    title: "Analyst · Workflow Code",
+    title: "Optimize · Code",
     number: 23,
-    breadcrumb: "analyst / solution",
-    notes: "THIS IS THE RECAP. Point at each property in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nSTABLE — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent earlier.\n\nSUSPENDABLE — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nUNDOABLE — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nStable, suspendable, undoable. Three properties, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (stable), 19 (suspendable), 25 (undoable).",
+    breadcrumb: "optimize / code",
+    notes: "THIS IS THE RECAP. Point at each property in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nStable — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent earlier.\n\nSuspendable — the approval hook. The agent awaits it. That line parks the whole loop until the manager taps the phone. Same primitive that waited for the slow restaurant.\n\nUndoable — rollbackMenuChange is just another tool. The manager asks the agent to undo an optimization, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the manager is driving it through the agent.\n\nStable, suspendable, undoable. Three properties, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (stable), 19 (suspendable), 25 (undoable).",
   },
   {
     slug: "analyst/pattern",
-    title: "Analyst · Pattern",
+    title: "Optimize · Pattern",
     number: 24,
-    breadcrumb: "analyst / pattern",
-    notes: "SAY: \"Human-in-the-Loop Agent pattern. A DurableAgent plus a handful of workflow-level tools. One hook — created and awaited inside requestApproval — gates every change behind a human tap. A separate rollback tool stands by; the operator can point the agent at any prior applied change, any turn, and the agent calls that tool to compensate.\n\nSame primitives the workflow slides opened with — suspend and rollback — now running inside an agent loop. The operator never talks to the server directly; they talk to the agent, and the agent owns every write.\"\n\nPOINT at the URL.",
+    breadcrumb: "optimize / pattern",
+    notes: "SAY: \"Human-in-the-Loop Agent pattern. A DurableAgent plus a handful of workflow-level tools. One hook — created and awaited inside requestApproval — gates every optimization behind a manager tap. A separate rollback tool stands by; the manager can point the agent at any prior applied change, any turn, and the agent calls that tool to compensate.\n\nSame primitives the workflow slides opened with — suspend and rollback — now running inside an agent loop. The manager never talks to the server directly; they talk to the agent, and the agent owns every write.\"\n\nPOINT at the URL.",
   },
 
   // ─── Close ─────────────────────────────────────────────────

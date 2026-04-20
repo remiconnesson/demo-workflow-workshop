@@ -109,7 +109,7 @@ function getAudienceRailInfo(
   }
   if (n >= 16 && n <= 18) {
     return {
-      family: "First Agent",
+      family: "Hello World",
       proof: "Run survives refresh",
       beat: beatForTriplet(n, 16),
       tone: "emerald",
@@ -117,16 +117,16 @@ function getAudienceRailInfo(
   }
   if (n >= 19 && n <= 21) {
     return {
-      family: "Observer",
-      proof: "Stable replay",
+      family: "Autonomous",
+      proof: "Forever loop",
       beat: beatForTriplet(n, 19),
       tone: "sky",
     };
   }
   if (n >= 22 && n <= 24) {
     return {
-      family: "Analyst",
-      proof: "Suspendable + Undoable",
+      family: "Optimize",
+      proof: "Approval + Undo",
       beat: beatForTriplet(n, 22),
       tone: "amber-fuchsia",
     };

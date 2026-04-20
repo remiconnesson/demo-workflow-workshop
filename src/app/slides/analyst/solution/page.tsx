@@ -103,7 +103,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           {
             highlightLines: {
               11: "",
-              12: "**undoable** — compensation is just [another tool](https://workflow-sdk.dev/docs/ai/defining-tools) the agent can call — same [saga unwind](https://workflow-sdk.dev/docs/foundations/common-patterns) from the dispute, now driven by the operator through the agent",
+              12: "**undoable** — compensation is just [another tool](https://workflow-sdk.dev/docs/ai/defining-tools) the agent can call — same [saga unwind](https://workflow-sdk.dev/docs/foundations/common-patterns) from the dispute, now driven by the manager through the agent",
               13: "",
               14: "",
               15: "",
@@ -118,7 +118,7 @@ async function requestApproval({ proposalId }, { toolCallId }) {
   return await hook
 }
 
-// undoable: compensation the operator invokes through the agent
+// undoable: compensation the manager invokes through the agent
 async function rollbackMenuChange({ changeId }) {
   "use step"
   return menu.rollback(changeId)
