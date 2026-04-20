@@ -327,7 +327,7 @@ export default function SlidesLayout({
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {children}
 
-      {slug !== "title" && (
+      {slug !== "title" && slug !== "close" && (
         <div className="pointer-events-none fixed top-8 right-8 z-50">
           <WorkflowMark size={32} className="text-white/70" />
         </div>

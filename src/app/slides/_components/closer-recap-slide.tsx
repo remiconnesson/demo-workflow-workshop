@@ -151,7 +151,7 @@ const SDK_EXPLANATION: Record<CloserPrimitive, string> = {
 
 const ASIDE_CLASS_BY_FAMILY: Record<VerbFamily, string> = {
   retry:
-    "border-emerald-400/20 bg-emerald-500/[0.03] shadow-[0_0_72px_rgba(52,211,153,0.08)]",
+    "border-sky-400/20 bg-sky-500/[0.03] shadow-[0_0_72px_rgba(56,189,248,0.08)]",
   suspend:
     "border-amber-400/25 bg-amber-500/[0.03] shadow-[0_0_72px_rgba(251,191,36,0.08)]",
   rollback:
@@ -159,13 +159,13 @@ const ASIDE_CLASS_BY_FAMILY: Record<VerbFamily, string> = {
 };
 
 const TITLE_CLASS_BY_FAMILY: Record<VerbFamily, string> = {
-  retry: "text-emerald-300",
+  retry: "text-sky-300",
   suspend: "text-amber-300",
   rollback: "text-fuchsia-300",
 };
 
 const LABEL_CLASS_BY_FAMILY: Record<VerbFamily, string> = {
-  retry: "text-emerald-400/70",
+  retry: "text-sky-400/70",
   suspend: "text-amber-400/75",
   rollback: "text-fuchsia-400/75",
 };
@@ -185,60 +185,60 @@ const RECAP_CODE_BASE_CLASS = [
 type SpotlightKey = `${VerbFamily}-${SpotlightLine}`;
 
 const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
-  // ── retry family (emerald) ────────────────────────────────────────
+  // ── retry family (sky) ────────────────────────────────────────────
   "retry-5": [
     "[&_.code-hl:not(.code-line-5)]:opacity-25",
     "[&_.code-line-5.code-hl]:!opacity-100",
-    "[&_.code-line-5.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-5.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-5.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-5.code-hl]:!border-l-sky-300",
     "[&_.code-line-5.code-hl]:!ring-2",
-    "[&_.code-line-5.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-5.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-5.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-5.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-7": [
     "[&_.code-hl:not(.code-line-7)]:opacity-25",
     "[&_.code-line-7.code-hl]:!opacity-100",
-    "[&_.code-line-7.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-7.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-7.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-7.code-hl]:!border-l-sky-300",
     "[&_.code-line-7.code-hl]:!ring-2",
-    "[&_.code-line-7.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-7.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-7.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-7.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-9": [
     "[&_.code-hl:not(.code-line-9)]:opacity-25",
     "[&_.code-line-9.code-hl]:!opacity-100",
-    "[&_.code-line-9.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-9.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-9.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-9.code-hl]:!border-l-sky-300",
     "[&_.code-line-9.code-hl]:!ring-2",
-    "[&_.code-line-9.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-9.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-9.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-9.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-11": [
     "[&_.code-hl:not(.code-line-11)]:opacity-25",
     "[&_.code-line-11.code-hl]:!opacity-100",
-    "[&_.code-line-11.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-11.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-11.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-11.code-hl]:!border-l-sky-300",
     "[&_.code-line-11.code-hl]:!ring-2",
-    "[&_.code-line-11.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-11.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-11.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-11.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-13": [
     "[&_.code-hl:not(.code-line-13)]:opacity-25",
     "[&_.code-line-13.code-hl]:!opacity-100",
-    "[&_.code-line-13.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-13.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-13.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-13.code-hl]:!border-l-sky-300",
     "[&_.code-line-13.code-hl]:!ring-2",
-    "[&_.code-line-13.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-13.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-13.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-13.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-15": [
     "[&_.code-hl:not(.code-line-15)]:opacity-25",
     "[&_.code-line-15.code-hl]:!opacity-100",
-    "[&_.code-line-15.code-hl]:!bg-emerald-500/10",
-    "[&_.code-line-15.code-hl]:!border-l-emerald-300",
+    "[&_.code-line-15.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-15.code-hl]:!border-l-sky-300",
     "[&_.code-line-15.code-hl]:!ring-2",
-    "[&_.code-line-15.code-hl]:!ring-emerald-400/45",
-    "[&_.code-line-15.code-hl]:!shadow-[0_0_46px_rgba(52,211,153,0.28),inset_0_0_0_1px_rgba(52,211,153,0.35)]",
+    "[&_.code-line-15.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-15.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   // ── suspend family (amber) ────────────────────────────────────────
   "suspend-5": [
