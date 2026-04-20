@@ -1,8 +1,8 @@
-# Workflow GA Slides
+# Workflow Workshop
 
-A Next.js 16 presentation app for the Workflow SDK GA story. The root `/` redirects to the deck at `/slides/title`; everything is a slide.
+A hands-on workshop for the Workflow SDK built on Next.js 16. The root `/` redirects to the deck at `/slides/title`; everything is a slide.
 
-The deck reframes the SDK around **three properties of reliable software** (`stable`, `suspendable`, `undoable`) and carries them through matching workflow and durable-agent demos.
+The workshop teaches **three properties of reliable software** (`stable`, `suspendable`, `undoable`) through interactive demos that break, fix, and name each pattern live. Every demo fires a real workflow run, and each pattern slide includes an `npx workflow inspect` command you can paste directly to your coding agent (Claude, Cursor, etc.) to explain the pattern or apply it to your own codebase.
 
 ## Running It
 
@@ -12,6 +12,14 @@ pnpm dev
 ```
 
 Then open `http://localhost:3000/`.
+
+In a second terminal, start the workflow dashboard so you can watch every run as it happens:
+
+```bash
+npx workflow web
+```
+
+This gives you a live view of each workflow's timeline, step state, and payloads. Keep it open alongside the workshop — every demo fires a real run, and the dashboard lets you see exactly what the SDK is doing under the hood.
 
 ### One-time setup for the AI features
 

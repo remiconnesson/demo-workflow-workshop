@@ -106,7 +106,7 @@ export default function HowItWorksSlide() {
       <div className="flex items-stretch gap-5">
         {BEATS.map((beat, index) => (
           <Fragment key={beat.title}>
-            <section className="flex min-h-[560px] w-0 flex-1 flex-col justify-between gap-8 rounded-3xl border border-white/10 bg-zinc-950 p-9 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
+            <section className="flex w-0 flex-1 flex-col gap-5 rounded-3xl border border-white/10 bg-zinc-950 p-7 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
               <h3 className="text-[64px] font-semibold leading-none tracking-tight text-white">
                 {beat.title}
               </h3>

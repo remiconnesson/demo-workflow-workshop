@@ -30,7 +30,7 @@ export default function ExperimentsIndexPage() {
           className="mb-6 block rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 transition hover:bg-emerald-500/10"
         >
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">
-            Start here · zeroth demo
+            Start here
           </p>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight">
             Our first agent

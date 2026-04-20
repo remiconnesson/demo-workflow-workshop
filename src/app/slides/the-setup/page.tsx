@@ -5,27 +5,27 @@ import { PLACE_ORDER_SETUP } from "../_components/place-order-code";
 const SETUP_RISK_HIGHLIGHT_CLASS = [
   "[&_.code-hl]:transition-all",
   "[&_.code-hl]:duration-300",
-  // Retry family: invalid input, double charge, crash before receipts
+  // Stable (retry): validateOrder, chargeCard, sendReceipts
   "[&_.code-line-3.code-hl]:!bg-sky-500/10",
   "[&_.code-line-3.code-hl]:!ring-1",
   "[&_.code-line-3.code-hl]:!ring-sky-400/30",
-  "[&_.code-line-5.code-hl]:!bg-sky-500/10",
+  "[&_.code-line-4.code-hl]:!bg-sky-500/10",
+  "[&_.code-line-4.code-hl]:!ring-1",
+  "[&_.code-line-4.code-hl]:!ring-sky-400/30",
+  "[&_.code-line-8.code-hl]:!bg-sky-500/10",
+  "[&_.code-line-8.code-hl]:!ring-1",
+  "[&_.code-line-8.code-hl]:!ring-sky-400/30",
+  // Suspendable: pingRestaurant, findDriver
+  "[&_.code-line-5.code-hl]:!bg-amber-500/10",
   "[&_.code-line-5.code-hl]:!ring-1",
-  "[&_.code-line-5.code-hl]:!ring-sky-400/30",
-  "[&_.code-line-13.code-hl]:!bg-sky-500/10",
-  "[&_.code-line-13.code-hl]:!ring-1",
-  "[&_.code-line-13.code-hl]:!ring-sky-400/30",
-  // Suspend family: restaurant timeout, no driver
-  "[&_.code-line-7.code-hl]:!bg-amber-500/10",
+  "[&_.code-line-5.code-hl]:!ring-amber-400/30",
+  "[&_.code-line-6.code-hl]:!bg-amber-500/10",
+  "[&_.code-line-6.code-hl]:!ring-1",
+  "[&_.code-line-6.code-hl]:!ring-amber-400/30",
+  // Undoable (rollback): trackDelivery
+  "[&_.code-line-7.code-hl]:!bg-fuchsia-500/10",
   "[&_.code-line-7.code-hl]:!ring-1",
-  "[&_.code-line-7.code-hl]:!ring-amber-400/30",
-  "[&_.code-line-9.code-hl]:!bg-amber-500/10",
-  "[&_.code-line-9.code-hl]:!ring-1",
-  "[&_.code-line-9.code-hl]:!ring-amber-400/30",
-  // Rollback family: customer cancellation
-  "[&_.code-line-11.code-hl]:!bg-fuchsia-500/10",
-  "[&_.code-line-11.code-hl]:!ring-1",
-  "[&_.code-line-11.code-hl]:!ring-fuchsia-400/30",
+  "[&_.code-line-7.code-hl]:!ring-fuchsia-400/30",
 ].join(" ");
 
 export default async function TheSetupSlide() {

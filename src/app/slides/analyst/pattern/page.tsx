@@ -24,7 +24,7 @@ export default function AgentAnalystPatternSlide() {
     <PatternSlideLayout
       eyebrow={group.eyebrow}
       patternName="Human-in-the-loop agents"
-      description={<>A <code className="font-mono text-zinc-200">DurableAgent</code> loop that can <code className="font-mono text-zinc-200">pause</code> mid-task for manager <code className="font-mono text-zinc-200">approval</code> and <code className="font-mono text-zinc-200">resume</code> exactly where it left off — no retries, no lost state.</>}
+      description={<>A <code className="font-mono text-zinc-200">DurableAgent</code> loop that can <code className="font-mono text-zinc-200">pause</code> mid-task for manager <code className="font-mono text-zinc-200">approval</code> and <code className="font-mono text-zinc-200">resume</code> exactly where it left off.</>}
       apiPrimitive={group.pattern.apiPrimitive}
       docSection={group.pattern.docSection}
       docUrl={group.pattern.docUrl}

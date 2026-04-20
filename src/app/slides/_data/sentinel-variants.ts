@@ -48,7 +48,7 @@ export const SENTINEL_VARIANTS: Record<SentinelVariantSlug, SentinelVariant> = {
     agentName: "Fraud sentinel",
     eyebrow: "Durable agent · fraud sentinel",
     purposeLine:
-      "Scores every card charge before it settles. Freezes high-risk accounts.",
+      "Business-critical. Always-on.\nThis agent has run for 94 days without a gap.",
     uptimeLabel: "Running since Jan 14 · 94 days uptime",
     startingLoop: 13_248,
     kill: {

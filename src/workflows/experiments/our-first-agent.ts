@@ -13,7 +13,7 @@ import {
 } from "../_shared/mock-agent";
 
 /**
- * "Our First Agent" — the zeroth demo of the Workflow SDK + Agents story.
+ * "Our First Agent" — the first demo of the Workflow SDK + Agents story.
  *
  * Goal: demonstrate that the chat stream is durable across page reloads
  * using WorkflowChatTransport. The agent runs one step-backed tool that

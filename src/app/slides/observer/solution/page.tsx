@@ -22,6 +22,10 @@ export default function AgentObserverFixSlide() {
           label: <>Run the agent in a <code className="font-mono">loop</code></>,
           detail: <>a plain <span className="text-zinc-300">while (true)</span> that the SDK makes durable</>,
         },
+        {
+          label: <>Extract <code className="font-mono">messages</code> above the loop</>,
+          detail: <>collected across agent sessions so context <span className="text-zinc-300">accumulates</span></>,
+        },
       ]}
       workflowFix={{
         progression: [
@@ -100,6 +104,35 @@ export async function observerAgentWorkflow() {
   while (true) {
     await agent.stream({
       messages: [{ role: "user", content: "Check recent orders." }],
+      writable,
+      maxSteps: 6,
+    })
+  }
+}`,
+          },
+          {
+            highlightLines: {
+              9: "Declared once, reused every iteration",
+            },
+            code: `async function fetchRecentOrders({ limit }) {
+  "use step"
+  return getRecentOrders(limit)
+}
+
+export async function observerAgentWorkflow() {
+  "use workflow"
+
+  const messages = [{ role: "user", content: "Check recent orders." }]
+  const writable = getWritable()
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    instructions: "Watch orders. Report anomalies.",
+    tools: { fetchRecentOrders, analyzeWindow, appendToReport },
+  })
+
+  while (true) {
+    await agent.stream({
+      messages,
       writable,
       maxSteps: 6,
     })

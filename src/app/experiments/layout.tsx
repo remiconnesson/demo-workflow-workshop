@@ -30,7 +30,7 @@ export default function ExperimentsLayout({
         <div className="flex-1 overflow-y-auto">
           <div className="border-b border-white/5 px-6 py-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Zeroth demo
+              First agent
             </p>
             <Link
               href="/experiments/our-first-agent"

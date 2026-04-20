@@ -147,9 +147,6 @@ export function FirstAgentDemoPane() {
           {!hasMessages && (
             <div className="flex h-full items-center justify-center p-10">
               <div className="max-w-xl text-center">
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                  Zeroth demo
-                </p>
                 <p className="mt-4 text-3xl font-semibold leading-tight tracking-tight text-white">
                   A customer opens a ticket.
                 </p>

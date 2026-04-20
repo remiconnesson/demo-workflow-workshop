@@ -69,7 +69,7 @@ export default function OurFirstAgentPage() {
       <header className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Experiment · Zeroth demo
+            Experiment
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
             Our first agent
