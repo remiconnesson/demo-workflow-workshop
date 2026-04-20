@@ -99,10 +99,15 @@ const BEATS = [
 export default function HowItWorksSlide() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1560px] flex-col justify-center gap-14 px-16 py-20">
-      <h2 className="max-w-6xl text-6xl font-semibold leading-[1.05] tracking-tight">
-        For each property:
-        <span className="text-zinc-500"> break it, fix it, name it.</span>
-      </h2>
+      <div className="flex flex-col gap-4">
+        <h2 className="max-w-6xl text-6xl font-semibold leading-[1.05] tracking-tight">
+          For each property:
+          <span className="text-zinc-500"> break it, fix it, name it.</span>
+        </h2>
+        <p className="max-w-5xl text-3xl leading-snug text-zinc-400">
+          Every demo asks: what do you need from the system now?
+        </p>
+      </div>
 
       <div className="flex items-stretch gap-5">
         {BEATS.map((beat, index) => (

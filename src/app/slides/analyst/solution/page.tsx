@@ -12,18 +12,18 @@ export default function AgentAnalystFixSlide() {
       marker="span"
       filename="analystAgent.ts"
       statusTone="emerald"
-      statusLabel="retry · suspend · rollback"
+      statusLabel="stable · suspendable · undoable"
       steps={[
         {
-          label: <><span className="font-mono text-emerald-300">retry</span> — tools become <code className="font-mono">steps</code></>,
+          label: <><span className="font-mono text-emerald-300">stable</span> — tools become <code className="font-mono">steps</code></>,
           detail: <>tool calls <span className="text-zinc-300">replay from the log</span></>,
         },
         {
-          label: <><span className="font-mono text-amber-300">suspend</span> — <code className="font-mono">await approvalHook</code></>,
+          label: <><span className="font-mono text-amber-300">suspendable</span> — <code className="font-mono">await approvalHook</code></>,
           detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span></>,
         },
         {
-          label: <><span className="font-mono text-fuchsia-300">rollback</span> — <code className="font-mono">rollbackMenuChange</code></>,
+          label: <><span className="font-mono text-fuchsia-300">undoable</span> — <code className="font-mono">rollbackMenuChange</code></>,
           detail: <>undo is <span className="text-zinc-300">another durable tool</span></>,
         },
       ]}
@@ -49,10 +49,10 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           {
             highlightLines: {
               2: "",
-              3: "**retry** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as Act II's charge)",
+              3: "**stable** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as Act II's charge)",
             },
             code: `async function queryOrders({ limit }) {
-  // retry: tool call replays from the event log on restart
+  // stable: tool call replays from the event log on restart
   "use step"
   return db.orders.recent(limit)
 }
@@ -74,7 +74,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
               6: "",
               7: "",
               8: "[`hook.create({ token })`](https://workflow-sdk.dev/docs/ai/human-in-the-loop) — the UI references this token to submit the approval",
-              9: "**suspend** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
+              9: "**suspendable** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
               10: "",
             },
             code: `async function queryOrders({ limit }) {
@@ -82,7 +82,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
   return db.orders.recent(limit)
 }
 
-// suspend: await the approval hook — agent parks until a human acts
+// suspendable: await the approval hook — agent parks until a human acts
 async function requestApproval({ proposalId }, { toolCallId }) {
   const hook = approvalHook.create({ token: toolCallId })
   return await hook
@@ -103,7 +103,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           {
             highlightLines: {
               11: "",
-              12: "**rollback** — compensation is just [another tool](https://workflow-sdk.dev/docs/ai/defining-tools) the agent can call — same [saga unwind](https://workflow-sdk.dev/docs/foundations/common-patterns) from the dispute, now driven by the operator through the agent",
+              12: "**undoable** — compensation is just [another tool](https://workflow-sdk.dev/docs/ai/defining-tools) the agent can call — same [saga unwind](https://workflow-sdk.dev/docs/foundations/common-patterns) from the dispute, now driven by the operator through the agent",
               13: "",
               14: "",
               15: "",
@@ -118,7 +118,7 @@ async function requestApproval({ proposalId }, { toolCallId }) {
   return await hook
 }
 
-// rollback: compensation the operator invokes through the agent
+// undoable: compensation the operator invokes through the agent
 async function rollbackMenuChange({ changeId }) {
   "use step"
   return menu.rollback(changeId)

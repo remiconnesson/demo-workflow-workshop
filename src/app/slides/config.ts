@@ -58,7 +58,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Stable · Demo",
     number: 6,
     breadcrumb: "stable / demo",
-    notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. So what do you need from the system now? You need it to retry safely. That's what makes the step stable.\"",
+    notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. So what do you need from the system now? You need the step to run again without doing the work twice. That's retrying safely. That's stable.\"",
   },
   {
     slug: "retry/solution",
@@ -81,7 +81,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Suspendable · Demo",
     number: 9,
     breadcrumb: "suspendable / demo",
-    notes: "PRESS r. It pauses at pingRestaurant. Click 'Accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. So what do you need from the system now? You need it to park. That's what makes the workflow suspendable.\"",
+    notes: "PRESS r. It pauses at pingRestaurant. Click 'Accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. So what do you need from the system now? You need the run to park until the world catches up. That's suspendable.\"",
   },
   {
     slug: "suspend/solution",
@@ -104,7 +104,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Undoable · Demo",
     number: 12,
     breadcrumb: "undoable / demo",
-    notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. So what do you need from the system now? You need it to unwind. That's what makes the workflow undoable.\"",
+    notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. So what do you need from the system now? You need side effects to unwind when reality changes. That's undoable.\"",
   },
   {
     slug: "rollback/solution",

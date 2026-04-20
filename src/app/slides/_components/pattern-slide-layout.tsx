@@ -98,12 +98,14 @@ export function PatternSlideLayout({
   const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
   const primitives = Array.isArray(apiPrimitive) ? apiPrimitive : [apiPrimitive];
 
+  const visibleExamples = realWorldExamples?.slice(0, 6) ?? [];
+
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-black text-white">
-      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-10 px-20 py-16">
+      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-8 px-20 py-12">
         {/* Hero — pattern name, API primitive, description */}
-        <div className="flex flex-col gap-8">
-          <h1 className="text-[96px] font-bold leading-[0.96] tracking-tight">
+        <div className="flex flex-col gap-6">
+          <h1 className="text-[88px] font-bold leading-[0.96] tracking-tight">
             {patternName}
           </h1>
 
@@ -123,22 +125,22 @@ export function PatternSlideLayout({
             ))}
           </div>
 
-          <p className="max-w-5xl text-3xl leading-[1.35] text-zinc-400">
+          <p className="max-w-5xl text-[28px] leading-[1.3] text-zinc-400">
             {description}
           </p>
         </div>
 
-        {/* Where this applies — large readable chips */}
-        {realWorldExamples && realWorldExamples.length > 0 && (
-          <div className="flex flex-col gap-5">
+        {/* Where this applies — large readable chips (cap at 6) */}
+        {visibleExamples.length > 0 && (
+          <div className="flex flex-col gap-4">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
               Where this applies
             </p>
             <div className="flex flex-wrap gap-3">
-              {realWorldExamples.map((ex) => (
+              {visibleExamples.map((ex) => (
                 <span
                   key={ex}
-                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-6 py-3 text-xl text-zinc-200"
+                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-lg text-zinc-200"
                 >
                   {EXAMPLE_ICONS[ex] && (
                     <span className="shrink-0 text-zinc-500">

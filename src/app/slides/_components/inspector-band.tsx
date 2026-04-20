@@ -44,8 +44,8 @@ export function InspectorBand() {
   }
 
   return (
-    <div className="grid h-[180px] shrink-0 grid-cols-[1.15fr_0.85fr] gap-5 rounded-3xl border border-white/10 bg-zinc-950 p-6">
-      <div className="flex flex-col justify-between overflow-hidden">
+    <div className="grid h-[180px] shrink-0 grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-5 rounded-3xl border border-white/10 bg-zinc-950 p-6">
+      <div className="flex min-w-0 flex-col justify-between">
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
             Inspect this run
@@ -64,19 +64,19 @@ export function InspectorBand() {
             href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}
             target="_blank"
             rel="noreferrer"
-            className="truncate font-mono text-[30px] leading-tight text-emerald-300 transition-colors hover:text-white"
+            className="block min-w-0 truncate whitespace-nowrap font-mono text-[28px] leading-tight text-emerald-300 transition-colors hover:text-white"
           >
             <span className="text-zinc-600">$ </span>
             {command}
           </a>
         ) : (
-          <span className="truncate font-mono text-[30px] leading-tight text-zinc-500">
+          <span className="block min-w-0 truncate whitespace-nowrap font-mono text-[28px] leading-tight text-zinc-500">
             <span className="text-zinc-700">$ </span>
             {command}
           </span>
         )}
       </div>
-      <div className="flex flex-col justify-between border-l border-white/10 pl-5">
+      <div className="flex min-w-0 flex-col justify-between border-l border-white/10 pl-5">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
           Paste to your agent
         </p>
