@@ -19,7 +19,7 @@ export default async function ItIsThatEasySlide() {
       <div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
           It is that easy.
-          <span className="text-zinc-500"> Same shape. Durable underneath.</span>
+          <span className="text-zinc-500"> Just add the Workflow SDK.</span>
         </h2>
       </div>
 

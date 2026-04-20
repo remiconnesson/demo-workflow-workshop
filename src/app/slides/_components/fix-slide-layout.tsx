@@ -21,13 +21,13 @@ export type WorkflowFixTab =
       lang?: "ts" | "tsx" | "js" | "jsx";
       /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
       highlightLines?: Record<number, string>;
-      /** Optional semantic tone — adds a colored dot in the tab strip. */
+      /** Optional semantic tone that adds a colored dot in the tab strip. */
       tone?: TabTone;
       progression?: never;
     }
   | {
       filename: string;
-      /** Progressive states — scrubs alongside the primary tab. */
+      /** Progressive states that scrub alongside the primary tab. */
       progression: ProgressionState[];
       lang?: "ts" | "tsx" | "js" | "jsx";
       tone?: TabTone;
@@ -41,9 +41,9 @@ export type WorkflowFixTab =
  *
  * Progressive mode: the presenter scrubs through an ordered series of code
  * states (via ArrowRight/ArrowLeft) that build the snippet up one primitive
- * at a time. `progression.length` should equal `steps.length + 1` — state 0
- * is the baseline (no concepts yet), each subsequent state corresponds to the
- * concept described by the matching step.
+ * at a time. `progression.length` should equal `steps.length + 1`: state 0
+ * is the baseline with no concepts yet, and each subsequent state corresponds
+ * to the concept described by the matching step.
  */
 export type WorkflowFix =
   | {
@@ -158,7 +158,7 @@ const DOT_GLOW: Record<StatusTone, string> = {
 };
 
 /**
- * Workflow-code slide — Geist-aligned split.
+ * Workflow-code slide: Geist-aligned split.
  * Left rail: eyebrow, headline, three numbered steps, status dot.
  * Right: code card with mono filename + "use workflow" directive label.
  */
@@ -248,20 +248,7 @@ export async function FixSlideLayout({
             ))}
           </ol>
 
-          <div
-            className={`mt-auto flex min-h-[58px] items-center gap-3 border-t border-white/10 pt-6 transition-opacity duration-200 ${
-              pillLabel ? "opacity-100" : "opacity-0"
-            }`}
-            aria-hidden={!pillLabel}
-          >
-            <span
-              className={`inline-block h-2.5 w-2.5 rounded-full ${DOT_COLOR[statusTone]}`}
-              style={{ boxShadow: DOT_GLOW[statusTone] }}
-            />
-            <span className="font-mono text-base font-semibold leading-none tracking-tight text-zinc-400">
-              {pillLabel ?? "\u00A0"}
-            </span>
-          </div>
+          <div className="mt-auto min-h-[58px]" />
         </div>
 
         {workflowFix.tabs && workflowFix.tabs.length > 0 ? (

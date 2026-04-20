@@ -1,94 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { CopyablePrompt } from "./copyable-prompt";
 
-const WORKFLOW_WEB_PORT = 3456;
-const RUN_ID_PLACEHOLDER = "<run_id>";
+const INSTALL_COMMAND =
+  "npx skills add https://github.com/vercel/workflow --skill workflow-init";
 
-export function InspectorBand() {
-  const [runId, setRunId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+type InspectorBandProps = {
+  inspectPrompt?: string;
+  comparePrompt?: string;
+  patternName?: string;
+  apiPrimitive?: string | string[];
+  docUrl?: string;
+  realWorldExamples?: string[];
+};
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch("/api/runs/latest", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = (await res.json()) as { runId: string | null };
-        if (!cancelled) setRunId(data.runId);
-      } catch {
-        // placeholder stays
-      }
-    }
-    load();
-    const id = setInterval(load, 4000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, []);
+export function InspectorBand({
+  inspectPrompt,
+  comparePrompt,
+  patternName = "",
+  apiPrimitive = "",
+  docUrl = "",
+  realWorldExamples,
+}: InspectorBandProps) {
+  const primitiveStr = Array.isArray(apiPrimitive)
+    ? apiPrimitive.join(", ")
+    : apiPrimitive;
 
-  const display = runId ?? RUN_ID_PLACEHOLDER;
-  const command = `npx workflow inspect run ${display}`;
-  const hasRun = runId !== null;
+  const examplesBlock =
+    realWorldExamples && realWorldExamples.length > 0
+      ? `\n\nReal-world scenarios to look for:\n${realWorldExamples.map((ex) => `- ${ex}`).join("\n")}\n\nUse these as starting points to find similar patterns in my codebase.`
+      : "";
 
-  async function handleCopy() {
-    try {
-      await navigator.clipboard.writeText(command);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setCopied(false);
-    }
-  }
+  const leftPrompt =
+    inspectPrompt ??
+    `npx workflow inspect run <run_id>
+
+Explain this run to me in detail. Walk me through each step that executed, what state transitions happened, and how the "${patternName}" pattern played out. I want to understand exactly what the Workflow SDK did under the hood.`;
+
+  const rightPrompt =
+    comparePrompt ??
+    `Compare my current code to what it might look like if I was using the Workflow SDK's "${patternName}" pattern. Ask me for the absolute path to my project, cd there, then find the places this pattern would apply and show me before/after diffs.
+
+API primitive: ${primitiveStr}
+Docs: ${docUrl}${examplesBlock}`;
 
   return (
-    <div className="grid h-[180px] shrink-0 grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-5 rounded-3xl border border-white/10 bg-zinc-950 p-6">
-      <div className="flex min-w-0 flex-col justify-between">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
-            Inspect this run
-          </p>
-          <button
-            type="button"
-            onClick={handleCopy}
-            aria-label="Copy inspector command"
-            className="shrink-0 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.18em] text-zinc-200 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
-          >
-            {copied ? "Copied" : "Copy"}
-          </button>
-        </div>
-        {hasRun ? (
-          <a
-            href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}
-            target="_blank"
-            rel="noreferrer"
-            className="block min-w-0 truncate whitespace-nowrap font-mono text-[28px] leading-tight text-emerald-300 transition-colors hover:text-white"
-          >
-            <span className="text-zinc-600">$ </span>
-            {command}
-          </a>
-        ) : (
-          <span className="block min-w-0 truncate whitespace-nowrap font-mono text-[28px] leading-tight text-zinc-500">
-            <span className="text-zinc-700">$ </span>
-            {command}
-          </span>
-        )}
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-3">
+        <CopyablePrompt prompt={leftPrompt} label="Inspect the run" />
+        <CopyablePrompt prompt={rightPrompt} label="Try it on your code" />
       </div>
-      <div className="flex min-w-0 flex-col justify-between border-l border-white/10 pl-5">
-        <div className="flex items-center gap-3">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
-            Paste to your agent
-          </p>
-          <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-300">
-            Coding-Agent Friendly
-          </span>
-        </div>
-        <p className="text-xl leading-snug text-zinc-300">
-          Inspector output is LLM-readable — hand it to an agent and ask it to explain the pattern or apply it to your codebase.
-        </p>
-      </div>
+      <CopyablePrompt
+        prompt={INSTALL_COMMAND}
+        label="Install the skill"
+        compact
+      />
     </div>
   );
 }

@@ -5,121 +5,78 @@ const geistMono = Geist_Mono({
   weight: ["400"],
 });
 
-type Card = {
+type Row = {
   eyebrow: string;
   command: string;
-  lines: readonly string[];
+  description: string;
   tone: {
     border: string;
-    bg: string;
     pill: string;
     cmd: string;
   };
-  isLog?: boolean;
 };
 
-const CARDS: readonly Card[] = [
+const ROWS: readonly Row[] = [
   {
-    eyebrow: "Human surface",
+    eyebrow: "Humans",
     command: "npx workflow web <run_id>",
-    lines: [
-      "Dashboard · timeline · streams",
-      "Step history at a glance",
-    ],
+    description: "Dashboard · timeline · streams",
     tone: {
       border: "border-sky-400/25",
-      bg: "bg-sky-500/[0.04]",
       pill: "border-sky-400/35 bg-sky-500/10 text-sky-300",
-      cmd: "text-sky-200",
+      cmd: "text-sky-300",
     },
   },
   {
-    eyebrow: "Event log",
-    command: "steps · hooks · sleeps · streams · compensations",
-    lines: [
-      "One durable record per run",
-      "Replay, audit, debug — all from the same source",
-    ],
-    tone: {
-      border: "border-emerald-400/25",
-      bg: "bg-emerald-500/[0.04]",
-      pill: "border-emerald-400/35 bg-emerald-500/10 text-emerald-300",
-      cmd: "text-emerald-200",
-    },
-    isLog: true,
-  },
-  {
-    eyebrow: "Agent surface",
+    eyebrow: "Agents",
     command: "npx workflow inspect run <run_id>",
-    lines: [
-      "LLM-readable output",
-      "Paste into Claude or Cursor",
-    ],
+    description: "LLM-readable output, paste into Claude or Cursor",
     tone: {
       border: "border-fuchsia-400/25",
-      bg: "bg-fuchsia-500/[0.04]",
       pill: "border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300",
-      cmd: "text-fuchsia-200",
+      cmd: "text-fuchsia-300",
     },
   },
 ];
 
 export default function ObservabilitySlide() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col justify-center gap-12 px-20 py-20">
-      <div className="flex flex-col items-center gap-6 text-center">
-        <p
-          className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 ${geistMono.className}`}
-        >
-          Same run, two consumers
-        </p>
-        <h2 className="text-8xl font-semibold tracking-tight">
+    <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-12 px-10 pt-20 pb-12">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <h2 className="text-7xl font-semibold tracking-tight">
           Every run is observable.
         </h2>
-        <p className="max-w-5xl text-3xl leading-snug text-zinc-400">
-          Humans inspect the timeline. Agents inspect the event log. Same run.
-          Same truth.
+        <p className="max-w-5xl text-2xl leading-snug text-zinc-400">
+          Humans inspect the timeline. Agents inspect the event log.
         </p>
       </div>
 
-      <div className="grid grid-cols-[1fr_0.8fr_1fr] gap-6">
-        {CARDS.map((c) => (
-          <section
-            key={c.eyebrow}
-            className={`flex min-h-[360px] flex-col gap-6 rounded-3xl border p-8 ${c.tone.border} ${c.tone.bg}`}
+      <div className="flex flex-col gap-6">
+        {ROWS.map((r) => (
+          <div
+            key={r.eyebrow}
+            className={`flex items-center gap-10 rounded-2xl border bg-zinc-950 px-10 py-8 ${r.tone.border}`}
           >
-            <span
-              className={`self-start rounded-full border px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.2em] ${c.tone.pill} ${geistMono.className}`}
-            >
-              {c.eyebrow}
-            </span>
+            <div className="flex w-[240px] shrink-0 flex-col gap-3">
+              <span
+                className={`self-start rounded-full border px-5 py-2 text-base font-semibold uppercase tracking-[0.2em] ${r.tone.pill} ${geistMono.className}`}
+              >
+                {r.eyebrow}
+              </span>
+              <p className="text-lg leading-snug text-zinc-500">
+                {r.description}
+              </p>
+            </div>
 
-            {c.isLog ? (
-              <ul className="flex flex-col gap-3 text-2xl leading-snug text-zinc-200">
-                {c.command.split(" · ").map((token) => (
-                  <li key={token} className="flex items-center gap-3">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70" />
-                    <span className={geistMono.className}>{token}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
+            <div className="min-w-0 flex-1 rounded-xl border border-white/10 bg-black px-8 py-5">
               <p
-                className={`truncate whitespace-nowrap font-mono text-[28px] leading-tight ${c.tone.cmd}`}
+                className={`text-2xl leading-tight ${r.tone.cmd} ${geistMono.className}`}
               >
                 <span className="text-zinc-600">$ </span>
-                {c.command}
+                {r.command}
               </p>
-            )}
-
-            <div className="mt-auto flex flex-col gap-1.5">
-              {c.lines.map((line) => (
-                <p key={line} className="text-lg leading-snug text-zinc-400">
-                  {line}
-                </p>
-              ))}
             </div>
-          </section>
+          </div>
         ))}
       </div>
     </div>

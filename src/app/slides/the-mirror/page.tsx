@@ -51,11 +51,6 @@ export default function TheMirrorSlide() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1660px] flex-col justify-center gap-10 px-14 py-16 text-center">
       <div className="flex flex-col items-center gap-5">
-        <p
-          className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 ${geistMono.className}`}
-        >
-          Same primitives, new surface
-        </p>
         <h2 className="text-7xl font-semibold tracking-tight">
           That&apos;s how you build{" "}
           <span className="text-white">reliable agents.</span>

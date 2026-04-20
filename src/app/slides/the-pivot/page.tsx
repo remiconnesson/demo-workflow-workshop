@@ -1,10 +1,6 @@
 export default function ThePivotSlide() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col items-center justify-center gap-24 px-40 text-center">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-        Workflow SDK + Agents
-      </p>
-
       <div className="flex flex-col items-center gap-6">
         <h2 className="max-w-[1800px] text-9xl font-semibold leading-[1.05] tracking-tight text-white">
           Agents,
@@ -12,7 +8,7 @@ export default function ThePivotSlide() {
           <span className="text-zinc-500">meet reliability.</span>
         </h2>
         <p className="max-w-4xl text-3xl leading-snug text-zinc-400">
-          Same durable run. Now the caller is an agent.
+          Same Concepts. AI-Powered.
         </p>
       </div>
 

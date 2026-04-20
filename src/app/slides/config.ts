@@ -132,7 +132,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "the-pivot",
     title: "The Pivot",
     number: 16,
-    notes: "SAY: \"Same durable run. Now the caller is an agent. Same steps, hooks, compensations — new surface.\"\n\nPAUSE. Let the audience re-orient.",
+    notes: "SAY: \"Same Concepts. AI-Powered. Same steps, hooks, compensations — now an agent is the caller.\"\n\nPAUSE. Let the audience re-orient.",
   },
 
   // ─── Agents ────────────────────────────────────────────────

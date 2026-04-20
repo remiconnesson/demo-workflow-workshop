@@ -69,110 +69,108 @@ type PatternSlideLayoutProps = {
   docUrl: string;
   docSection: string;
   apiPrimitive: string | string[];
-  /** Retained for future handout route — unused on the live slide. */
   inspectPrompt?: string;
-  /** Retained for future handout route — unused on the live slide. */
   comparePrompt?: string;
   marker?: OrderStepId | OrderStepId[] | "span";
   markerLabel?: string;
   realWorldExamples?: string[];
 };
 
-/**
- * The "concept / pattern" slide — stage-sized. One idea per screen:
- *   1. the pattern's name,
- *   2. the API primitive,
- *   3. where it applies,
- *   4. a static inspector band for the hand-off to an AI agent.
- * Per .impeccable.md rule #8, the inspector band is a single static command
- * and caption — not a feed, log, or terminal.
- */
 export function PatternSlideLayout({
   patternName,
   description,
   docUrl,
   docSection,
   apiPrimitive,
+  inspectPrompt,
+  comparePrompt,
   realWorldExamples,
 }: PatternSlideLayoutProps) {
   const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
   const primitives = Array.isArray(apiPrimitive) ? apiPrimitive : [apiPrimitive];
-
   const visibleExamples = realWorldExamples?.slice(0, 6) ?? [];
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-black text-white">
-      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-8 px-20 py-12">
-        {/* Hero — pattern name, API primitive, description */}
-        <div className="flex flex-col gap-6">
-          <h1 className="text-[88px] font-bold leading-[0.96] tracking-tight">
-            {patternName}
-          </h1>
+      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-5 px-20 pt-20 pb-10">
+        <div className="grid grid-cols-[1.2fr_0.8fr] gap-12">
+          {/* Left: pattern name, API primitive, description */}
+          <div className="flex flex-col gap-5">
+            <h1 className="text-[72px] font-bold leading-[0.96] tracking-tight">
+              {patternName}
+            </h1>
 
-          <div className="flex flex-wrap items-center gap-4">
-            {primitives.map((primitive) => (
-              <div
-                key={primitive}
-                className="inline-flex items-center gap-5 rounded-2xl border border-emerald-400/25 bg-emerald-400/5 px-8 py-5"
-              >
-                <span className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-500/70">
-                  API
-                </span>
-                <code className="font-mono text-3xl text-emerald-400">
-                  {primitive}
-                </code>
-              </div>
-            ))}
-          </div>
-
-          <p className="max-w-5xl text-[28px] leading-[1.3] text-zinc-400">
-            {description}
-          </p>
-        </div>
-
-        {/* Where this applies — large readable chips (cap at 6) */}
-        {visibleExamples.length > 0 && (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
-              Where this applies
-            </p>
-            <div className="flex flex-wrap gap-3">
-              {visibleExamples.map((ex) => (
-                <span
-                  key={ex}
-                  className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-lg text-zinc-200"
+            <div className="flex flex-wrap items-center gap-4">
+              {primitives.map((primitive) => (
+                <div
+                  key={primitive}
+                  className="inline-flex items-center gap-5 rounded-2xl border border-emerald-400/25 bg-emerald-400/5 px-8 py-5"
                 >
-                  {EXAMPLE_ICONS[ex] && (
-                    <span className="shrink-0 text-zinc-500">
-                      {EXAMPLE_ICONS[ex]}
-                    </span>
-                  )}
-                  <span>{ex}</span>
-                </span>
+                  <span className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-500/70">
+                    API
+                  </span>
+                  <code className="font-mono text-3xl text-emerald-400">
+                    {primitive}
+                  </code>
+                </div>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Docs — one prominent pill */}
-        <div className="flex items-center">
-          <a
-            href={docHref}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 font-mono text-lg text-zinc-300 transition-colors hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
-          >
-            <span className="text-sm uppercase tracking-[0.22em] text-zinc-500">
-              Docs
-            </span>
-            <span className="text-zinc-500">·</span>
-            <span>{docSection}</span>
-            <ArrowUpRight size={18} className="text-zinc-500" />
-          </a>
+            <p className="max-w-4xl text-[28px] leading-[1.3] text-zinc-400">
+              {description}
+            </p>
+          </div>
+
+          {/* Right: where this applies + docs */}
+          <div className="flex flex-col justify-center gap-8">
+            {visibleExamples.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                  Where this applies
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {visibleExamples.map((ex) => (
+                    <span
+                      key={ex}
+                      className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-lg text-zinc-200"
+                    >
+                      {EXAMPLE_ICONS[ex] && (
+                        <span className="shrink-0 text-zinc-500">
+                          {EXAMPLE_ICONS[ex]}
+                        </span>
+                      )}
+                      <span>{ex}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <a
+              href={docHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 font-mono text-lg text-zinc-300 transition-colors hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
+            >
+              <span className="text-sm uppercase tracking-[0.22em] text-zinc-500">
+                Docs
+              </span>
+              <span className="text-zinc-500">·</span>
+              <span>{docSection}</span>
+              <ArrowUpRight size={18} className="text-zinc-500" />
+            </a>
+          </div>
         </div>
 
-        {/* Inspector band — hand off the run to an AI agent */}
-        <InspectorBand />
+        {/* Prompt band, full width at bottom */}
+        <InspectorBand
+          inspectPrompt={inspectPrompt}
+          comparePrompt={comparePrompt}
+          patternName={patternName}
+          apiPrimitive={apiPrimitive}
+          docUrl={docHref}
+          realWorldExamples={realWorldExamples}
+        />
       </div>
     </div>
   );

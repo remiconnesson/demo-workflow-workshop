@@ -73,7 +73,6 @@ const RAIL_BY_SLUG: Record<string, AudienceRailInfo> = {
   "how-it-works": { family: "Setup", beat: "Workshop map", tone: "zinc" },
   observability: {
     family: "Setup",
-    proof: "Human + Agent",
     beat: "Observability",
     tone: "emerald",
   },
@@ -406,7 +405,7 @@ export default function SlidesLayout({
           &larr;
         </button>
 
-        {/* slide number — click to open picker */}
+        {/* slide number: click to open picker */}
         <div className="relative" ref={pickerRef}>
           <button
             onClick={() => setPickerOpen((v) => !v)}
@@ -458,7 +457,7 @@ export default function SlidesLayout({
       </div>
 
 
-      {/* debug drawer — opt-in via Shift+D when a run is active */}
+      {/* debug drawer: opt-in via Shift+D when a run is active */}
       {debugOpen && runInfo && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">

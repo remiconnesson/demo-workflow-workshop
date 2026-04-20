@@ -58,7 +58,7 @@ export function CopyablePrompt({ prompt, label = "Paste into your AI agent", com
     : reflowed;
 
   return (
-    <div className={`relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 px-6 py-5 text-left ${compact ? "" : "h-[320px]"}`}>
+    <div className={`relative flex w-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 px-5 py-4 text-left ${compact ? "" : "min-h-[160px] flex-1"}`}>
       <div className="mb-3 flex items-start justify-between gap-4">
         <div className="pt-1 text-xs font-semibold uppercase tracking-[0.28em] text-zinc-500">
           {label}

@@ -182,20 +182,7 @@ export function ProgressiveFixContent({
           })}
         </ol>
 
-        <div
-          className={`mt-auto flex min-h-[58px] items-center gap-3 border-t border-white/10 pt-6 transition-opacity duration-200 ${
-            pillLabel ? "opacity-100" : "opacity-0"
-          }`}
-          aria-hidden={!pillLabel}
-        >
-          <span
-            className={`inline-block h-2.5 w-2.5 rounded-full ${DOT_COLOR[statusTone]}`}
-            style={{ boxShadow: DOT_GLOW[statusTone] }}
-          />
-          <span className="font-mono text-base leading-none uppercase tracking-[0.20em] text-zinc-400">
-            {pillLabel ?? "\u00A0"}
-          </span>
-        </div>
+        <div className="mt-auto min-h-[58px]" />
       </div>
 
       <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
