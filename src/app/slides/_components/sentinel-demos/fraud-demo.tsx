@@ -1,22 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AgentDebugDrawer, type DebugEvent } from "../agent-debug-drawer";
 import type { SentinelVariant } from "../../_data/sentinel-variants";
-import { useObserverRunId, useSlideRunReset } from "./_shared";
+import { useSlideRunReset } from "./_shared";
 import {
   AgentCallout,
   type Callout,
   type CalloutState,
 } from "./_agent-callout";
+import type { FraudEvent } from "@/workflows/fraud-sentinel-agent";
 
 // ---------------------------------------------------------------------------
-// Fraud sentinel: live charge ledger + inline AI callouts.
+// Fraud sentinel: real DurableAgent-driven charge ledger.
 //
-// Kill is always available while streaming. Crash auto-recovers:
-// crashed (2.2s) → replaying (1.5s) → resumed (2s) → continues from
-// where it left off. The batch loops so the presenter can crash it
-// multiple times; a crash counter in the stats bar tracks survivals.
+// Press r → POST /api/agent/fraud-sentinel → stream data-fraud events.
+// Each charge-scored event reveals a row with the LLM's risk assessment.
+// batch-summary events become inline callouts. freeze events flag rows.
+// Kill aborts the stream, auto-reconnects via GET /[runId]/stream.
 // ---------------------------------------------------------------------------
 
 type ChargeRowState =
@@ -24,7 +25,6 @@ type ChargeRowState =
   | "scoring"
   | "cleared"
   | "frozen"
-  | "replaying"
   | "cached-cleared"
   | "cached-frozen";
 
@@ -34,159 +34,180 @@ type Charge = {
   merchant: string;
   amount: string;
   country: string;
-  risk: number;
 };
 
 const CHARGES: Charge[] = [
-  { time: "14:32:01", card: "•••• 4242", merchant: "Apple Services",     amount: "$12.99",    country: "US", risk: 0.08 },
-  { time: "14:32:02", card: "•••• 1117", merchant: "Uber Trip",           amount: "$24.40",    country: "US", risk: 0.11 },
-  { time: "14:32:03", card: "•••• 9003", merchant: "Target",              amount: "$87.20",    country: "US", risk: 0.06 },
-  { time: "14:32:04", card: "•••• 5541", merchant: "Starbucks #4812",     amount: "$6.80",     country: "US", risk: 0.04 },
-  { time: "14:32:05", card: "•••• 2200", merchant: "Shell Oil",           amount: "$48.10",    country: "US", risk: 0.12 },
-  { time: "14:32:07", card: "•••• 3384", merchant: "DoorDash",            amount: "$31.42",    country: "US", risk: 0.09 },
-  { time: "14:32:08", card: "•••• 7719", merchant: "Netflix",             amount: "$17.99",    country: "US", risk: 0.02 },
-  { time: "14:32:10", card: "•••• 6106", merchant: "Amazon Prime",        amount: "$139.00",   country: "US", risk: 0.21 },
-  { time: "14:32:11", card: "•••• 0458", merchant: "Home Depot",          amount: "$412.88",   country: "US", risk: 0.34 },
-  { time: "14:32:12", card: "•••• 4242", merchant: "Apple Services",      amount: "$0.99",     country: "US", risk: 0.05 },
-  { time: "14:32:13", card: "•••• 8891", merchant: "Cryptonome-XYZ",      amount: "$2,400.00", country: "RU", risk: 0.93 },
+  { time: "14:32:01", card: "•••• 4242", merchant: "Apple Services",     amount: "$12.99",    country: "US" },
+  { time: "14:32:02", card: "•••• 1117", merchant: "Uber Trip",           amount: "$24.40",    country: "US" },
+  { time: "14:32:03", card: "•••• 9003", merchant: "Target",              amount: "$87.20",    country: "US" },
+  { time: "14:32:04", card: "•••• 5541", merchant: "Starbucks #4812",     amount: "$6.80",     country: "US" },
+  { time: "14:32:05", card: "•••• 2200", merchant: "Shell Oil",           amount: "$48.10",    country: "US" },
+  { time: "14:32:07", card: "•••• 3384", merchant: "DoorDash",            amount: "$31.42",    country: "US" },
+  { time: "14:32:08", card: "•••• 7719", merchant: "Netflix",             amount: "$17.99",    country: "US" },
+  { time: "14:32:10", card: "•••• 6106", merchant: "Amazon Prime",        amount: "$139.00",   country: "US" },
+  { time: "14:32:11", card: "•••• 0458", merchant: "Home Depot",          amount: "$412.88",   country: "US" },
+  { time: "14:32:12", card: "•••• 4242", merchant: "Apple Services",      amount: "$0.99",     country: "US" },
+  { time: "14:32:13", card: "•••• 8891", merchant: "Cryptonome-XYZ",      amount: "$2,400.00", country: "RU" },
 ];
 
-const FREEZE_IDX = CHARGES.length - 1;
-
-const CALLOUT_C0: Callout = {
-  id: "c0",
-  avatar: "F",
-  agentName: "Fraud sentinel",
-  timestamp: "14:32:06",
-  tone: "emerald",
-  message:
-    "Last 5 charges clear: low-risk cards, familiar merchants, no geo anomalies.",
-  citations: ["•••• 4242", "•••• 1117", "•••• 9003"],
-  verdict: "cleared 5",
+type RowScore = {
+  risk: number;
+  cleared: boolean;
+  reason: string;
 };
-
-const CALLOUT_C1: Callout = {
-  id: "c1",
-  avatar: "F",
-  agentName: "Fraud sentinel",
-  timestamp: "14:32:13",
-  tone: "red",
-  message:
-    "Freezing •••• 8891. First charge at Cryptonome-XYZ, 3× typical amount, RU merchant mid-day.",
-  citations: ["•••• 8891", "Cryptonome-XYZ"],
-  verdict: "froze •••• 8891",
-};
-
-const C0_LEN = CALLOUT_C0.message.length;
-const C1_LEN = CALLOUT_C1.message.length;
-
-// ---------------------------------------------------------------------------
-// Frame table — live streaming only (no crash/replay/resumed frames).
-// Crash sequence is handled dynamically via crashPhase state.
-// ---------------------------------------------------------------------------
-
-type Frame = {
-  loopOffset: number;
-  visibleIdx: number;
-  scoringIdx: number | null;
-  delayMs: number;
-  c0Chars: number;
-  c1Chars: number;
-};
-
-const FRAMES: Frame[] = [
-  // 0 idle
-  { loopOffset: 0, visibleIdx: 0,  scoringIdx: null, delayMs: 0,
-    c0Chars: 0, c1Chars: 0 },
-
-  // 1-5 rows 0..4 score one-by-one (slower so audience reads the ledger)
-  { loopOffset: 1, visibleIdx: 1,  scoringIdx: 0,    delayMs: 900,
-    c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 2,  scoringIdx: 1,    delayMs: 800,
-    c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 3,  scoringIdx: 2,    delayMs: 800,
-    c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 4,  scoringIdx: 3,    delayMs: 800,
-    c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 5,  scoringIdx: 4,    delayMs: 900,
-    c0Chars: 0, c1Chars: 0 },
-
-  // 6 beat: rows settle before the agent speaks
-  { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 1200,
-    c0Chars: 0, c1Chars: 0 },
-
-  // 7-8 agent speaks up (C0 typewriter → delivered)
-  { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 550,
-    c0Chars: 36, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 900,
-    c0Chars: C0_LEN, c1Chars: 0 },
-
-  // 9-13 rows 5..9 score
-  { loopOffset: 2, visibleIdx: 6,  scoringIdx: 5,    delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 0 },
-  { loopOffset: 2, visibleIdx: 7,  scoringIdx: 6,    delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 0 },
-  { loopOffset: 2, visibleIdx: 8,  scoringIdx: 7,    delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 0 },
-  { loopOffset: 2, visibleIdx: 9,  scoringIdx: 8,    delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 0 },
-  { loopOffset: 2, visibleIdx: 10, scoringIdx: 9,    delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 0 },
-
-  // 14 freeze row begins scoring
-  { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 650,
-    c0Chars: C0_LEN, c1Chars: 0 },
-
-  // 15-16 agent speaks up (C1 typewriter)
-  { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 32 },
-  { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 500,
-    c0Chars: C0_LEN, c1Chars: 62 },
-
-  // 17 C1 fully delivered, brief hold
-  { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 1500,
-    c0Chars: C0_LEN, c1Chars: C1_LEN },
-
-  // 18 batch complete: freeze row resolves
-  { loopOffset: 2, visibleIdx: 11, scoringIdx: null,  delayMs: 3000,
-    c0Chars: C0_LEN, c1Chars: C1_LEN },
-];
-
-const LAST_LIVE = FRAMES.length - 1; // 17
-
-// --- component ----------------------------------------------------------
 
 type CrashPhase = "crashed" | "replaying" | "resumed";
 
-export function FraudDemo({ variant }: { variant: SentinelVariant }) {
-  const [fi, setFi] = useState(0);
-  const [crashPhase, setCrashPhase] = useState<CrashPhase | null>(null);
-  const [crashFi, setCrashFi] = useState(0);
-  const [crashCount, setCrashCount] = useState(0);
-  const [loopExtra, setLoopExtra] = useState(0);
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+// --- stream chunk type (matches AI SDK protocol line format) ---
+type ChunkLike = {
+  type?: string;
+  data?: FraudEvent;
+  toolName?: string;
+  toolCallId?: string;
+  [key: string]: unknown;
+};
 
-  const frame = FRAMES[crashPhase ? crashFi : fi]!;
-  const isLive = fi > 0 && !crashPhase;
+// --- component ----------------------------------------------------------
+
+export function FraudDemo({ variant }: { variant: SentinelVariant }) {
+  const [phase, setPhase] = useState<"idle" | "live" | "done">("idle");
+  const [crashPhase, setCrashPhase] = useState<CrashPhase | null>(null);
+  const [crashCount, setCrashCount] = useState(0);
+  const [runId, setRunId] = useState<string | undefined>();
+  const [scores, setScores] = useState<Map<number, RowScore>>(new Map());
+  const [frozenCards, setFrozenCards] = useState<Set<string>>(new Set());
+  const [callouts, setCallouts] = useState<Callout[]>([]);
+  const [loopCount, setLoopCount] = useState(0);
+  const [debugEvents, setDebugEvents] = useState<DebugEvent[]>([]);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const isLive = phase === "live" && !crashPhase;
   const isCrashed = crashPhase === "crashed";
   const isReplaying = crashPhase === "replaying";
   const isResumed = crashPhase === "resumed";
 
-  // --- auto-advance live frames ---
-  useEffect(() => {
-    if (crashPhase) return;
-    if (frame.delayMs <= 0) return;
-    const id = setTimeout(() => {
-      setFi((i) => {
-        if (i >= LAST_LIVE) {
-          setLoopExtra((n) => n + 1);
-          return 1;
+  // --- stream consumer ---
+  const startStream = useCallback(async (reconnectRunId?: string) => {
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    try {
+      let res: Response;
+      if (reconnectRunId) {
+        res = await fetch(
+          `/api/agent/fraud-sentinel/${encodeURIComponent(reconnectRunId)}/stream`,
+          { signal: ctrl.signal },
+        );
+      } else {
+        res = await fetch("/api/agent/fraud-sentinel", {
+          method: "POST",
+          signal: ctrl.signal,
+        });
+        const newRunId = res.headers.get("x-workflow-run-id");
+        if (newRunId) setRunId(newRunId);
+      }
+
+      if (!res.body) return;
+      setPhase("live");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          let chunk: ChunkLike;
+          try {
+            chunk = JSON.parse(line) as ChunkLike;
+          } catch {
+            continue;
+          }
+          handleChunk(chunk);
         }
-        return i + 1;
-      });
-    }, frame.delayMs);
-    return () => clearTimeout(id);
-  }, [fi, frame.delayMs, crashPhase]);
+      }
+      setPhase("done");
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return;
+      console.error("[fraud-sentinel] stream error", err);
+    }
+  }, []);
+
+  const handleChunk = useCallback((chunk: ChunkLike) => {
+    const type = chunk.type ?? "";
+
+    if (type === "data-fraud" && chunk.data) {
+      const event = chunk.data;
+
+      if (event.type === "charge-scored") {
+        const score: RowScore = {
+          risk: event.risk,
+          cleared: event.cleared,
+          reason: event.reason,
+        };
+        setScores((prev) => new Map(prev).set(event.index, score));
+        setDebugEvents((prev) => [
+          ...prev,
+          {
+            kind: event.cleared ? "OK " : "ERR",
+            msg: `reportCharge(${event.card} · risk ${event.risk.toFixed(2)})`,
+          },
+        ]);
+      }
+
+      if (event.type === "freeze") {
+        setFrozenCards((prev) => new Set(prev).add(event.card));
+        setDebugEvents((prev) => [
+          ...prev,
+          { kind: "ERR", msg: `freezeAccount(${event.card})` },
+        ]);
+      }
+
+      if (event.type === "batch-summary") {
+        setCallouts((prev) => [
+          ...prev,
+          {
+            id: `callout-${prev.length}`,
+            avatar: "F",
+            agentName: "Fraud sentinel",
+            timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
+            tone: event.message.toLowerCase().includes("freez") ? "red" : "emerald",
+            message: event.message,
+            citations: event.citations,
+            verdict: event.message.toLowerCase().includes("freez")
+              ? `froze ${event.citations[0] ?? ""}`
+              : `cleared ${event.citations.length}`,
+          },
+        ]);
+        setLoopCount((n) => n + 1);
+        setDebugEvents((prev) => [
+          ...prev,
+          { kind: "CMP", msg: `batchSummary(${event.message.slice(0, 50)}…)` },
+        ]);
+      }
+    }
+
+    if (type === "tool-input-available" && chunk.toolName) {
+      setDebugEvents((prev) => [
+        ...prev,
+        { kind: "RUN", msg: `${chunk.toolName as string}(…)` },
+      ]);
+    }
+  }, []);
+
+  // --- auto-scroll ---
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (el.scrollHeight <= el.clientHeight) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [scores.size, callouts.length]);
 
   // --- crash auto-recovery ---
   useEffect(() => {
@@ -197,124 +218,90 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
       resumed: 2000,
     };
     const id = setTimeout(() => {
-      if (crashPhase === "crashed") setCrashPhase("replaying");
-      else if (crashPhase === "replaying") setCrashPhase("resumed");
-      else {
+      if (crashPhase === "crashed") {
+        setCrashPhase("replaying");
+      } else if (crashPhase === "replaying") {
+        setCrashPhase("resumed");
+      } else {
         setCrashPhase(null);
-        // fi is still at crash point; auto-advance picks up from there
+        if (runId) startStream(runId);
       }
     }, delays[crashPhase]);
     return () => clearTimeout(id);
-  }, [crashPhase]);
+  }, [crashPhase, runId, startStream]);
 
-  // auto-scroll only when content overflows
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    if (el.scrollHeight <= el.clientHeight) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [fi]);
-
+  // --- handlers ---
   const handleStart = useCallback(() => {
-    setFi((i) => (i === 0 ? 1 : i));
-  }, []);
+    if (phase === "idle") {
+      setScores(new Map());
+      setFrozenCards(new Set());
+      setCallouts([]);
+      setDebugEvents([]);
+      setLoopCount(0);
+      startStream();
+    }
+  }, [phase, startStream]);
+
   const handleReset = useCallback(() => {
-    setFi(0);
+    abortRef.current?.abort();
+    setPhase("idle");
     setCrashPhase(null);
     setCrashCount(0);
-    setLoopExtra(0);
+    setRunId(undefined);
+    setScores(new Map());
+    setFrozenCards(new Set());
+    setCallouts([]);
+    setDebugEvents([]);
+    setLoopCount(0);
   }, []);
+
   const handleKill = useCallback(() => {
     if (isLive) {
-      setCrashFi(fi);
+      abortRef.current?.abort();
       setCrashPhase("crashed");
       setCrashCount((n) => n + 1);
+      setDebugEvents((prev) => [
+        ...prev,
+        { kind: "ERR", msg: "server down · process killed" },
+      ]);
     }
-  }, [isLive, fi]);
+  }, [isLive]);
 
   useSlideRunReset({ onStart: handleStart, onReset: handleReset });
-  const runId = useObserverRunId(fi > 0);
 
-  const loopNumber =
-    variant.startingLoop + Math.max(0, frame.loopOffset - 1) + loopExtra;
+  const loopNumber = variant.startingLoop + loopCount;
 
-  // --- row state (phase-aware) ---
+  // --- row state ---
   const rowState = (idx: number): ChargeRowState => {
-    if (idx >= frame.visibleIdx && frame.scoringIdx !== idx) return "hidden";
+    const score = scores.get(idx);
+    const charge = CHARGES[idx];
+    if (!charge) return "hidden";
+
+    if (!score) return "hidden";
+
+    const isFrozen = frozenCards.has(charge.card) && !score.cleared;
+
     if (isReplaying) {
-      if (idx === frame.scoringIdx) return "scoring";
-      return CHARGES[idx].risk > 0.9 ? "cached-frozen" : "cached-cleared";
+      return isFrozen ? "cached-frozen" : "cached-cleared";
     }
     if (isResumed) {
-      return CHARGES[idx].risk > 0.9 ? "frozen" : "cleared";
+      return isFrozen ? "frozen" : "cleared";
     }
     if (isCrashed) {
-      if (idx === frame.scoringIdx) return "scoring";
-      return CHARGES[idx].risk > 0.9 ? "frozen" : "cleared";
+      return isFrozen ? "frozen" : "cleared";
     }
-    if (frame.scoringIdx === idx) return "scoring";
-    return CHARGES[idx].risk > 0.9 ? "frozen" : "cleared";
+    return isFrozen ? "frozen" : "cleared";
   };
 
-  // --- callout state (phase-aware) ---
-  const crashCached = isReplaying || isResumed;
-  const c0State: CalloutState =
-    crashCached && frame.c0Chars > 0
-      ? { kind: "cached" }
-      : calloutState(frame.c0Chars, C0_LEN);
-  const c1State: CalloutState =
-    crashCached && frame.c1Chars > 0
-      ? { kind: "cached" }
-      : calloutState(frame.c1Chars, C1_LEN);
-  const c0Visible = frame.c0Chars > 0;
-  const c1Visible = frame.c1Chars > 0;
-
-  const scanned = 42_804_192 + fi * 417;
-  const frozen = 1_248 + (isResumed ? 1 : 0);
-
-  // --- crash overlay: dynamic last-tool-call ---
-  const crashScoringIdx = FRAMES[crashFi]?.scoringIdx;
+  // --- last tool call for crash toast ---
+  const lastScoredIdx = Math.max(...Array.from(scores.keys()), -1);
   const lastToolCall =
-    crashScoringIdx !== null && crashScoringIdx !== undefined
-      ? `scoreRisk(${CHARGES[crashScoringIdx]?.card ?? "…"})`
-      : "assess(batch)";
+    lastScoredIdx >= 0
+      ? `reportCharge(${CHARGES[lastScoredIdx]?.card ?? "…"})`
+      : "fetchChargeBatch()";
 
-  // --- debug events ---
-  const debugEvents: DebugEvent[] = useMemo(() => {
-    const out: DebugEvent[] = [];
-    if (fi === 0 && !crashPhase) return out;
-    const end = crashPhase ? crashFi : fi;
-    out.push({ kind: "RUN", msg: `scanCharges(window: 60s)` });
-    for (let i = 1; i <= end; i++) {
-      const fr = FRAMES[i];
-      const prev = FRAMES[i - 1];
-      if (!fr) break;
-      if (fr.scoringIdx !== null && prev?.scoringIdx !== fr.scoringIdx) {
-        const c = CHARGES[fr.scoringIdx];
-        if (c)
-          out.push({
-            kind: "RUN",
-            msg: `scoreRisk(${c.card} · ${c.amount})`,
-          });
-      }
-      if (fr.c0Chars >= C0_LEN && (prev?.c0Chars ?? 0) < C0_LEN) {
-        out.push({ kind: "CMP", msg: `assess(batch: 5 cleared)` });
-      }
-      if (fr.c1Chars >= C1_LEN && (prev?.c1Chars ?? 0) < C1_LEN) {
-        out.push({ kind: "CMP", msg: `assess(•••• 8891: risk 0.93)` });
-      }
-    }
-    if (crashPhase) {
-      out.push({ kind: "ERR", msg: `server down · process killed` });
-    }
-    if (isReplaying || isResumed) {
-      out.push({ kind: "RPL", msg: `replaying event log…` });
-    }
-    if (isResumed) {
-      out.push({ kind: "OK ", msg: `resumed · 0 steps re-executed` });
-    }
-    return out;
-  }, [fi, crashPhase, crashFi, isReplaying, isResumed]);
+  const scannedCount = scores.size;
+  const frozenCount = frozenCards.size;
 
   return (
     <div className="relative flex h-full min-h-0 flex-col gap-4 overflow-hidden">
@@ -328,14 +315,14 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
       >
         <div className="flex items-center gap-10">
           <Counter
-            label="Scanned today"
-            value={`$${scanned.toLocaleString()}`}
+            label="Charges scored"
+            value={String(scannedCount)}
             accent={isResumed ? "emerald" : "white"}
           />
           <Counter
             label="Frozen"
-            value={frozen.toLocaleString()}
-            accent={isResumed ? "emerald" : "red"}
+            value={String(frozenCount)}
+            accent={frozenCount > 0 ? "red" : "zinc"}
           />
           <Counter
             label="Crashes survived"
@@ -349,7 +336,7 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
               isResumed
                 ? "border-emerald-400/40 text-emerald-200"
                 : "border-white/10 text-zinc-300"
-            } ${frame.loopOffset > 0 || loopExtra > 0 ? "opacity-100" : "opacity-0"}`}
+            } ${loopCount > 0 ? "opacity-100" : "opacity-0"}`}
           >
             Loop {loopNumber.toLocaleString()}
           </span>
@@ -374,28 +361,45 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
           ref={scrollRef}
           className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-width:thin] [scrollbar-color:rgb(63_63_70)_transparent]"
         >
-          {CHARGES.slice(0, 5).map((c, i) => (
-            <ChargeRow key={i} charge={c} state={rowState(i)} />
-          ))}
+          {CHARGES.map((c, i) => {
+            const score = scores.get(i);
+            const state = rowState(i);
 
-          <CalloutSlot
-            callout={CALLOUT_C0}
-            state={c0State}
-            visible={c0Visible}
-          />
-
-          {CHARGES.slice(5, 11).map((c, i) => (
-            <ChargeRow key={i + 5} charge={c} state={rowState(i + 5)} />
-          ))}
-
-          <CalloutSlot
-            callout={CALLOUT_C1}
-            state={c1State}
-            visible={c1Visible}
-          />
+            return (
+              <div key={i}>
+                <ChargeRow
+                  charge={c}
+                  state={state}
+                  risk={score?.risk ?? 0}
+                />
+                {i === 4 && callouts[0] && (
+                  <CalloutSlot
+                    callout={callouts[0]}
+                    state={
+                      isReplaying || isResumed
+                        ? { kind: "cached" }
+                        : { kind: "delivered" }
+                    }
+                    visible
+                  />
+                )}
+                {i === CHARGES.length - 1 && callouts.length > 1 && (
+                  <CalloutSlot
+                    callout={callouts[callouts.length - 1]!}
+                    state={
+                      isReplaying || isResumed
+                        ? { kind: "cached" }
+                        : { kind: "delivered" }
+                    }
+                    visible
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* status toast — single slot, bottom-right, three states swap in place */}
+        {/* status toast — single slot, bottom-right */}
         <div className="pointer-events-none absolute bottom-6 right-6">
           <span
             className={`absolute bottom-0 right-0 inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-6 py-3 font-mono text-lg uppercase tracking-[0.15em] transition-all duration-300 ${
@@ -432,7 +436,7 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
         {/* idle hint */}
         <div
           className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-black/60 transition-opacity duration-500 ${
-            fi === 0 && !crashPhase ? "opacity-100" : "opacity-0"
+            phase === "idle" && !crashPhase ? "opacity-100" : "opacity-0"
           }`}
         >
           <div className="text-center">
@@ -472,12 +476,6 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
 
 // --- helpers ------------------------------------------------------------
 
-function calloutState(chars: number, msgLen: number): CalloutState {
-  if (chars >= msgLen) return { kind: "delivered" };
-  if (chars > 0) return { kind: "typing", chars };
-  return { kind: "typing", chars: 0 };
-}
-
 function CalloutSlot({
   callout,
   state,
@@ -503,26 +501,21 @@ function CalloutSlot({
 function ChargeRow({
   charge,
   state,
+  risk,
 }: {
   charge: Charge;
   state: ChargeRowState;
+  risk: number;
 }) {
   const visible = state !== "hidden";
-  const scoring = state === "scoring";
   const frozen = state === "frozen" || state === "cached-frozen";
   const replaying = state === "cached-cleared" || state === "cached-frozen";
 
   const riskBarColor = frozen
     ? "from-red-500 to-red-400"
-    : scoring
-      ? "from-sky-500 to-sky-300"
-      : "from-zinc-700 to-zinc-600";
+    : "from-zinc-700 to-zinc-600";
 
-  const riskBarWidth = scoring
-    ? `${Math.min(charge.risk * 100, 95)}%`
-    : state === "hidden"
-      ? "0%"
-      : `${charge.risk * 100}%`;
+  const riskBarWidth = state === "hidden" ? "0%" : `${Math.min(risk * 100, 100)}%`;
 
   return (
     <div
@@ -558,10 +551,10 @@ function ChargeRow({
         </div>
         <span
           className={`w-10 text-right font-mono text-xs tabular-nums ${
-            frozen ? "text-red-300" : scoring ? "text-sky-300" : "text-zinc-500"
+            frozen ? "text-red-300" : "text-zinc-500"
           }`}
         >
-          {state === "hidden" ? "\u2009" : charge.risk.toFixed(2)}
+          {state === "hidden" ? "\u2009" : risk.toFixed(2)}
         </span>
       </div>
 
@@ -578,10 +571,7 @@ function ChargeRow({
             frozen
           </span>
         )}
-        {!frozen && !replaying && scoring && (
-          <span className="font-mono text-xs text-sky-300">scoring…</span>
-        )}
-        {!frozen && !replaying && !scoring && state !== "hidden" && (
+        {!frozen && !replaying && state !== "hidden" && (
           <span className="font-mono text-xs text-zinc-500">cleared</span>
         )}
       </div>
