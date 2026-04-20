@@ -27,24 +27,24 @@ npx workflow inspect steps -d     # step outputs and errors
 npx workflow inspect sleeps -r <runId>  # sleeping timers for a run
 ```
 
-When a slide starts a run, the on-screen debug drawer surfaces the `runId` and an "Open in `workflow web`" link so you can pivot from the presentation to the inspector in one click. The workflow code itself (`src/workflows/place-order.ts`) references these commands in comments next to the behaviour they expose.
+When a slide starts a run, the opt-in debug drawer (`Shift+D`) surfaces the `runId` and an "Open in `workflow web`" link so you can pivot from the presentation to the inspector in one click. The workflow code itself (`src/workflows/place-order.ts`) references these commands in comments next to the behaviour they expose.
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts` — a 26-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into three durable-agent demos. The arc:
+The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into three durable-agent demos. The arc:
 
-- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code, the three verbs, workshop map.
+- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code, the three verbs, Break → Fix → Name rhythm.
 - **Act II · Three scenarios × three beats** (6–14) — each scenario runs the same three-beat rhythm:
   1. **Demo** — a real run fires, the scenario plays out on stage.
   2. **Solution** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
   3. **Pattern** — names the SDK pattern, shows real-world examples, and links to docs.
 
   The three scenarios: **Retry** (idempotency), **Suspend** (hooks), **Rollback** (saga).
-- **Act III · The Pivot** (15) — same primitives, new surface: agents.
+- **Act III · The Pivot** (15) — same durable run, new caller: agents.
 - **Act IV · First Agent** (16–18) — demo / solution / pattern for resumable streams (F5 proof).
 - **Act V · Observer agent** (19–21) — demo / solution / pattern for a long-running durable agent.
-- **Act VI · Analyst agent** (22–24) — demo / solution / pattern for a human-in-the-loop durable agent.
-- **Act VII · Close** (25–26) — **The Mirror** (workflow ↔ agent side-by-side) and ship-it.
+- **Act VI · Analyst agent** (22–24) — demo / solution / pattern for a human-in-the-loop + rollback durable agent.
+- **Act VII · Close** (25–33) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides with a cumulative cadence footer, and **Ship it tonight**.
 
 Routes use nested paths that mirror the concept groupings (e.g., `/slides/retry/demo`, `/slides/retry/solution`, `/slides/retry/pattern`).
 
@@ -63,8 +63,10 @@ Important routes:
 - `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — first agent group
 - `/slides/observer/demo` ... `/slides/observer/pattern` — observer agent group
 - `/slides/analyst/demo` ... `/slides/analyst/pattern` — analyst agent group
-- `/slides/the-mirror` slide 25 — workflow/agent side-by-side payoff
-- `/slides/close` final slide
+- `/slides/the-mirror` slide 25 — foundation + workflow → agent mapping
+- `/slides/it-is-that-easy` slide 26 — original placeOrder overview
+- `/slides/closer/step` ... `/slides/closer/replay` slides 27–32 — per-line primitive recap
+- `/slides/close` slide 33 — Ship it tonight
 - `/experiments` 21 DurableAgent experiment demos (7 per verb) for narrative exploration
 - `/variations` index of older visual experiments
 
@@ -76,16 +78,17 @@ The slide shell is implemented in `src/app/slides/layout.tsx`.
 
 Keyboard shortcuts:
 
-- `ArrowRight`: next slide
-- `ArrowLeft`: previous slide
+- `ArrowRight` / `ArrowDown`: next slide (on solution slides advances through code steps first)
+- `ArrowLeft` / `ArrowUp`: previous slide
 - `Home`: jump back to `/slides/title`
 - `r`: trigger the current slide demo run
 - `R`: reset the current slide demo
-- `n`: toggle speaker notes
+- `g`: open the slide picker (Escape to close)
+- `Shift+D`: toggle the debug drawer (only works once a slide has fired a run)
 
-The bottom-right nav shows only the slide arrows and counter — the old standalone "Demo" link has been removed now that the demo lives inside the deck.
+Arrow keys also auto-blur any focused input on a slide (e.g. the phone name/address fields), so navigation never gets stuck after the presenter touches a form element.
 
-When a slide starts a workflow run, the layout can also show a debug drawer with run details and an optional Workflow Web UI link.
+The bottom-right nav shows only the slide arrows and counter. When a slide starts a workflow run, the layout can also show the debug drawer with run details and an optional Workflow Web UI link.
 
 ## Testing
 
