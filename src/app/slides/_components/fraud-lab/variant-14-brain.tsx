@@ -424,10 +424,10 @@ export function BrainDemo() {
               >
                 {fraudFired
                   ? "ANOMALY_LOCALIZATION"
-                  : "— never activated —"}
+                  : "(never activated)"}
               </div>
               <div className="mt-1 font-mono text-xs text-zinc-500">
-                94d / first fire {fraudFired ? "now" : "—"}
+                94d / first fire {fraudFired ? "now" : "n/a"}
               </div>
             </div>
           </div>

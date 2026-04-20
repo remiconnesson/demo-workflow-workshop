@@ -22,8 +22,8 @@ const TONE_CLASS: Record<BadgeTone, string> = {
   sky: "border-sky-400 bg-sky-500 text-white shadow-[0_0_24px_rgba(56,189,248,0.6)]",
 };
 
-// Finished-state snapshot of each scenario's dynamic affordance — same label,
-// same tone as the live badge in LiveOrderConceptLab, frozen for naive/fix.
+// Finished-state snapshot of each scenario's dynamic affordance (same label,
+// same tone as the live badge in LiveOrderConceptLab), frozen for naive/fix.
 const AFFORDANCES: Record<ScenarioGroupSlug, Partial<Record<OrderStepId, Badge>>> = {
   "retry": {
     chargeCard: { label: "×2", tone: "red" },
@@ -42,7 +42,7 @@ type FinishedTimelineStripProps = {
 };
 
 /**
- * Static "finished" snapshot of the demo timeline — all six steps shown in
+ * Static "finished" snapshot of the demo timeline. All six steps shown in
  * their success state, with the same scenario badge that appears live during
  * the demo. Lets the -naive and -fix slides visually anchor back to the demo
  * beat the audience just watched.
@@ -51,7 +51,7 @@ export function FinishedTimelineStrip({
   slide,
   highlightSteps,
 }: FinishedTimelineStripProps) {
-  // Agent-group slugs don't have a phone/order timeline — render a neutral
+  // Agent-group slugs don't have a phone/order timeline, so render a neutral
   // spacer instead of crashing. Layouts normally skip this component for
   // agent slugs; this is the defensive fallback.
   if (isAgentGroupSlug(slide)) {
@@ -63,7 +63,7 @@ export function FinishedTimelineStrip({
   return (
     <div className="rounded-2xl border border-white/5 bg-zinc-950/60 px-8 py-5 opacity-60">
       <div className="relative grid grid-cols-6 gap-4">
-        {/* Connecting line — behind nodes, clipped by node backgrounds */}
+        {/* Connecting line, behind nodes, clipped by node backgrounds */}
         <div className="pointer-events-none absolute left-8 right-8 top-[18px] h-px bg-white/15" />
         {ORDER_STEPS.map((step) => {
           const badge = badges[step.id];

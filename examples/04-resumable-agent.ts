@@ -1,4 +1,4 @@
-// Resumable agent — a DurableAgent whose stream survives F5.
+// Resumable agent: a DurableAgent whose stream survives F5.
 // The client stores the run ID and reconnects via WorkflowChatTransport.
 //
 // Mirrors: /slides/first-agent/solution
@@ -10,7 +10,7 @@ import { convertToModelMessages, type UIMessage, type UIMessageChunk } from "ai"
 
 export async function fetchOrderDetails({ orderId }: { orderId: string }) {
   "use step";
-  // Step boundary makes this result durable — on reconnect,
+  // Step boundary makes this result durable. On reconnect,
   // the SDK replays from the event log without re-executing.
   return {
     orderId,

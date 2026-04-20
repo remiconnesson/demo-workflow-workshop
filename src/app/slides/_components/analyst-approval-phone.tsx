@@ -22,7 +22,7 @@ import {
 type DiffRow = { key: string; label: string; from: string; to: string };
 
 function formatMenuValue(key: keyof MenuItem, value: unknown): string {
-  if (value === undefined || value === null) return "—";
+  if (value === undefined || value === null) return "\u2013";
   if (key === "price" && typeof value === "number") return `$${value.toFixed(2)}`;
   if (key === "hidden") return value ? "yes" : "no";
   return String(value);
@@ -85,7 +85,7 @@ export function AnalystApprovalPhone() {
         const { items } = (await r.json()) as { items?: MenuItem[] };
         if (!cancelled && items) setMenu(items);
       } catch {
-        // Best-effort — menu is decorative context, not safety-critical.
+        // Best-effort. Menu is decorative context, not safety-critical.
       }
     })();
     return () => {
@@ -103,7 +103,7 @@ export function AnalystApprovalPhone() {
 
   // Keep the prompt input focused whenever the phone is idle (no approval
   // card, no checklist) and the input is enabled. Re-fires on every state
-  // transition that could have moved focus away — view switches, streaming
+  // transition that could have moved focus away, i.e. view switches, streaming
   // start/stop, approval land/resolve.
   const inputDisabled = isStreaming || Boolean(pending);
   useEffect(() => {
@@ -176,7 +176,7 @@ export function AnalystApprovalPhone() {
 
   const confirmRollback = async () => {
     if (submitting || selected.size === 0) return;
-    // Resolve skus in the order they were applied (newest first — matches
+    // Resolve skus in the order they were applied (newest first, matching
     // the menuHistory stack's pop semantics).
     const skus = applied
       .slice()
@@ -532,7 +532,7 @@ export function AnalystApprovalPhone() {
               ) : null}
             </div>
 
-            {/* Optimize row — AI-generated proposal chips.
+            {/* Optimize row: AI-generated proposal chips.
                 Collapses between three states:
                   1. idle          → full-width "Optimize" showstopper button
                   2. loading       → full-width shimmer placeholder

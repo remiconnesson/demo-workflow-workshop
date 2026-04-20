@@ -28,7 +28,7 @@ import {
 const ROWS = 5;
 const COLS = 8;
 const COUNT = ROWS * COLS; // 40
-// The avatar that "notices" — centered so the radial snap reads cleanly.
+// The avatar that "notices", centered so the radial snap reads cleanly.
 const NOTICER = 3 * COLS + 4;
 
 type AvatarKind = "humming" | "notice" | "fraud" | "dark" | "frozen";
@@ -55,7 +55,7 @@ export function ChoirDemo() {
 
   const avatarState = (i: number): AvatarKind => {
     if (m.isCrashed) {
-      // Half dark — checkerboard pattern so it reads as "half the grid"
+      // Half dark: checkerboard pattern so it reads as "half the grid"
       return (Math.floor(i / COLS) + i) % 2 === 0 ? "dark" : "humming";
     }
     if (m.isReplaying) {
@@ -165,7 +165,7 @@ export function ChoirDemo() {
               const kind = avatarState(i);
               const row = Math.floor(i / COLS);
               const col = i % COLS;
-              // Humming wave — phase based on grid diagonal
+              // Humming wave. Phase based on grid diagonal
               const phase = (row + col) * 0.18;
               const amp =
                 0.6 + 0.4 * Math.sin((elapsed / 500) + phase);

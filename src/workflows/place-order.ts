@@ -8,7 +8,7 @@ import {
   sleep,
 } from "workflow";
 
-// Duration string accepted by workflow's `sleep()` — mirrors `ms`'s
+// Duration string accepted by workflow's `sleep()`. Mirrors `ms`'s
 // StringValue (e.g. "500ms", "2s", "1m", "1h"). We declare locally
 // rather than importing from `ms` because `ms` is a transitive (not
 // direct) dep of this project; pnpm's strict hoisting would reject
@@ -47,7 +47,7 @@ export type OrderInput = {
   failAt?: FailStep;
   autoAck?: boolean; // automatically resume hooks after a short delay
   demoMode?: DemoMode;
-  driverTimeout?: DurationString; // e.g. "1s", "2m" — defaults to "2m"
+  driverTimeout?: DurationString; // e.g. "1s", "2m" (defaults to "2m")
   /**
    * Optional race: wrap the restaurant-accept hook in a Promise.race
    * against a sleep of this duration. If the sleep wins, an Error is
@@ -131,18 +131,18 @@ export async function placeOrderWorkflow(
     }
 
 
-    // 2b. Prep-window sleep (demo mode only — visible pause between
+    // 2b. Prep-window sleep (demo mode only: visible pause between
     //     chargeCard and pingRestaurant for the failure-prep-window
     //     slide). In production this is `await sleep(PREP_WINDOW)` with
     //     PREP_WINDOW = "20m". For stage we compress to 3s so the demo
     //     fits in the 60-second slot. The sleep is recorded by the
-    //     workflow runtime either way — visible via:
+    //     workflow runtime either way, visible via:
     //         npx workflow inspect sleeps -r <runId>
     if (input.demoMode === "prepWindowSleep") {
       const PREP_WINDOW = "3s"; // production: "20m"
       await e({
         type: "log",
-        message: `Prep window — sleeping ${PREP_WINDOW} (production: 20m)`,
+        message: `Prep window: sleeping ${PREP_WINDOW} (production: 20m)`,
       });
       await sleep(PREP_WINDOW);
       await e({ type: "log", message: "Prep window elapsed, pinging restaurant" });
@@ -155,7 +155,7 @@ export async function placeOrderWorkflow(
       await e({
         type: "log",
         message:
-          "naive poll exhausted — restaurant never answered, server held compute entire time",
+          "naive poll exhausted, restaurant never answered, server held compute entire time",
       });
       await e({
         type: "step_failed",
@@ -185,7 +185,7 @@ export async function placeOrderWorkflow(
       type: "waiting_for_hook",
       step: "pingRestaurant",
       token: hookTokens.restaurantAccept(orderId),
-      label: "Pinged restaurant — waiting for accept",
+      label: "Pinged restaurant, waiting for accept",
     });
 
     // Optional race: if `restaurantTimeout` is set, wrap the hook in a
@@ -233,7 +233,7 @@ export async function placeOrderWorkflow(
       );
     }
 
-    // 3c. Admin-cancel window (demo mode only — the failure-admin-cancel
+    // 3c. Admin-cancel window (demo mode only: the failure-admin-cancel
     //     slide demonstrates graceful cancellation by racing a cancel
     //     hook against a short decision sleep. resumeHook() from the
     //     /api/orders/[orderId]/admin-cancel route wins the race and
@@ -247,11 +247,11 @@ export async function placeOrderWorkflow(
       });
       // Emit a log rather than waiting_for_hook so the client doesn't
       // try to auto-resume this via the standard restaurant/driver
-      // path — the admin-cancel hook is resumed out-of-band by the
+      // path. The admin-cancel hook is resumed out-of-band by the
       // /api/orders/[orderId]/admin-cancel route.
       await e({
         type: "log",
-        message: "Admin cancel window open — sleeping 6s before dispatch",
+        message: "Admin cancel window open, sleeping 6s before dispatch",
       });
       const adminResult = await Promise.race([
         adminCancelHook.then((r) => ({
@@ -275,7 +275,7 @@ export async function placeOrderWorkflow(
       });
     }
 
-    // 3b. Replay probe (demo mode only — injects a retry before findDriver)
+    // 3b. Replay probe (demo mode only, injects a retry before findDriver)
     await replayProbe(input);
 
     const driverId = await findDriver(input, failAt === "findDriver");
@@ -299,7 +299,7 @@ export async function placeOrderWorkflow(
       type: "waiting_for_hook",
       step: "findDriver",
       token: hookTokens.driverAccept(orderId),
-      label: "Finding driver — waiting for accept",
+      label: "Finding driver, waiting for accept",
     });
     const driverResult = await Promise.race([
       driverHook.then((r) => ({ kind: "resolved" as const, r })),
@@ -332,7 +332,7 @@ export async function placeOrderWorkflow(
       throw new Error(`Driver declined order ${orderId}`);
     }
 
-    // 5. Track delivery (wait for delivered hook) — not crash-armable
+    // 5. Track delivery (wait for delivered hook). Not crash-armable
     //    because trackDelivery is inline orchestration, not a step.
     await e({
       type: "step_running",
@@ -346,7 +346,7 @@ export async function placeOrderWorkflow(
       type: "waiting_for_hook",
       step: "trackDelivery",
       token: hookTokens.delivered(orderId),
-      label: "Tracking delivery — waiting for confirmation",
+      label: "Tracking delivery, waiting for confirmation",
     });
     const delivered = await deliveredHook;
     if (failAt === "trackDelivery") {
@@ -387,7 +387,7 @@ export async function placeOrderWorkflow(
       }
     }
 
-    // 7. Post-delivery dispute window (demo mode only — the
+    // 7. Post-delivery dispute window (demo mode only: the
     //    dispute / "Dispute the Order" slide demonstrates
     //    compensation unwinding a fully-completed happy path. All six
     //    steps are green; we open a short race between a durable
@@ -503,7 +503,7 @@ async function writeEvent(
 }
 
 // Simulates a process crash as a step-level retry. On attempt 1 we throw
-// RetryableError — the Workflow runtime records step_retrying and schedules
+// RetryableError. The Workflow runtime records step_retrying and schedules
 // a retry. On attempt 2 we return cleanly. This is what makes the crash
 // visible in `npx workflow inspect` as a failed-then-recovered step, which
 // is the closest analog to a real process crash + event-log replay.
@@ -524,7 +524,7 @@ async function simulateCrash(label: string): Promise<void> {
     }
     await writer.write({
       type: "log",
-      message: `💥 CRASH :: recovered — runtime replayed from event log (checkpoint=${label}, attempt=${attempt})`,
+      message: `💥 CRASH :: recovered, runtime replayed from event log (checkpoint=${label}, attempt=${attempt})`,
     });
     console.info("[workflow] crash_recovered", { label, stepId, attempt });
   } finally {
@@ -539,7 +539,7 @@ async function naivePollTick(orderId: string, iteration: number): Promise<void> 
   try {
     await writer.write({
       type: "log",
-      message: `naive poll ${iteration}/10 — still holding compute`,
+      message: `naive poll ${iteration}/10, still holding compute`,
     });
     console.info("[workflow] naive_poll_tick", { orderId, iteration });
   } finally {
@@ -554,7 +554,7 @@ async function naiveCrash(): Promise<void> {
     await writer.write({
       type: "log",
       message:
-        "naive: process crashed between charge and notify — no durable checkpoint",
+        "naive: process crashed between charge and notify, no durable checkpoint",
     });
     console.info("[workflow] naive_crash_no_recover");
   } finally {
@@ -594,7 +594,7 @@ async function validateOrder(
       step: "validateOrder",
       label: "Validate order",
     }, input.demoMode);
-    // Note: getWorkflowMetadata() is explicitly callable inside a step —
+    // Note: getWorkflowMetadata() is explicitly callable inside a step.
     // the SDK exports it from @workflow/core/step with the JSDoc "Returns
     // metadata available in the current workflow run inside a step function."
     // Steps get workflowRunId/workflowName; only getStepMetadata() fields
@@ -610,7 +610,7 @@ async function validateOrder(
         type: "step_failed",
         step: "validateOrder",
         label: "Validate order",
-        error: "💥 CRASH — process died, runtime will retry",
+        error: "💥 CRASH: process died, runtime will retry",
       });
       await writer.write({
         type: "log",
@@ -627,7 +627,7 @@ async function validateOrder(
         type: "step_failed",
         step: "validateOrder",
         label: "Validate order",
-        error: "Invalid order — empty cart",
+        error: "Invalid order: empty cart",
       }, input.demoMode);
       throw new FatalError(`validateOrder failed for ${input.orderId}`);
     }
@@ -667,7 +667,7 @@ async function chargeCard(
         type: "step_failed",
         step: "chargeCard",
         label: "Charge card",
-        error: "💥 CRASH — process died, runtime will retry",
+        error: "💥 CRASH: process died, runtime will retry",
       });
       await writer.write({
         type: "log",
@@ -711,7 +711,7 @@ async function chargeCard(
       });
       if (attempt === 1) {
         naiveAttempt1Ids.set(input.orderId, paymentId);
-        // Money moved — the charge went through on the provider side
+        // Money moved: the charge went through on the provider side
         await writeEvent(writer, {
           type: "step_succeeded",
           step: "chargeCard",
@@ -724,7 +724,7 @@ async function chargeCard(
           type: "step_failed",
           step: "chargeCard",
           label: "Charge card",
-          error: `Payment API 5xx — money moved but call failed`,
+          error: `Payment API 5xx: money moved but call failed`,
         }, input.demoMode);
         // Embed attempt 1's paymentId in the error so it survives in
         // step_failed / inspect steps `error.message`, making the double
@@ -807,7 +807,7 @@ async function pingRestaurant(
         type: "step_failed",
         step: "pingRestaurant",
         label: "Ping restaurant",
-        error: "💥 CRASH — process died, runtime will retry",
+        error: "💥 CRASH: process died, runtime will retry",
       });
       await writer.write({
         type: "log",
@@ -862,7 +862,7 @@ async function findDriver(
         type: "step_failed",
         step: "findDriver",
         label: "Find driver",
-        error: "💥 CRASH — process died, runtime will retry",
+        error: "💥 CRASH: process died, runtime will retry",
       });
       await writer.write({
         type: "log",
@@ -884,7 +884,7 @@ async function findDriver(
       throw new FatalError(`findDriver failed for ${input.orderId}`);
     }
     // Derive from stepId so retries of this step produce the same
-    // driverId — teaches idempotency rather than regenerating a random
+    // driverId, which teaches idempotency rather than regenerating a random
     // value on replay.
     const driverId = `drv_${stepId.slice(-4)}`;
     await writeEvent(writer, {
@@ -922,7 +922,7 @@ async function sendReceipts(
         type: "step_failed",
         step: "sendReceipts",
         label: "Send receipts",
-        error: "💥 CRASH — process died, runtime will retry",
+        error: "💥 CRASH: process died, runtime will retry",
       });
       await writer.write({
         type: "log",

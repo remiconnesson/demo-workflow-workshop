@@ -100,7 +100,7 @@ export const hookTokens = {
   adminCancel: (orderId: string) => `order:${orderId}:admin-cancel`,
   deliveryDispute: (orderId: string) => `order:${orderId}:delivery-dispute`,
 } as const;
-// NOTE: tokens are keyed only on orderId — caller must ensure one
+// NOTE: tokens are keyed only on orderId. Caller must ensure one
 // active run per orderId or createHook() will throw hook_conflict.
 
 export const RESUME_KIND_BY_STEP = {

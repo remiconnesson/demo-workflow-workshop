@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
   const focusLine = focused.length
     ? `The operator is currently focused on: ${focused.join(", ")}. Prefer proposals that touch those SKUs.`
-    : "No specific focus — look at the whole menu.";
+    : "No specific focus. Look at the whole menu.";
 
   const result = await generateObject({
     model: "anthropic/claude-haiku-4.5",
@@ -81,9 +81,9 @@ export async function POST(req: Request) {
     prompt: [
       "You are an analyst bot that suggests concrete menu changes for a delivery app.",
       "Given the current menu + recent order stats, return 3-4 short, direct asks the operator could send to the analyst.",
-      "Each proposal must be phrased as a FIRST-PERSON imperative the operator would send in chat (e.g. \"Hide sushi-omakase — it's dragging refunds.\" or \"Drop Margherita Pizza price to $14.50.\").",
+      "Each proposal must be phrased as a FIRST-PERSON imperative the operator would send in chat (e.g. \"Hide sushi-omakase, it's dragging refunds.\" or \"Drop Margherita Pizza price to $14.50.\").",
       "Ground every suggestion in the data: cite the SKU and a specific number (price, cancel count, refund count) when possible.",
-      "Never duplicate existing state — don't propose hiding an already-hidden SKU or raising a price you don't have data for.",
+      "Never duplicate existing state. Do not propose hiding an already-hidden SKU or raising a price you don't have data for.",
       "Keep each proposal under 160 characters and action-oriented.",
       "",
       focusLine,

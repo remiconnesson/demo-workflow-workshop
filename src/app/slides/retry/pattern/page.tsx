@@ -13,7 +13,7 @@ getStepMetadata().stepId stayed stable across retries.`;
 const COMPARE_PROMPT = `Compare my current code to what it might look like if I was using
 the Workflow SDK's Idempotency pattern. Ask me for the absolute path
 to my project, cd there, then find external side effects that can't
-safely run twice — payments, messaging, webhooks, queues, LLM calls —
+safely run twice (payments, messaging, webhooks, queues, LLM calls)
 and show me before/after diffs that wrap each call in a "use step"
 function and pass getStepMetadata().stepId as the idempotency key.
 
@@ -23,7 +23,7 @@ Docs: https://workflow-sdk.dev/docs/cookbook/common-patterns/idempotency`;
 export default function RetryPatternSlide() {
   return (
     <PatternSlideLayout
-      eyebrow="05d · The retry — concept / pattern"
+      eyebrow="05d · The retry, concept / pattern"
       patternName="Idempotency"
       description={<>Every step gets a <code className="font-mono text-zinc-200">stable, deterministic ID</code> that doesn&apos;t change across retries. Pass it to external APIs as an <code className="font-mono text-zinc-200">idempotencyKey</code>.</>}
       apiPrimitive="getStepMetadata().stepId"

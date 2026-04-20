@@ -33,7 +33,7 @@ export default function RollbackFixSlide() {
     await reserveInventory(orderId)
     await chargeCard(orderId)
     await pingRestaurant(orderId)
-    // how do we catch a dispute within 24h — and unwind if so?
+    // how do we catch a dispute within 24h and unwind if so?
   } catch (e) {
     throw e
   }
@@ -68,7 +68,7 @@ export default function RollbackFixSlide() {
             highlightLines: {
               15: "This hook pauses until **something outside** wakes it. See the `/dispute` route tab →",
               16: "[createHook](https://workflow-sdk.dev/docs/api-reference/workflow/create-hook) registers a promise keyed by token",
-              17: "**This token string is the wiring** — the route computes the same string to resolve this hook",
+              17: "**This token string is the wiring**. The route computes the same string to resolve this hook",
               18: "",
               20: "**Race**: customer disputes within 24 hours, or the window **closes cleanly**",
               21: "",
@@ -112,7 +112,7 @@ export default function RollbackFixSlide() {
           },
           {
             highlightLines: {
-              30: "Unwind in [reverse order](https://workflow-sdk.dev/docs/foundations/common-patterns) — last pushed, **first undone**",
+              30: "Unwind in [reverse order](https://workflow-sdk.dev/docs/foundations/common-patterns): last pushed, **first undone**",
               31: "",
               32: "",
               33: "",
@@ -148,7 +148,7 @@ export default function RollbackFixSlide() {
       throw new Error(\`Disputed: \${verdict.reason}\`)
     }
   } catch (e) {
-    // unwind in reverse — each rollback is a "use step"
+    // unwind in reverse. each rollback is a "use step"
     // so it's durable and retried automatically
     for (const rollback of rollbacks.reverse()) {
       await rollback()
@@ -166,21 +166,21 @@ export default function RollbackFixSlide() {
             progression: [
               {
                 code: `// src/app/api/orders/[orderId]/dispute/route.ts
-// A plain Next.js route — nothing workflow-specific yet.
+// A plain Next.js route. Nothing workflow-specific yet.
 export async function POST(
   _req: Request,
   { params }: { params: Promise<{ orderId: string }> },
 ) {
   const { orderId } = await params
-  // customer just disputed — how do we wake the paused workflow?
+  // customer just disputed. how do we wake the paused workflow?
   return Response.json({ ok: true })
 }`,
               },
               {
                 highlightLines: {
-                  1: "[resumeHook](https://workflow-sdk.dev/docs/api-reference/workflow/resume-hook) is an SDK function — any server code (route, tool, webhook) can import and call it",
+                  1: "[resumeHook](https://workflow-sdk.dev/docs/api-reference/workflow/resume-hook) is an SDK function. Any server code (route, tool, webhook) can import and call it",
                   2: "",
-                  11: "**Same token string** the workflow passes to createHook — that's the entire mapping",
+                  11: "**Same token string** the workflow passes to createHook. That's the entire mapping",
                   12: "",
                   13: "",
                   14: "",

@@ -20,7 +20,7 @@ export function CopyablePrompt({ prompt, label = "Paste into your AI agent", com
         const data = (await res.json()) as { runId: string | null };
         if (!cancelled) setRunId(data.runId);
       } catch {
-        // leave runId null — placeholder token stays in the prompt
+        // leave runId null so the placeholder token stays in the prompt
       }
     }
     load();
@@ -85,7 +85,7 @@ export function CopyablePrompt({ prompt, label = "Paste into your AI agent", com
       </pre>
       {hasRunIdToken && !runId && (
         <p className="mt-2 text-sm text-zinc-600">
-          Run a demo — the run ID fills in automatically.
+          Run a demo. The run ID fills in automatically.
         </p>
       )}
     </div>

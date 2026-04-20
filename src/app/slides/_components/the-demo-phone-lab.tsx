@@ -173,35 +173,35 @@ export function TheDemoPhoneLab() {
           {/* ── iPhone 15 Pro status bar ── */}
           {/* 59px safe-area top: 12px gap, 37px island, 10px below island */}
           <div className="relative z-30 h-[59px]">
-            {/* dynamic island — 32% width, 12px from top */}
-            <div className="absolute left-1/2 top-[12px] z-20 h-[37px] w-[32%] -translate-x-1/2 rounded-full bg-black" />
+            {/* dynamic island: 32% width, 12px from top */}
+            <div className="absolute left-1/2 top-3 z-20 h-6 w-28 -translate-x-1/2 rounded-full bg-black" />
 
-            {/* status indicators — vertically centered with island (12 + 37/2 = 30.5px from top) */}
+            {/* status indicators, vertically centered with island (12 + 37/2 = 30.5px from top) */}
             <div className="absolute inset-x-0 top-0 flex h-full items-center px-[7%]" style={{ paddingTop: "12px", paddingBottom: "10px" }}>
-              {/* time — left of island */}
+              {/* time (left of island) */}
               <span className="relative z-30 text-[15px] font-semibold leading-none tracking-[-0.01em]">
                 <PhoneClock />
               </span>
 
               <span className="flex-1" />
 
-              {/* signal + wifi + battery — right of island */}
+              {/* signal + wifi + battery (right of island) */}
               <span className="relative z-30 flex items-center gap-[5px]">
-                {/* cellular — 4 ascending bars */}
+                {/* cellular: 4 ascending bars */}
                 <svg width="18" height="12" viewBox="0 0 18 12" fill="none" className="text-black">
                   <rect x="0" y="9" width="3.2" height="3" rx="0.7" fill="currentColor" />
                   <rect x="4.8" y="6" width="3.2" height="6" rx="0.7" fill="currentColor" />
                   <rect x="9.6" y="3" width="3.2" height="9" rx="0.7" fill="currentColor" />
                   <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill="currentColor" />
                 </svg>
-                {/* wifi — three arcs + dot */}
+                {/* wifi: three arcs + dot */}
                 <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-black overflow-visible">
                   <circle cx="8" cy="10.75" r="1.25" fill="currentColor" />
                   <path d="M4.93 7.7a4.37 4.37 0 0 1 6.14 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <path d="M2.34 5.1a7.87 7.87 0 0 1 11.32 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <path d="M0 2.3a11.5 11.5 0 0 1 16 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
-                {/* battery — outline + fill + cap */}
+                {/* battery: outline + fill + cap */}
                 <svg width="28" height="13" viewBox="0 0 28 13" fill="none" className="text-black">
                   <rect x="0.5" y="0.5" width="23" height="12" rx="2.5" stroke="currentColor" strokeWidth="1.1" />
                   <rect x="2" y="2" width="20" height="9" rx="1.5" fill="currentColor" />

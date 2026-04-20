@@ -10,7 +10,7 @@ type DisputeBody = { reason?: string };
  * "Dispute the Order" finale slide.
  *
  * Resumes the delivery-dispute hook. The workflow is paused inside
- * `Promise.race([disputeHook, sleep("24h")])` — resuming wins the
+ * `Promise.race([disputeHook, sleep("24h")])`. Resuming wins the
  * race, the workflow throws a plain Error, and compensations unwind
  * in reverse (refund, cancel, release) even though all six steps
  * already reported success. `resumeHook` wakes the suspended

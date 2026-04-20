@@ -197,7 +197,7 @@ export default function OrderDemo() {
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.3fr]">
-      {/* LEFT COLUMN — order configuration */}
+      {/* LEFT COLUMN: order configuration */}
       <section className="space-y-4">
         <Card title="Menu">
           <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
@@ -298,7 +298,7 @@ export default function OrderDemo() {
         </div>
       </section>
 
-      {/* RIGHT COLUMN — saga state + feed */}
+      {/* RIGHT COLUMN: saga state + feed */}
       <section className="space-y-4">
         <Card
           title="Saga progress"
@@ -437,8 +437,8 @@ function summarizeEvent(e: OrderEvent): string {
     case "step_succeeded":
     case "step_failed":
     case "step_skipped":
-      return `${e.label}${"detail" in e && e.detail ? ` — ${e.detail}` : ""}${
-        "error" in e && e.error ? ` — ${e.error}` : ""
+      return `${e.label}${"detail" in e && e.detail ? ` [${e.detail}]` : ""}${
+        "error" in e && e.error ? ` [${e.error}]` : ""
       }`;
     case "waiting_for_hook":
       return e.label;
@@ -452,7 +452,7 @@ function summarizeEvent(e: OrderEvent): string {
     case "log":
       return e.message;
     case "done":
-      return `${e.status} — ${e.orderId}`;
+      return `${e.status} · ${e.orderId}`;
     default:
       return "";
   }

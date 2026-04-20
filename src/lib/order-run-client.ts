@@ -455,7 +455,7 @@ export function useOrderRun(
           break;
         case "log":
           if (
-            event.message === "Admin cancel window open — sleeping 6s before dispatch"
+            event.message === "Admin cancel window open, sleeping 6s before dispatch"
           ) {
             setAdminCancelReady(true);
           } else if (

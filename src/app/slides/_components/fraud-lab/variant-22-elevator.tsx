@@ -31,7 +31,7 @@ import {
 const FRAUD_IDX = CHARGES.length - 1;
 const STEP_MS = 650;
 
-// Visible floors — top to bottom. Floor numbers match the "94-day" framing:
+// Visible floors, top to bottom. Floor numbers match the "94-day" framing:
 // we label the top 6 loops numerically + small summaries. Floor "01" is the
 // final visible floor; "QUARANTINE" is hidden under it until fraud.
 const VISIBLE_FLOORS = [
@@ -45,7 +45,7 @@ const VISIBLE_FLOORS = [
 ];
 const QUARANTINE_FLOOR = { label: "Q", note: "HIDDEN · QUARANTINE" };
 
-const FLOOR_H = 68; // px each (fixed — CLS)
+const FLOOR_H = 68; // px each (fixed, prevents CLS)
 const SHAFT_TOP_PAD = 28;
 
 export function ElevatorDemo() {
@@ -66,7 +66,7 @@ export function ElevatorDemo() {
   const frozen = 1_248 + (m.isResumed ? 1 : 0);
   const loop = STARTING_LOOP + (m.active ? 1 : 0);
 
-  // Cab Y position — fixed mapping so no reflow. Cab travels down across
+  // Cab Y position: fixed mapping so no reflow. Cab travels down across
   // visible floors as ticks increase, stops at quarantine on fraud.
   const visibleIndex = Math.min(ticks, VISIBLE_FLOORS.length - 1); // 0..6
   const normalY = SHAFT_TOP_PAD + visibleIndex * FLOOR_H;
@@ -117,7 +117,7 @@ export function ElevatorDemo() {
           >
             {atQuarantine
               ? "Q · QUARANTINE"
-              : VISIBLE_FLOORS[visibleIndex]?.label ?? "—"}
+              : VISIBLE_FLOORS[visibleIndex]?.label ?? "\u2009"}
           </span>
         </div>
 
@@ -137,7 +137,7 @@ export function ElevatorDemo() {
               }}
             />
 
-            {/* floor markers — fixed positions, no reflow */}
+            {/* floor markers: fixed positions, no reflow */}
             <div className="absolute top-6 left-24 w-56">
               {VISIBLE_FLOORS.map((f, i) => {
                 const y = SHAFT_TOP_PAD + i * FLOOR_H;
@@ -164,7 +164,7 @@ export function ElevatorDemo() {
                 );
               })}
 
-              {/* QUARANTINE hidden floor — pre-rendered, opacity only */}
+              {/* QUARANTINE hidden floor, pre-rendered with opacity only */}
               <div
                 className="absolute left-0 right-0 flex items-center transition-opacity duration-700"
                 style={{
@@ -184,7 +184,7 @@ export function ElevatorDemo() {
               </div>
             </div>
 
-            {/* cab — translates along the shaft */}
+            {/* cab: translates along the shaft */}
             <div
               className="absolute left-24 w-56"
               style={{
@@ -214,7 +214,7 @@ export function ElevatorDemo() {
                 {/* roof */}
                 <div className="absolute left-0 right-0 top-0 h-1.5 rounded-t-lg bg-zinc-700" />
 
-                {/* doors — two panels that slide outward when open */}
+                {/* doors: two panels that slide outward when open */}
                 <div
                   className="absolute left-0 top-2 bottom-2 w-[48%] rounded-l-md border-r border-black/40"
                   style={{

@@ -1,4 +1,4 @@
-// Saga / Rollback — each successful step pushes its undo. A dispute hook
+// Saga / Rollback: each successful step pushes its undo. A dispute hook
 // races against a 24h sleep; if the customer disputes, the catch block
 // unwinds every compensation in reverse order.
 //
@@ -47,7 +47,7 @@ export async function orderWithRollbackWorkflow(input: {
 
     return { orderId: input.orderId, status: "completed" as const };
   } catch (error) {
-    // Unwind in reverse — each rollback is a "use step" so it's durable.
+    // Unwind in reverse. Each rollback is a "use step" so it's durable.
     for (const rollback of rollbacks.reverse()) {
       await rollback();
     }

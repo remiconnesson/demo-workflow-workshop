@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------------------
 // Inspector link for agent demo slides.
 //
-// Renders ONE thing — a clickable "npx workflow inspect run <id>" line that
+// Renders ONE thing: a clickable "npx workflow inspect run <id>" line that
 // deep-links to the local workflow web UI. The scrolling event feed that
 // used to live here has been removed: per .impeccable.md rule #8, no
 // developer consoles belong on the presentation surface. Event detail
@@ -10,7 +10,7 @@
 
 const WORKFLOW_WEB_PORT = 3456;
 
-// Preserved so existing demo-pane callers keep their signature shape —
+// Preserved so existing demo-pane callers keep their signature shape.
 // the type is still imported in a handful of places even though we no
 // longer render the feed inline.
 export type DebugEvent = { kind: string; msg: string };

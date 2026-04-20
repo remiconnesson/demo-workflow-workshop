@@ -142,7 +142,7 @@ export function MetronomeDemo() {
             current tick
           </span>
           <span className="font-mono text-xl tabular-nums text-zinc-200">
-            {m.active ? `beat ${(chargeIdx + 1).toString().padStart(2, "0")}/11` : "—"}
+            {m.active ? `beat ${(chargeIdx + 1).toString().padStart(2, "0")}/11` : "\u2009"}
           </span>
         </div>
 

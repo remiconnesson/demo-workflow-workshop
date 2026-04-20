@@ -2,9 +2,7 @@ import { Fragment } from "react";
 
 const BEATS = [
   {
-    formal: "Demo",
-    title: "Break",
-    promise: "Watch the failure happen.",
+    title: "Demo",
     visual: (
       <div className="flex h-[220px] items-center justify-center gap-7 rounded-2xl border border-white/10 bg-black/35 p-6">
         <div className="flex h-48 w-28 flex-col items-center justify-center rounded-[28px] border border-white/10 bg-zinc-900 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
@@ -31,9 +29,7 @@ const BEATS = [
     ),
   },
   {
-    formal: "Code",
-    title: "Fix",
-    promise: "See the durable change.",
+    title: "Code",
     visual: (
       <div className="h-[220px] overflow-hidden rounded-2xl border border-white/10 bg-black/35 p-5 font-mono">
         <div className="mb-5 flex items-center gap-2">
@@ -70,9 +66,7 @@ const BEATS = [
     ),
   },
   {
-    formal: "Pattern",
-    title: "Name",
-    promise: "Leave with the pattern.",
+    title: "Pattern",
     visual: (
       <div className="flex h-[220px] flex-col justify-center rounded-2xl border border-white/10 bg-black/35 p-7">
         <p className="font-mono text-base font-semibold uppercase tracking-[0.22em] text-zinc-600">
@@ -102,7 +96,7 @@ export default function HowItWorksSlide() {
       <div className="flex flex-col gap-4">
         <h2 className="max-w-6xl text-6xl font-semibold leading-[1.05] tracking-tight">
           For each property:
-          <span className="text-zinc-500"> break it, fix it, name it.</span>
+          <span className="text-zinc-500"> demo, code, pattern.</span>
         </h2>
         <p className="max-w-5xl text-3xl leading-snug text-zinc-400">
           Every demo asks: what do you need from the system now?
@@ -113,18 +107,10 @@ export default function HowItWorksSlide() {
         {BEATS.map((beat, index) => (
           <Fragment key={beat.title}>
             <section className="flex min-h-[560px] w-0 flex-1 flex-col justify-between gap-8 rounded-3xl border border-white/10 bg-zinc-950 p-9 shadow-[0_24px_80px_rgba(0,0,0,0.28)]">
-              <div>
-                <p className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-4 py-2 font-mono text-base font-semibold uppercase tracking-[0.22em] text-zinc-500">
-                  {beat.formal}
-                </p>
-                <h3 className="mt-6 text-[64px] font-semibold leading-none tracking-tight text-white">
-                  {beat.title}
-                </h3>
-              </div>
+              <h3 className="text-[64px] font-semibold leading-none tracking-tight text-white">
+                {beat.title}
+              </h3>
               {beat.visual}
-              <p className="text-3xl font-medium leading-snug text-zinc-300">
-                {beat.promise}
-              </p>
             </section>
             {index < BEATS.length - 1 ? (
               <div

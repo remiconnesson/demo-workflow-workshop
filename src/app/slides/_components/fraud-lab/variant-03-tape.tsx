@@ -110,7 +110,7 @@ export function TapeDemo() {
       />
 
       <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
-        {/* tape rails — brass parchment */}
+        {/* tape rails, brass parchment */}
         <div className="pointer-events-none absolute top-1/2 left-0 h-[220px] w-full -translate-y-1/2 overflow-hidden border-y-2 border-amber-300/20 bg-amber-100/5">
           {/* sprocket holes along top */}
           <div className="absolute top-2 left-0 flex h-3 w-full gap-8 px-4">
@@ -130,7 +130,7 @@ export function TapeDemo() {
             ))}
           </div>
 
-          {/* Tape itself — absolutely positioned blocks */}
+          {/* Tape itself: absolutely positioned blocks */}
           <div
             className="absolute top-1/2 left-1/2 flex h-[140px] -translate-y-1/2 items-center"
             style={{
@@ -181,7 +181,7 @@ export function TapeDemo() {
                     </span>
                   </div>
 
-                  {/* stamp mark — green check for cleared, red FROZEN for fraud */}
+                  {/* stamp mark: green check for cleared, red FROZEN for fraud */}
                   <div
                     className={`pointer-events-none absolute top-2 right-8 font-mono text-2xl font-bold tracking-[0.2em] transition-opacity duration-300 ${
                       stamped ? "opacity-100" : "opacity-0"
@@ -216,7 +216,7 @@ export function TapeDemo() {
           </div>
         </div>
 
-        {/* stamp head — sits above center, descends when engaging */}
+        {/* stamp head: sits above center, descends when engaging */}
         <div className="pointer-events-none absolute left-1/2 top-[calc(50%-200px)] -translate-x-1/2">
           <StampHead kind={stampKind} elapsed={elapsed} />
         </div>

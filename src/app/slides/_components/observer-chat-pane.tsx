@@ -44,53 +44,53 @@ const f = (
 });
 
 const FRAMES: Frame[] = [
-  // 0 — idle
+  // 0: idle
   f(["pending", "pending", "pending"], {
     loop: 0, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: null, delayMs: 0,
   }),
 
   // ── Loop 1 ──────────────────────────────────────────────
-  // 1 — scan running
+  // 1: scan running
   f(["running", "pending", "pending"], {
     loop: 1, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: "scan", delayMs: 1500,
   }),
-  // 2 — scan done, analyze running
+  // 2: scan done, analyze running
   f(["success", "running", "pending"], {
     loop: 1, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: "analyze", delayMs: 2000,
   }),
-  // 3 — analyze done, report running
+  // 3: analyze done, report running
   f(["success", "success", "running"], {
     loop: 1, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: "report", delayMs: 1500,
   }),
-  // 4 — loop 1 done, sleeping
+  // 4: loop 1 done, sleeping
   f(["success", "success", "success"], {
     loop: 1, sleeping: true, crashPhase: "live",
     crashReady: false, activeTool: null, delayMs: 2500,
   }),
 
   // ── Loop 2 ──────────────────────────────────────────────
-  // 5 — scan running (new loop)
+  // 5: scan running (new loop)
   f(["running", "pending", "pending"], {
     loop: 2, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: "scan", delayMs: 1500,
   }),
-  // 6 — scan done, analyze running — CRASH WINDOW (button armed)
+  // 6: scan done, analyze running. CRASH WINDOW (button armed)
   f(["success", "running", "pending"], {
     loop: 2, sleeping: false, crashPhase: "live",
     crashReady: true, activeTool: "analyze", delayMs: 9000,
   }),
 
   // ── Crash arc ───────────────────────────────────────────
-  // 7 — server down
+  // 7: server down
   f(["success", "running", "pending"], {
     loop: 2, sleeping: false, crashPhase: "crashed",
     crashReady: false, activeTool: "analyze", delayMs: 2500,
   }),
-  // 8 — replaying event log
+  // 8: replaying event log
   f(["success", "running", "pending"], {
     loop: 2, sleeping: false, crashPhase: "replaying",
     crashReady: false, activeTool: "analyze", delayMs: 1400,

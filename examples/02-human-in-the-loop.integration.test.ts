@@ -7,7 +7,7 @@ describe("placeOrder", () => {
   it("should dispatch when restaurant hits the webhook URL", async () => {
     const run = await start(placeOrder, ["order-1"]);
 
-    // createWebhook generates a random token — pick up whichever hook is pending
+    // createWebhook generates a random token, so pick up whichever hook is pending
     const hook = await waitForHook(run);
     await resumeWebhook(hook.token, new Request("http://test/accept"));
 

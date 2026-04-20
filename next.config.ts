@@ -3,7 +3,7 @@ import { withWorkflow } from "@workflow/next";
 
 const nextConfig: NextConfig = {
   onDemandEntries: {
-    // Keep all 26 slides compiled in memory during dev — no disposal lag when navigating
+    // Keep all 26 slides compiled in memory during dev so there is no disposal lag when navigating
     maxInactiveAge: 60 * 60 * 1000, // 1 hour
     pagesBufferLength: 30,           // more than the 26 slides
   },

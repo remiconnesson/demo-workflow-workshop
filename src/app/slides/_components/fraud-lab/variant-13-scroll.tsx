@@ -119,21 +119,21 @@ export function ScrollDemo() {
     interrupt = {
       kind: "crash",
       message: '"I\'ve stopped. Catch me up."',
-      signature: "— Sentinel",
+      signature: "Sentinel",
       active: true,
     };
   } else if (m.isReplaying) {
     interrupt = {
       kind: "crash",
       message: '"Caught. 0 re-executions."',
-      signature: "— Sentinel",
+      signature: "Sentinel",
       active: true,
     };
   } else if (m.isArmed) {
     interrupt = {
       kind: "fraud",
       message: `"Wait. ${FRAUD_CARD.replace("•••• ", "")} doesn't fit. Freezing it. Explain later."`,
-      signature: "— Sentinel",
+      signature: "Sentinel",
       active: true,
     };
   } else if (
@@ -147,7 +147,7 @@ export function ScrollDemo() {
         idx === 0
           ? '"Last block: 20 clean. I\'m watching."'
           : '"Still nothing. 22 more clean."',
-      signature: "— Sentinel, 94d",
+      signature: "Sentinel, 94d",
       active: true,
     };
   } else if (currentRow === FRAUD_ROW_INDEX && !m.isArmed) {

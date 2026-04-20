@@ -58,7 +58,7 @@ const ALL_COMPENSATIONS: CompensationAction[] = [
   "releaseDriver",
 ];
 
-// Which step each compensation unwinds — drives the fuchsia "undone" treatment
+// Which step each compensation unwinds. Drives the fuchsia "undone" treatment
 // on the main timeline (circle color + compensation-name affordance).
 const COMPENSATION_FOR_STEP: Partial<Record<OrderStepId, CompensationAction>> = {
   chargeCard: "refundPayment",
@@ -193,12 +193,12 @@ export function LiveOrderConceptLab({
   };
   const cueTone = CUE_TONE_CLASS[cue.tone];
 
-  // Count chargePayment successes — naiveDoubleCharge emits step_succeeded twice.
+  // Count chargePayment successes. naiveDoubleCharge emits step_succeeded twice.
   const chargeCount = controller.events.reduce(
     (n, e) => (e.type === "step_succeeded" && e.step === "chargeCard" ? n + 1 : n),
     0,
   );
-  // Count chargePayment failures — naiveDoubleCharge emits step_failed on attempt 1.
+  // Count chargePayment failures. naiveDoubleCharge emits step_failed on attempt 1.
   const chargeFailed = controller.events.some(
     (e) => e.type === "step_failed" && e.step === "chargeCard",
   );
@@ -227,7 +227,7 @@ export function LiveOrderConceptLab({
     return st === undefined || st === "pending";
   });
 
-  // Live cost ticker for the slow-restaurant wait — dramatizes the naive
+  // Live cost ticker for the slow-restaurant wait. Dramatizes the naive
   // polling cost you WOULD pay without a durable hook.
   const [waitElapsedMs, setWaitElapsedMs] = useState(0);
   useEffect(() => {
@@ -397,7 +397,7 @@ export function LiveOrderConceptLab({
         <div
           className={`relative min-w-0 overflow-hidden rounded-2xl border transition-colors duration-500 ${cueTone.card}`}
         >
-          {/* Default semantic cue — always occupies the same slot */}
+          {/* Default semantic cue, always occupies the same slot */}
           <div
             className={`absolute inset-0 flex items-center gap-5 px-6 py-5 transition-opacity duration-300 ${
               showManualControls
@@ -424,7 +424,7 @@ export function LiveOrderConceptLab({
             </div>
           </div>
 
-          {/* Human/manual resume controls — opacity-gated, no layout shift */}
+          {/* Human/manual resume controls, opacity-gated, no layout shift */}
           <div
             className={`absolute inset-0 flex items-center gap-5 px-6 py-5 transition-opacity duration-300 ${
               showManualControls
@@ -572,7 +572,7 @@ export function LiveOrderConceptLab({
         </div>
       </div>
 
-      {/* crash overlay — dims the lab during crash/replay */}
+      {/* crash overlay: dims the lab during crash/replay */}
       {allowCrash ? (
         <div
           className={`pointer-events-none absolute inset-0 z-20 flex items-center justify-center rounded-2xl transition-all duration-500 ${
@@ -597,7 +597,7 @@ export function LiveOrderConceptLab({
         </div>
       ) : null}
 
-      {/* progress bar — fills based on completed steps */}
+      {/* progress bar: fills based on completed steps */}
       {(() => {
         const total = ORDER_STEPS.length;
         const done = ORDER_STEPS.filter((s) => {
@@ -644,7 +644,7 @@ export function LiveOrderConceptLab({
         );
       })()}
 
-      {/* sleep cost comparison — split counter during durable sleep */}
+      {/* sleep cost comparison: split counter during durable sleep */}
       {showSleepCost && (
         <SleepCostComparison
           stepState={controller.stepState}
@@ -666,7 +666,7 @@ export function LiveOrderConceptLab({
           return (
             <div key={step.id} className={`min-w-0 text-center transition-opacity duration-500 ${dimmed ? "opacity-25" : ""}`}>
               <div className="relative inline-flex justify-center">
-                {/* Scenario affordance badges — opacity-gated to avoid CLS */}
+                {/* Scenario affordance badges, opacity-gated to avoid CLS */}
                 {(() => {
                   const badges = stepBadges[step.id];
                   const hasBadges = badges && badges.length > 0;
@@ -691,14 +691,14 @@ export function LiveOrderConceptLab({
                     </div>
                   );
                 })()}
-                {/* Glow layer — always in DOM, visibility via bg color.
+                {/* Glow layer, always in DOM, visibility via bg color.
                     When compensated, swap to a fuchsia pulse to signal "unwinding". */}
                 <div
                   className={`absolute -inset-3 rounded-full blur-xl transition-colors duration-500 ${
                     compensated ? "bg-fuchsia-400/40 animate-pulse" : GLOW_STYLE[state]
                   }`}
                 />
-                {/* Node — fuchsia compensation skin overrides success white once the undo fires */}
+                {/* Node: fuchsia compensation skin overrides success white once the undo fires */}
                 <div
                   className={`relative flex h-14 w-14 items-center justify-center rounded-full border-2 text-lg font-semibold transition-all duration-500 ${
                     compensated
@@ -728,7 +728,7 @@ export function LiveOrderConceptLab({
               >
                 {step.label}
               </div>
-              {/* compensation name affordance — always reserves a row to prevent CLS */}
+              {/* compensation name affordance, always reserves a row to prevent CLS */}
               <div
                 className={`mt-1 font-mono text-sm text-fuchsia-300 transition-opacity duration-300 ${
                   compensated ? "opacity-100" : "opacity-0"
@@ -743,7 +743,7 @@ export function LiveOrderConceptLab({
       )}
 
 
-      {/* event feed removed — events broadcast to debug drawer via slide:workflow-events */}
+      {/* event feed removed; events broadcast to debug drawer via slide:workflow-events */}
       {/* compensations now render as an "undo timeline" at the top-right of the card */}
 
       {/* error display */}

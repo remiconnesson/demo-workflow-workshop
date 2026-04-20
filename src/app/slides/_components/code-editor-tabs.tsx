@@ -8,7 +8,7 @@ export type CodeEditorTab = {
   filename: string;
   /** Pre-rendered Shiki HTML (inline token spans). */
   html: string;
-  /** Optional semantic tone — adds a colored dot and active underline. */
+  /** Optional semantic tone that adds a colored dot and active underline. */
   tone?: TabTone;
 };
 

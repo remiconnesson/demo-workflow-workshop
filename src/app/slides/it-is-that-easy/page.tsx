@@ -15,7 +15,7 @@ const POSITIVE_HIGHLIGHT_CLASS = [
 
 export default async function ItIsThatEasySlide() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-5xl flex-col justify-center gap-10 px-20">
+    <div className="mx-auto flex h-full w-full max-w-[1100px] flex-col justify-center gap-10 px-20">
       <div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
           It is that easy.

@@ -11,7 +11,7 @@ import {
 } from "./_agent-callout";
 
 // ---------------------------------------------------------------------------
-// SLO watchdog — 3-tile metrics dashboard + AI thread.
+// SLO watchdog: 3-tile metrics dashboard + AI thread.
 // Sparkline (p99) · gauge (error %) · area (error-budget burn).
 // Below the tiles: a 3-callout thread (watching → correlating → paged)
 // fades in as the agent reasons. Crash freezes the thread mid-beat.
@@ -53,7 +53,7 @@ const CALLOUT_C0: Callout = {
   timestamp: "14:30:18",
   tone: "sky",
   message:
-    "p99 climbing on api-gateway — 240 → 405ms over 4m. Not a single endpoint, full fleet.",
+    "p99 climbing on api-gateway: 240 → 405ms over 4m. Not a single endpoint, full fleet.",
   citations: ["api-gateway", "p99 +68%"],
   verdict: "watching",
 };
@@ -77,7 +77,7 @@ const CALLOUT_C2: Callout = {
   timestamp: "14:32:01",
   tone: "red",
   message:
-    "Paging Priya Chen severity-2 — rollback runbook attached, incident #INC-8421 open.",
+    "Paging Priya Chen severity-2. Rollback runbook attached, incident #INC-8421 open.",
   citations: ["@priya", "#INC-8421"],
   verdict: "paged",
 };
@@ -92,7 +92,7 @@ const FRAMES: Frame[] = [
   // 0 idle
   { points: 0,  p99: 240,  errorPct: 0.2,  budgetLeft: 94, phase: "idle",      killArmed: false, pageSent: false, loopOffset: 0, delayMs: 0,    ...BASE },
 
-  // 1-2 loop 1 — metrics stable, climbing mildly
+  // 1-2 loop 1: metrics stable, climbing mildly
   { points: 4,  p99: 252,  errorPct: 0.3,  budgetLeft: 94, phase: "live",      killArmed: false, pageSent: false, loopOffset: 1, delayMs: 700,  ...BASE },
   { points: 8,  p99: 270,  errorPct: 0.4,  budgetLeft: 93, phase: "live",      killArmed: false, pageSent: false, loopOffset: 1, delayMs: 700,  ...BASE },
 
@@ -102,7 +102,7 @@ const FRAMES: Frame[] = [
   { points: 8,  p99: 270,  errorPct: 0.4,  budgetLeft: 93, phase: "live",      killArmed: false, pageSent: false, loopOffset: 1, delayMs: 800,
     c0Chars: C0_LEN, c1Chars: 0, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 5-6 loop 2 — regression starts
+  // 5-6 loop 2: regression starts
   { points: 12, p99: 290,  errorPct: 0.6,  budgetLeft: 92, phase: "live",      killArmed: false, pageSent: false, loopOffset: 2, delayMs: 700,
     c0Chars: C0_LEN, c1Chars: 0, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
   { points: 16, p99: 405,  errorPct: 1.8,  budgetLeft: 87, phase: "live",      killArmed: false, pageSent: false, loopOffset: 2, delayMs: 700,
@@ -118,19 +118,19 @@ const FRAMES: Frame[] = [
   { points: 19, p99: 880,  errorPct: 4.2,  budgetLeft: 66, phase: "live",      killArmed: false, pageSent: false, loopOffset: 2, delayMs: 700,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 10 armed — red zone, kill pulses, 12s
+  // 10 armed: red zone, kill pulses, 12s
   { points: 20, p99: 1080, errorPct: 6.1,  budgetLeft: 38, phase: "live",      killArmed: true,  pageSent: false, loopOffset: 2, delayMs: 12000,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 11 crashed — tiles freeze, C2 still pending
+  // 11 crashed: tiles freeze, C2 still pending
   { points: 20, p99: 1080, errorPct: 6.1,  budgetLeft: 38, phase: "crashed",   killArmed: false, pageSent: false, loopOffset: 2, delayMs: 2200,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 12 replaying — first two callouts gain cached sigils
+  // 12 replaying: first two callouts gain cached sigils
   { points: 20, p99: 1080, errorPct: 6.1,  budgetLeft: 38, phase: "replaying", killArmed: false, pageSent: false, loopOffset: 2, delayMs: 1800,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: true, c1Cached: true, c2Cached: false },
 
-  // 13 resumed — pending page fires, C2 delivers
+  // 13 resumed: pending page fires, C2 delivers
   { points: 24, p99: 1240, errorPct: 7.4,  budgetLeft: 12, phase: "resumed",   killArmed: false, pageSent: true,  loopOffset: 2, delayMs: 0,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: C2_LEN, c0Cached: true, c1Cached: true, c2Cached: false },
 ];
@@ -317,7 +317,7 @@ export function SloDemo({ variant }: { variant: SentinelVariant }) {
         </div>
       </div>
 
-      {/* agent thread — below tiles */}
+      {/* agent thread, below tiles */}
       <div className="grid grid-cols-3 gap-4">
         <CalloutSlot callout={CALLOUT_C0} state={c0State} visible={c0Visible} />
         <CalloutSlot callout={CALLOUT_C1} state={c1State} visible={c1Visible} />

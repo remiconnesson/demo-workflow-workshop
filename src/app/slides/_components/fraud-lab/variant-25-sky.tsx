@@ -23,7 +23,7 @@ import {
 // Deep night sky full-bleed. 50 stars at deterministic positions twinkle via
 // staggered CSS keyframes. Small green/blue meteors streak across the sky
 // every few seconds (CSS transform). At the fraud frame a RED meteor appears
-// top-right and streaks toward center-left, but FREEZES mid-arc — other
+// top-right and streaks toward center-left, but FREEZES mid-arc. Other
 // stars dim, a red halo pulses around it. Kill: meteor goes black, sky dims
 // further. Replay: meteor re-ignites at frozen position (cached trajectory).
 // Resume: emerald banner.
@@ -64,7 +64,7 @@ function buildStars(): Star[] {
 function buildMeteors(): Meteor[] {
   const rnd = mulberry32(42_13_04);
   const list: Meteor[] = [];
-  // 9 ambient meteors — one per non-fraud charge
+  // 9 ambient meteors, one per non-fraud charge
   for (let i = 0; i < FRAUD_IDX; i++) {
     list.push({
       id: i,
@@ -115,7 +115,7 @@ export function SkyDemo() {
     return out;
   }, [m.phase, ticks, atFraud, m.isCrashed, m.isReplaying, m.isResumed]);
 
-  // Sky dim multiplier — 1 is full brightness; 0.25 after crash.
+  // Sky dim multiplier: 1 is full brightness; 0.25 after crash.
   const skyBright = m.isCrashed ? 0.25 : atFraud ? 0.6 : 1;
   const redMeteorLit = atFraud && !m.isCrashed;
 
@@ -193,7 +193,7 @@ export function SkyDemo() {
           ))}
         </div>
 
-        {/* RED meteor — pre-positioned, frozen at fraud */}
+        {/* RED meteor, pre-positioned and frozen at fraud */}
         <div
           className="pointer-events-none absolute inset-0 transition-opacity duration-500"
           style={{ opacity: atFraud ? 1 : 0 }}
@@ -236,7 +236,7 @@ export function SkyDemo() {
 }
 
 // ---------------------------------------------------------------------------
-// Meteor — streaks on a staggered loop via CSS keyframes. Uses the angle
+// Meteor: streaks on a staggered loop via CSS keyframes. Uses the angle
 // and start position from the precomputed data.
 // ---------------------------------------------------------------------------
 
@@ -289,7 +289,7 @@ function Meteor({
 }
 
 // ---------------------------------------------------------------------------
-// RedMeteor — frozen mid-arc using animation-play-state: paused via a CSS
+// RedMeteor: frozen mid-arc using animation-play-state: paused via a CSS
 // keyframe that never advances. Crimson tail trailing behind.
 // ---------------------------------------------------------------------------
 

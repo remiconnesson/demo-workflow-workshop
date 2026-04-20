@@ -8,7 +8,7 @@ const RUN_ID_PLACEHOLDER = "<run_id>";
 // Compact, fixed-height ambient chip that rides next to each demo
 // headline. Surfaces the `npx workflow inspect run <id>` command for
 // the currently latest run so the presenter can always gesture at a
-// real link — no event feed, no logs, per .impeccable.md rule #8.
+// real link. No event feed, no logs, per .impeccable.md rule #8.
 //
 // This is the smaller sibling of ObservableCallout (which uses
 // `npx workflow web` on the-setup). "Inspect" is the command we teach

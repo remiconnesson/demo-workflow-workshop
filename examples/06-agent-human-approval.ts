@@ -1,4 +1,4 @@
-// Analyst agent — proposes a menu change, suspends for human approval,
+// Analyst agent: proposes a menu change, suspends for human approval,
 // then applies or rolls back based on the verdict.
 //
 // Mirrors: /slides/analyst/solution
@@ -39,7 +39,7 @@ export async function rollbackMenuChange({
   return { rolledBack: true, proposalId };
 }
 
-// Workflow-level tool — suspends via hook (no "use step")
+// Workflow-level tool that suspends via hook (no "use step")
 async function requestApproval({ proposalId }: { proposalId: string }) {
   const hook = approvalHook.create({
     token: `analyst-approval:${proposalId}`,

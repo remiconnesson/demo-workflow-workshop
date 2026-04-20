@@ -1,4 +1,4 @@
-// Observer agent — an autonomous loop that watches orders for anomalies.
+// Observer agent: an autonomous loop that watches orders for anomalies.
 // Every tool call is a durable step; sleep survives restarts.
 //
 // Mirrors: /slides/observer/solution

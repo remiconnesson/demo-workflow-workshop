@@ -4,7 +4,7 @@
  * This module is intentionally process-local (module-scope Maps / arrays).
  * It's consumed by both the Observer agent (autonomous, writes reports) and
  * the Analyst agent (interactive, proposes menu changes). No DB, no
- * persistence — perfect for a stage demo that resets on server restart.
+ * persistence, which is perfect for a stage demo that resets on server restart.
  */
 
 export type Scenario = "happy" | "payment-retry" | "slow-restaurant" | "driver-refuses";
@@ -60,7 +60,7 @@ export type MenuProposal = {
 // Stashed on `globalThis` so Next's dev-server HMR (which re-evaluates this
 // module on every edit) does not wipe the menuHistory stack. Without this,
 // an apply in process N followed by a rollback in process N+1 fails with
-// "no_history" — and the demo's rollback payoff dies on stage.
+// "no_history", and the demo's rollback payoff dies on stage.
 // ---------------------------------------------------------------------------
 
 type OpsStore = {
@@ -108,7 +108,7 @@ const SEED_MENU: MenuItem[] = [
   { sku: "ramen-tonkotsu", name: "Tonkotsu Ramen", price: 15.5 },
 ];
 
-// Deterministic seed — indexed arrays are easier than RNG here.
+// Deterministic seed. Indexed arrays are easier than RNG here.
 const SEED_ORDERS: Array<Omit<OrderRecord, "id" | "timestamp">> = [
   // Happy path
   { scenario: "happy", outcome: "delivered", waitMs: 1800, retries: 0, compensationsFired: 0, restaurantId: "r-burger-barn", items: [{ sku: "burger-classic", name: "Classic Burger", price: 12.5 }] },

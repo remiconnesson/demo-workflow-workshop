@@ -11,9 +11,9 @@ import {
 } from "./_agent-callout";
 
 // ---------------------------------------------------------------------------
-// CVE auto-patcher — three-column triage board + agent thread.
+// CVE auto-patcher: three-column triage board + agent thread.
 // Col 1: running deployments. Col 2: CVE matches. Col 3: AI thread above
-// the PR card — the patcher agent announces scan, draft, and merge as
+// the PR card. The patcher agent announces scan, draft, and merge as
 // separate speech cards. PR title types char-by-char and freezes mid-word
 // on crash. Replay caches the thread and completes the typing + merge.
 // ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ const CALLOUT_C0: Callout = {
   timestamp: "03:14:02",
   tone: "sky",
   message:
-    "Scanned 6 services — 3 running @openai 4.20.0 match CVE-2026-18442 (severity high).",
+    "Scanned 6 services. 3 running @openai 4.20.0 match CVE-2026-18442 (severity high).",
   citations: ["api-gateway", "order-ingest", "analytics-sink"],
   verdict: "3 matches",
 };
@@ -79,7 +79,7 @@ const CALLOUT_C1: Callout = {
   timestamp: "03:14:07",
   tone: "violet",
   message:
-    "Drafting PR against main — bumping @openai across 3 services, updating lockfile, pushing cve/openai-4.20.1.",
+    "Drafting PR against main: bumping @openai across 3 services, updating lockfile, pushing cve/openai-4.20.1.",
   citations: ["main", "cve/openai-4.20.1"],
   verdict: "PR draft",
 };
@@ -91,7 +91,7 @@ const CALLOUT_C2: Callout = {
   timestamp: "03:14:23",
   tone: "emerald",
   message:
-    "Merged #9182 into main — CI green, branch deleted. All 3 services now on @openai 4.20.1.",
+    "Merged #9182 into main. CI green, branch deleted. All 3 services now on @openai 4.20.1.",
   citations: ["#9182", "main"],
   verdict: "auto-merged",
 };
@@ -125,7 +125,7 @@ const FRAMES: Frame[] = [
   // 1 scanning
   { phase: "scanning", titleChars: 0, diffLines: 0, merged: false, loopOffset: 1, killArmed: false, delayMs: 900, ...BASE },
 
-  // 2 matched — CVE arrows appear
+  // 2 matched: CVE arrows appear
   { phase: "matched", titleChars: 0, diffLines: 0, merged: false, loopOffset: 1, killArmed: false, delayMs: 700, ...BASE },
 
   // 3-4 C0 speaks up (scan findings)
@@ -146,15 +146,15 @@ const FRAMES: Frame[] = [
   { phase: "typing", titleChars: CRASH_CHAR_COUNT, diffLines: 0, merged: false, loopOffset: 1, killArmed: false, delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 70, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 9 armed — C1 delivered, kill pulses, 12s to decide
+  // 9 armed: C1 delivered, kill pulses, 12s to decide
   { phase: "typing", titleChars: CRASH_CHAR_COUNT, diffLines: 0, merged: false, loopOffset: 1, killArmed: true, delayMs: 12000,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 10 crashed — title frozen mid-word, first two callouts already delivered
+  // 10 crashed: title frozen mid-word, first two callouts already delivered
   { phase: "crashed", titleChars: CRASH_CHAR_COUNT, diffLines: 0, merged: false, loopOffset: 1, killArmed: false, delayMs: 2400,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false, c2Cached: false },
 
-  // 11 replaying — title snaps to full (cached), thread gets cached sigils
+  // 11 replaying: title snaps to full (cached), thread gets cached sigils
   { phase: "replaying", titleChars: PR_TITLE.length, diffLines: 0, merged: false, loopOffset: 1, killArmed: false, delayMs: 1000,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: true, c1Cached: true, c2Cached: false },
 
@@ -365,7 +365,7 @@ export function PatcherDemo({ variant }: { variant: SentinelVariant }) {
             </span>
           </div>
 
-          {/* agent thread — 3 callouts stack above the PR card */}
+          {/* agent thread: 3 callouts stack above the PR card */}
           <div className="flex flex-col gap-2">
             <CalloutSlot callout={CALLOUT_C0} state={c0State} visible={c0Visible} />
             <CalloutSlot callout={CALLOUT_C1} state={c1State} visible={c1Visible} />

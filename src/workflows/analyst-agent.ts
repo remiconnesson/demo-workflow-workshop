@@ -74,7 +74,7 @@ async function applyMenuChange({
   if (!next) {
     return { applied: false, error: "sku_not_found", sku } as const;
   }
-  // Best-effort status update — the proposals Map may be empty after a
+  // Best-effort status update. The proposals Map may be empty after a
   // restart, in which case setProposalStatus is a no-op.
   setProposalStatus(proposalId, "applied");
   return { applied: true, menuItem: next, sku, proposalId } as const;
@@ -94,7 +94,7 @@ async function rollbackMenuChange({ sku }: { sku: string }) {
 // ---------------------------------------------------------------------------
 
 async function requestApproval({ proposalId }: { proposalId: string }) {
-  // Hooks awaited at workflow level — no "use step".
+  // Hooks awaited at workflow level; no "use step".
   const token = `analyst-approval:${proposalId}`;
   const hook = approvalHook.create({ token });
 
@@ -130,9 +130,9 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
     model: "anthropic/claude-haiku-4.5",
     instructions: [
       "You are the restaurant manager's AI assistant for a food delivery app.",
-      "NEVER ask the manager clarifying questions — always act.",
+      "NEVER ask the manager clarifying questions. Always act.",
       "",
-      "DEFAULT FLOW — for any investigative user message (e.g. 'what's",
+      "DEFAULT FLOW: for any investigative user message (e.g. 'what's",
       "going wrong', 'why are we refunding so much', 'should we hide",
       "anything'), drive this pipeline to completion in one turn:",
       "(1) call readReport and queryOrders to spot patterns.",
@@ -143,7 +143,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       "then emit one short confirmation sentence and stop.",
       "If the manager rejects, acknowledge in one sentence and stop.",
       "",
-      "ROLLBACK FLOW — if the manager asks you to roll back, undo, or",
+      "ROLLBACK FLOW: if the manager asks you to roll back, undo, or",
       "revert one or more SKUs (e.g. 'roll back sushi-omakase' or",
       "'please roll back: burger-classic, pho-beef'), call",
       "rollbackMenuChange ONCE per sku the manager named, in order,",
@@ -170,7 +170,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       proposeMenuChange: {
         description:
-          "Queue a proposed menu change. Does NOT apply it — requires approval first. Returns the proposal plus the current menu item so the UI can show a diff.",
+          "Queue a proposed menu change. Does NOT apply it; requires approval first. Returns the proposal plus the current menu item so the UI can show a diff.",
         inputSchema: z.object({
           sku: z.string(),
           patch: z
@@ -221,13 +221,13 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
 
   const runFallback = async () => {
     await runMockAgentTurn({
-      // Deterministic — derived from workflow input (the messages array
+      // Deterministic, derived from workflow input (the messages array
       // length is stable across replays of the same turn).
       idPrefix: `mock-analyst-turn-${messages.length}`,
       script: {
         preludeText: [
           "The AI Gateway is unreachable right now, so I'm running in",
-          "offline-demo mode — interactive proposals, approvals, and",
+          "offline-demo mode. Interactive proposals, approvals, and",
           "rollbacks need the live model to drive them end-to-end.",
           "Restore the gateway connection and retry.",
         ].join(" "),

@@ -11,7 +11,7 @@ import {
 } from "./_agent-callout";
 
 // ---------------------------------------------------------------------------
-// Fraud sentinel — live charge ledger + inline AI callouts.
+// Fraud sentinel: live charge ledger + inline AI callouts.
 // Rows stream in silently. After 5 clean rows, the fraud agent "speaks up"
 // inline with a clear-batch summary. More rows stream; on the high-risk
 // row the agent speaks up again with a freeze verdict. Kill arms → crash
@@ -60,7 +60,7 @@ const CALLOUT_C0: Callout = {
   timestamp: "14:32:06",
   tone: "emerald",
   message:
-    "Last 5 charges clear — low-risk cards, familiar merchants, no geo anomalies.",
+    "Last 5 charges clear: low-risk cards, familiar merchants, no geo anomalies.",
   citations: ["•••• 4242", "•••• 1117", "•••• 9003"],
   verdict: "cleared 5",
 };
@@ -72,7 +72,7 @@ const CALLOUT_C1: Callout = {
   timestamp: "14:32:13",
   tone: "red",
   message:
-    "Freezing •••• 8891 — first charge at Cryptonome-XYZ, 3× typical amount, RU merchant mid-day.",
+    "Freezing •••• 8891. First charge at Cryptonome-XYZ, 3× typical amount, RU merchant mid-day.",
   citations: ["•••• 8891", "Cryptonome-XYZ"],
   verdict: "froze •••• 8891",
 };
@@ -100,7 +100,7 @@ const FRAMES: Frame[] = [
   { loopOffset: 0, visibleIdx: 0,  scoringIdx: null, phase: "idle",      killArmed: false, delayMs: 0,
     c0Chars: 0, c1Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 1-5 loop 1 — rows 0..4 score one-by-one
+  // 1-5 loop 1: rows 0..4 score one-by-one
   { loopOffset: 1, visibleIdx: 1,  scoringIdx: 0,    phase: "live",      killArmed: false, delayMs: 500,
     c0Chars: 0, c1Chars: 0, c0Cached: false, c1Cached: false },
   { loopOffset: 1, visibleIdx: 2,  scoringIdx: 1,    phase: "live",      killArmed: false, delayMs: 500,
@@ -118,7 +118,7 @@ const FRAMES: Frame[] = [
   { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, phase: "live",      killArmed: false, delayMs: 900,
     c0Chars: C0_LEN, c1Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 8-12 loop 2 — rows 5..9 score
+  // 8-12 loop 2: rows 5..9 score
   { loopOffset: 2, visibleIdx: 6,  scoringIdx: 5,    phase: "live",      killArmed: false, delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 0, c0Cached: false, c1Cached: false },
   { loopOffset: 2, visibleIdx: 7,  scoringIdx: 6,    phase: "live",      killArmed: false, delayMs: 500,
@@ -140,7 +140,7 @@ const FRAMES: Frame[] = [
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   phase: "live",      killArmed: false, delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 62, c0Cached: false, c1Cached: false },
 
-  // 16 armed — C1 fully delivered, kill pulses, 12s to decide
+  // 16 armed: C1 fully delivered, kill pulses, 12s to decide
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   phase: "live",      killArmed: true,  delayMs: 12000,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: false, c1Cached: false },
 
@@ -148,7 +148,7 @@ const FRAMES: Frame[] = [
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   phase: "crashed",   killArmed: false, delayMs: 2200,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: false, c1Cached: false },
 
-  // 18 replaying — both callouts gain "cached" sigil
+  // 18 replaying: both callouts gain "cached" sigil
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   phase: "replaying", killArmed: false, delayMs: 1800,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: true,  c1Cached: true  },
 
@@ -260,7 +260,7 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
 
   return (
     <div className="relative flex h-full min-h-0 flex-col gap-4 overflow-hidden">
-      {/* top strip — counters */}
+      {/* top strip: counters */}
       <div
         className={`flex items-center justify-between rounded-2xl border bg-zinc-950 px-8 py-5 transition-colors duration-500 ${
           isResumed ? "border-emerald-500/40 bg-emerald-500/[0.06]" : "border-white/10"
@@ -403,7 +403,7 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
         </div>
       </div>
 
-      {/* bottom row — debug drawer + kill */}
+      {/* bottom row: debug drawer + kill */}
       <div className="flex items-end gap-4">
         <AgentDebugDrawer runId={runId} events={debugEvents} />
         <button
@@ -512,7 +512,7 @@ function ChargeRow({
             frozen ? "text-red-300" : scoring ? "text-sky-300" : "text-zinc-500"
           }`}
         >
-          {state === "hidden" ? "—" : charge.risk.toFixed(2)}
+          {state === "hidden" ? "\u2009" : charge.risk.toFixed(2)}
         </span>
       </div>
 

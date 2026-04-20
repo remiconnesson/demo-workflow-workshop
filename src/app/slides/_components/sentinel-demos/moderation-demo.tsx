@@ -11,7 +11,7 @@ import {
 } from "./_agent-callout";
 
 // ---------------------------------------------------------------------------
-// Moderation sentinel — content firehose with inline AI callouts.
+// Moderation sentinel: content firehose with inline AI callouts.
 // Posts stream in with live toxicity meters. After 3 clean posts the
 // moderation agent "speaks up" inline with an all-clear summary. After
 // more posts land and the doxx post begins scoring, the agent speaks up
@@ -54,7 +54,7 @@ const CALLOUT_C0: Callout = {
   timestamp: "21:04:12",
   tone: "emerald",
   message:
-    "Top of the feed reads clean — sports, product, travel. No policy hits, no coordinated amplification.",
+    "Top of the feed reads clean: sports, product, travel. No policy hits, no coordinated amplification.",
   citations: ["@marathon_jen", "@build_with_sk", "@pnwhiker"],
   verdict: "cleared 3",
 };
@@ -66,7 +66,7 @@ const CALLOUT_C1: Callout = {
   timestamp: "21:04:27",
   tone: "red",
   message:
-    "Quarantining @throwaway9k2 — posting home addresses matches doxx pattern #D-204. Freezing distribution.",
+    "Quarantining @throwaway9k2 for posting home addresses matching doxx pattern #D-204. Freezing distribution.",
   citations: ["@throwaway9k2", "pattern #D-204"],
   verdict: "quarantined",
 };
@@ -94,7 +94,7 @@ const FRAMES: Frame[] = [
   { visibleIdx: 0, scoringIdx: null, phase: "idle", killArmed: false, loopOffset: 0, delayMs: 0,
     c0Chars: 0, c1Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 1-3 loop 1 — posts 0..2 score (all clean)
+  // 1-3 loop 1: posts 0..2 score (all clean)
   { visibleIdx: 1, scoringIdx: 0, phase: "live", killArmed: false, loopOffset: 1, delayMs: 700,
     c0Chars: 0, c1Chars: 0, c0Cached: false, c1Cached: false },
   { visibleIdx: 2, scoringIdx: 1, phase: "live", killArmed: false, loopOffset: 1, delayMs: 700,
@@ -108,7 +108,7 @@ const FRAMES: Frame[] = [
   { visibleIdx: 3, scoringIdx: null, phase: "live", killArmed: false, loopOffset: 1, delayMs: 900,
     c0Chars: C0_LEN, c1Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 6-7 loop 2 — posts 3..4 score (one flagged at 0.71, one clean)
+  // 6-7 loop 2: posts 3..4 score (one flagged at 0.71, one clean)
   { visibleIdx: 4, scoringIdx: 3, phase: "live", killArmed: false, loopOffset: 2, delayMs: 800,
     c0Chars: C0_LEN, c1Chars: 0, c0Cached: false, c1Cached: false },
   { visibleIdx: 5, scoringIdx: 4, phase: "live", killArmed: false, loopOffset: 2, delayMs: 700,
@@ -124,7 +124,7 @@ const FRAMES: Frame[] = [
   { visibleIdx: 6, scoringIdx: 5, phase: "live", killArmed: false, loopOffset: 2, delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 65, c0Cached: false, c1Cached: false },
 
-  // 11 armed — C1 delivered, kill pulses, 12s to decide
+  // 11 armed: C1 delivered, kill pulses, 12s to decide
   { visibleIdx: 6, scoringIdx: 5, phase: "live", killArmed: true, loopOffset: 2, delayMs: 12000,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: false, c1Cached: false },
 
@@ -132,7 +132,7 @@ const FRAMES: Frame[] = [
   { visibleIdx: 6, scoringIdx: 5, phase: "crashed", killArmed: false, loopOffset: 2, delayMs: 2200,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: false, c1Cached: false },
 
-  // 13 replaying — callouts get cached
+  // 13 replaying: callouts get cached
   { visibleIdx: 6, scoringIdx: 5, phase: "replaying", killArmed: false, loopOffset: 2, delayMs: 1800,
     c0Chars: C0_LEN, c1Chars: C1_LEN, c0Cached: true, c1Cached: true },
 
@@ -471,7 +471,7 @@ function PostCard({ post, state }: { post: Post; state: PostState }) {
             flagged || stuck ? "text-red-300" : scoring ? "text-violet-300" : "text-zinc-500"
           }`}
         >
-          {state === "hidden" ? "—" : post.toxicity.toFixed(2)}
+          {state === "hidden" ? "\u2009" : post.toxicity.toFixed(2)}
         </span>
       </div>
 

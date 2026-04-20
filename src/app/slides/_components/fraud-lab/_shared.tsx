@@ -48,7 +48,7 @@ export const UPTIME_LABEL = "running since jan 14 · 94 days uptime";
 export const STARTING_LOOP = 13_249;
 
 // ---------------------------------------------------------------------------
-// Shell — every variant renders inside this. It owns the phase state, the
+// Shell: every variant renders inside this. It owns the phase state, the
 // kill button, the slide-run listener, the runId for the debug drawer, and
 // three reserved overlay slots: idle hint, crash overlay, resumed banner.
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ export type ShellRenderProps = {
 };
 
 // ---------------------------------------------------------------------------
-// Top strip used by most variants — uniform counters so the "94-day"
+// Top strip used by most variants. Uniform counters so the "94-day"
 // framing reads the same across all 25 designs.
 // ---------------------------------------------------------------------------
 
@@ -150,7 +150,7 @@ function Counter({
 }
 
 // ---------------------------------------------------------------------------
-// IdleHint · CrashOverlay · ResumedBanner — three reusable absolute-positioned
+// IdleHint · CrashOverlay · ResumedBanner: three reusable absolute-positioned
 // overlays variants can drop onto their canvas.
 // ---------------------------------------------------------------------------
 
@@ -273,7 +273,7 @@ export function KillButton({
 }
 
 // ---------------------------------------------------------------------------
-// usePhaseMachine — the variant tells us the timings for each beat; we run
+// usePhaseMachine: the variant tells us the timings for each beat; we run
 // the state machine. This keeps crash-on-kill + resume-auto-advance uniform
 // across every variant.
 // ---------------------------------------------------------------------------
@@ -357,7 +357,7 @@ export function usePhaseMachine(timings: PhaseTimings = DEFAULT_TIMINGS) {
 }
 
 // ---------------------------------------------------------------------------
-// elapsed — monotonically increasing milliseconds since the first `live`
+// elapsed: monotonically increasing milliseconds since the first `live`
 // frame. Variants use this to drive frame-based animations without having
 // to manage their own timer.
 // ---------------------------------------------------------------------------

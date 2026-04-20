@@ -1,4 +1,4 @@
-// Human-in-the-Loop — suspend the workflow until an external system responds.
+// Human-in-the-Loop: suspend the workflow until an external system responds.
 //
 // Mirrors: /slides/suspend/solution
 

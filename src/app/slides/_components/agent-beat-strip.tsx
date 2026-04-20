@@ -100,7 +100,7 @@ type AgentBeatStripProps = {
 };
 
 /**
- * Static "finished" snapshot of a durable-agent demo's three beats —
+ * Static "finished" snapshot of a durable-agent demo's three beats.
  * same visual language as FinishedTimelineStrip but with agent-specific
  * steps. Anchors the fix slide back to the demo the audience just watched.
  */
@@ -110,7 +110,7 @@ export function AgentBeatStrip({ slug }: AgentBeatStripProps) {
   return (
     <div className="rounded-2xl border border-white/5 bg-zinc-950/60 px-8 py-5 opacity-60">
       <div className="relative flex items-start justify-center gap-24">
-        {/* Connecting line — behind nodes */}
+        {/* Connecting line, behind nodes */}
         <div className="pointer-events-none absolute left-1/2 top-[18px] h-px w-[320px] -translate-x-1/2 bg-white/15" />
 
         {beats.map((beat) => (

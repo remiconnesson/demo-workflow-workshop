@@ -7,7 +7,7 @@ const RUN_ID_PLACEHOLDER = "<run_id>";
 
 // Ambient chip under the setup slide that surfaces the `npx workflow web run <id>`
 // dashboard command. Auto-fills from the most recent run so the presenter can
-// point at it after the happy-path demo. No feed, no logs — per
+// point at it after the happy-path demo. No feed, no logs, per
 // .impeccable.md rule #8, just a single static command + short eyebrow.
 export function ObservableCallout() {
   const [runId, setRunId] = useState<string | null>(null);

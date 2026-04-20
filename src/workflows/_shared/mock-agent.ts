@@ -5,13 +5,13 @@ import type { UIMessageChunk } from "ai";
 // Offline / AI-Gateway fallback for DurableAgent demos.
 //
 // The three workshop agents (first-agent, observer, analyst) stream through
-// the Vercel AI Gateway. When that path fails — offline laptop, expired key,
-// gateway outage — the demo shouldn't go blank on stage. This helper emits
+// the Vercel AI Gateway. When that path fails (offline laptop, expired key,
+// gateway outage) the demo shouldn't go blank on stage. This helper emits
 // a minimal scripted turn onto the same writable the real agent would use,
 // so the audience sees text land in the chat and the timeline light up.
 //
 // Writer acquisition must happen inside a "use step" boundary (see
-// reference.md — "Stream progress"). We build the full chunk list at
+// reference.md, "Stream progress"). We build the full chunk list at
 // workflow scope, then delegate the actual writes to a single step.
 //
 // Usage inside a workflow:
@@ -49,7 +49,7 @@ export type RunMockAgentOpts = {
    * Prefix for text-part IDs. REQUIRED: must be a deterministic value
    * derived from workflow inputs (loop index, message count, …) so the
    * chunk IDs replay identically. Never use Date.now() or Math.random()
-   * here — the workflow runtime replays workflow-scope code on resume.
+   * here because the workflow runtime replays workflow-scope code on resume.
    * Example: `mock-observer-${loopIndex}`.
    */
   idPrefix: string;
@@ -59,7 +59,7 @@ export type RunMockAgentOpts = {
  * Heuristic: treat any error thrown out of `agent.stream()` as a gateway
  * failure when the presenter has explicitly opted in via env var, or when
  * the error text matches a known failure mode. Err on the side of "real
- * failures should still surface" — the demo fallback only kicks in for
+ * failures should still surface." The demo fallback only kicks in for
  * transport-level problems.
  */
 export function isGatewayFailure(err: unknown): boolean {
@@ -89,7 +89,7 @@ export function isGatewayFailure(err: unknown): boolean {
 
 /**
  * Should the workflow skip the real agent call entirely and go straight to
- * the mock? Only when the presenter opts in — we never silently disable
+ * the mock? Only when the presenter opts in. We never silently disable
  * the real path.
  */
 export function shouldForceMockAgent(): boolean {
@@ -150,7 +150,7 @@ function buildChunks(
 /**
  * Step-boundary writer: acquires the workflow writable, writes every chunk,
  * releases the lock. Writer acquisition inside a workflow function is only
- * legal from a "use step" function (reference.md — "Stream progress").
+ * legal from a "use step" function (reference.md, "Stream progress").
  */
 async function writeMockChunks(chunks: UIMessageChunk[]): Promise<void> {
   "use step";
@@ -168,7 +168,7 @@ async function writeMockChunks(chunks: UIMessageChunk[]): Promise<void> {
  * Emit a scripted turn onto the agent's UIMessageChunk stream.
  *
  * Builds the full chunk list synchronously, then delegates the write to a
- * single step. This is safe to call directly from workflow scope — the
+ * single step. This is safe to call directly from workflow scope because the
  * caller does NOT need to wrap it in "use step".
  */
 export async function runMockAgentTurn({

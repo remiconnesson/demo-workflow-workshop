@@ -78,7 +78,7 @@ async function appendToReport({ entries }: { entries: ReportEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Workflow-level tool: human ack via hook (factory — closure captures counter)
+// Workflow-level tool: human ack via hook (factory, closure captures counter)
 // ---------------------------------------------------------------------------
 
 function makeFlagForHuman() {
@@ -91,7 +91,7 @@ function makeFlagForHuman() {
     summary: string;
     severity: "info" | "warn" | "critical";
   }) {
-    // No "use step" — hooks must be awaited at the workflow level.
+    // No "use step" here; hooks must be awaited at the workflow level.
     const token = `observer-flag:${++flagCallCount}`;
     const hook = approvalHook.create({ token });
 

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 // ------------------------------------------------------------------
-// Per-variant visual lookups — local to the picker. The variant data
+// Per-variant visual lookups, local to the picker. The variant data
 // is metadata-only now; each bespoke demo owns its own visual vocab.
 // ------------------------------------------------------------------
 
@@ -114,7 +114,7 @@ export default function SentinelVariantsIndexPage() {
         </h1>
         <p className="max-w-3xl text-xl leading-relaxed text-zinc-400">
           Each of these is a different take on &ldquo;what happens when an
-          agent loses its server?&rdquo; — same state machine, different
+          agent loses its server?&rdquo; Same state machine, different
           stakes. Press <kbd className="mx-1 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-base">1</kbd>–<kbd className="ml-1 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-base">5</kbd> to jump.
         </p>
       </div>

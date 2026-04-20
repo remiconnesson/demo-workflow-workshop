@@ -35,7 +35,7 @@ async function chargeCard(order) {
           },
           {
             highlightLines: {
-              3: "Marks this function as a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — if it crashes, the SDK [retries it automatically](https://workflow-sdk.dev/docs/foundations/errors-and-retries)",
+              3: "Marks this function as a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps). If it crashes, the SDK [retries it automatically](https://workflow-sdk.dev/docs/foundations/errors-and-retries)",
             },
             code: `// if this fails, the SDK retries it
 async function chargeCard(order) {
@@ -47,7 +47,7 @@ async function chargeCard(order) {
           },
           {
             highlightLines: {
-              4: "A [stable ID](https://workflow-sdk.dev/docs/foundations/idempotency) that never changes across retries — your [deduplication key](https://workflow-sdk.dev/docs/foundations/idempotency)",
+              4: "A [stable ID](https://workflow-sdk.dev/docs/foundations/idempotency) that never changes across retries, serving as your [deduplication key](https://workflow-sdk.dev/docs/foundations/idempotency)",
             },
             code: `// if this fails, the SDK retries it
 async function chargeCard(order) {

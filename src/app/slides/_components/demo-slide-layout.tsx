@@ -75,7 +75,7 @@ type DemoSlideLayoutProps = {
 };
 
 /**
- * The "demo" slide — first beat per property. Condensed headline sits
+ * The "demo" slide (first beat per property). Condensed headline sits
  * directly above the lab; subtitle is suppressed so one text layer competes
  * for attention. The audience sees the problem, not a ladder of titles.
  */

@@ -1,19 +1,19 @@
 "use client";
 
 // ---------------------------------------------------------------------------
-// AgentCallout — the "AI speaks up" card used across all five sentinel
+// AgentCallout: the "AI speaks up" card used across all five sentinel
 // demos. The card sits INLINE with the demo data (row-like in feed demos,
 // in a side thread in spatial demos) and represents a single moment where
 // the agent reasoned about the data and produced a verdict.
 //
 // Renders:
-//   • avatar initial (coloured)        — stable identity for the agent
-//   • agent name + state dot           — current thinking state
-//   • timestamp                        — monospace, dim
-//   • message                          — 1–2 sentence prose, optional typewriter
-//   • inline citation chips            — cite specific IDs in the data above
-//   • verdict tag                      — past-tense action, strong colour
-//   • "cached" sigil                   — appears on replay to show persistence
+//   • avatar initial (coloured)        . stable identity for the agent
+//   • agent name + state dot           . current thinking state
+//   • timestamp                        . monospace, dim
+//   • message                          . 1-2 sentence prose, optional typewriter
+//   • inline citation chips            . cite specific IDs in the data above
+//   • verdict tag                      . past-tense action, strong colour
+//   • "cached" sigil                   . appears on replay to show persistence
 // ---------------------------------------------------------------------------
 
 export type CalloutTone = "sky" | "violet" | "amber" | "red" | "emerald";
@@ -160,7 +160,7 @@ export function AgentCallout({
 }
 
 function toneFill(tone: CalloutTone): string {
-  // dummy — replaced by explicit hex below, but we keep the class name
+  // dummy, replaced by explicit hex below. We keep the class name
   // so dynamic border-l-* isn't purged if someone inspects the element.
   return tone;
 }

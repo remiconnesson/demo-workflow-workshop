@@ -14,12 +14,12 @@ const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
  *
  * Reuses the `/api/experiments/our-first-agent` routes. The slide's job
  * is to let the presenter:
- *   1. Press "Open ticket" — agent starts streaming
+ *   1. Press "Open ticket" so the agent starts streaming
  *   2. While the tool is running (3s sleep), hit F5
  *   3. Watch the same sentence finish itself after reload
  *
  * Everything is sized for projector legibility: text-3xl message bodies,
- * a full-width "AGENT WORKING — RELOAD SAFE" state card, and a run-id
+ * a full-width "AGENT WORKING, RELOAD SAFE" state card, and a run-id
  * badge in Geist Mono that stays identical across the reload.
  */
 export function FirstAgentDemoPane() {
@@ -125,7 +125,7 @@ export function FirstAgentDemoPane() {
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_440px] gap-8 overflow-hidden">
-      {/* LEFT — chat surface */}
+      {/* LEFT: chat surface */}
       <div className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
         <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
           <div className="flex items-center gap-4">
@@ -196,7 +196,7 @@ export function FirstAgentDemoPane() {
         </div>
       </div>
 
-      {/* RIGHT — the F5 hint + under-the-hood */}
+      {/* RIGHT: the F5 hint + under-the-hood */}
       <aside
         className={`flex min-h-0 flex-col overflow-hidden ${
           debugOpen ? "gap-6" : "justify-center"
@@ -298,7 +298,7 @@ function WorkingPulse() {
     <div className="flex items-center gap-4 rounded-2xl border border-sky-500/40 bg-sky-500/10 px-6 py-5">
       <span className="h-3 w-3 animate-pulse rounded-full bg-sky-400" />
       <span className="font-mono text-lg uppercase tracking-[0.2em] text-sky-200">
-        agent working — reload safe
+        agent working, reload safe
       </span>
     </div>
   );
@@ -309,7 +309,7 @@ function ReconnectedBanner() {
     <div className="flex items-center gap-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-6 py-5 shadow-[0_0_30px_rgba(52,211,153,0.25)]">
       <span className="h-3 w-3 rounded-full bg-emerald-400" />
       <span className="font-mono text-lg uppercase tracking-[0.2em] text-emerald-200">
-        stream reconnected — same run
+        stream reconnected, same run
       </span>
     </div>
   );

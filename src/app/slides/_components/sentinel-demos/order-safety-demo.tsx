@@ -7,10 +7,10 @@ import { useObserverRunId, useSlideRunReset } from "./_shared";
 import { AgentCallout, type Callout, type CalloutState } from "./_agent-callout";
 
 // ---------------------------------------------------------------------------
-// Order-safety monitor — fleet radar + AI thread.
+// Order-safety monitor: fleet radar + AI thread.
 // The left panel is a circular SVG radar with a rotating sweep line; each
 // loop tick blips in new orders at city coordinates. The right panel is the
-// AI's reasoning thread — three callouts narrating the same moment the radar
+// AI's reasoning thread. Three callouts narrate the same moment the radar
 // is showing (watching → correlated → pulled), with cached sigils on replay.
 // ---------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ const CALLOUT_C0: Callout = {
   timestamp: "12:48:04",
   tone: "sky",
   message:
-    "Fleet reads clean — 312 orders scored this tick, all below 0.2. Watching 2,041 drivers across 10 metros.",
+    "Fleet reads clean: 312 orders scored this tick, all below 0.2. Watching 2,041 drivers across 10 metros.",
   citations: ["ord_1f2a", "ord_8c11", "ord_3b04"],
   verdict: "watching",
 };
@@ -74,7 +74,7 @@ const CALLOUT_C1: Callout = {
   timestamp: "12:48:11",
   tone: "amber",
   message:
-    "drv_042 just crossed anomaly 0.71 — 4 disputes in 90 minutes, radius drift across 12 miles.",
+    "drv_042 just crossed anomaly 0.71 with 4 disputes in 90 minutes, radius drift across 12 miles.",
   citations: ["drv_042", "DAL"],
   verdict: "correlated",
 };
@@ -86,7 +86,7 @@ const CALLOUT_C2: Callout = {
   timestamp: "12:48:16",
   tone: "red",
   message:
-    "Pulling drv_042 — ride count frozen, support ticket opened, rider reassigned. Idempotent: already pulled pre-crash.",
+    "Pulling drv_042. Ride count frozen, support ticket opened, rider reassigned. Idempotent: already pulled pre-crash.",
   citations: ["drv_042", "#SUP-9172"],
   verdict: "pulled drv_042",
 };
@@ -134,10 +134,10 @@ const FRAMES: Frame[] = [
   // 7 · armed (killArmed, 12s)
   { phase: "armed", blipsThrough: 6, sweepDeg: 160, pulled: false, haloLevel: 3, loopOffset: 3, killArmed: true, delayMs: 12000, c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 8 · CRASH — sweep freeze
+  // 8 · CRASH: sweep freeze
   { phase: "crashed", blipsThrough: 6, sweepDeg: -1, pulled: false, haloLevel: 3, loopOffset: 3, killArmed: false, delayMs: 2400, c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: false, c1Cached: false },
 
-  // 9 · replaying — C0/C1 cached
+  // 9 · replaying: C0/C1 cached
   { phase: "replaying", blipsThrough: 6, sweepDeg: -1, pulled: false, haloLevel: 3, loopOffset: 3, killArmed: false, delayMs: 1800, c0Chars: C0_LEN, c1Chars: C1_LEN, c2Chars: 0, c0Cached: true, c1Cached: true },
 
   // 10 · resumed · C2 typing (pull)

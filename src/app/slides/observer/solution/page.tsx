@@ -20,7 +20,7 @@ export default function AgentObserverFixSlide() {
         },
         {
           label: <>Run the agent in a <code className="font-mono">loop</code></>,
-          detail: <>a plain <span className="text-zinc-300">while (true)</span> — the SDK makes it durable</>,
+          detail: <>a plain <span className="text-zinc-300">while (true)</span> that the SDK makes durable</>,
         },
       ]}
       workflowFix={{
@@ -40,7 +40,7 @@ export async function observerAgentWorkflow() {
     tools: { fetchRecentOrders, analyzeWindow, appendToReport },
   })
 
-  // one-shot — runs once, no replay of prior calls
+  // one-shot: runs once, no replay of prior calls
   await agent.stream({
     messages: [{ role: "user", content: "Check recent orders." }],
     writable,
@@ -49,7 +49,7 @@ export async function observerAgentWorkflow() {
           },
           {
             highlightLines: {
-              3: "Makes this fetch [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — on replay, returns the **cached result** instead of re-executing",
+              3: "Makes this fetch [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps). On replay, returns the **cached result** instead of re-executing",
             },
             code: `async function fetchRecentOrders({ limit }) {
   // on retry, replays from log (no db hit)
@@ -75,7 +75,7 @@ export async function observerAgentWorkflow() {
           },
           {
             highlightLines: {
-              17: "Always running — the SDK makes this [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps), not a framework abstraction",
+              17: "Always running. The SDK makes this [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps), not a framework abstraction",
               18: "",
               19: "",
               20: "",
@@ -96,7 +96,7 @@ export async function observerAgentWorkflow() {
     tools: { fetchRecentOrders, analyzeWindow, appendToReport },
   })
 
-  // always running — survives crashes, resumes mid-iteration
+  // always running. survives crashes, resumes mid-iteration
   while (true) {
     await agent.stream({
       messages: [{ role: "user", content: "Check recent orders." }],

@@ -9,7 +9,7 @@ type AdminCancelBody = { reason?: string };
  * Admin cancel endpoint. Drives the `failure-admin-cancel` slide.
  *
  * Resumes the admin-cancel hook. The workflow is paused inside a
- * `Promise.race([cancelHook, sleep("6s")])` — resuming the hook
+ * `Promise.race([cancelHook, sleep("6s")])`. Resuming the hook
  * wins the race and the workflow throws to trigger saga rollback.
  * `resumeHook` wakes a suspended workflow automatically, so no
  * explicit `run.wakeUp()` is needed.

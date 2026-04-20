@@ -24,7 +24,7 @@ export async function chargeCard(order: {
   "use step";
   // ...and getStepMetadata hands you its identity
   const { stepId } = getStepMetadata();
-  // lock it down with a stable id — in production:
+  // lock it down with a stable id. In production:
   //   return stripe.charges.create(
   //     { amount: order.total },
   //     { idempotencyKey: stepId },

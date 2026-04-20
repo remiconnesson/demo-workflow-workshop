@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 // Listen for the global slide:run / slide:reset CustomEvents dispatched by
 // src/app/slides/layout.tsx when the presenter hits `r` or `Shift+R`.
-// No slug filter — only one sentinel demo is mounted at a time per route.
+// No slug filter needed. Only one sentinel demo is mounted at a time per route.
 export function useSlideRunReset({
   onStart,
   onReset,

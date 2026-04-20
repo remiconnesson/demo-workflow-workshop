@@ -440,7 +440,7 @@ export function AnalystChatPane({
           const sku = o.sku ?? "";
           if (sku) {
             setApplied((prev) => {
-              // Remove the *last* entry with a matching sku — matches the
+              // Remove the *last* entry with a matching sku, matching the
               // LIFO semantics of menuHistory.pop().
               for (let i = prev.length - 1; i >= 0; i--) {
                 if (prev[i].sku === sku) {
@@ -452,7 +452,7 @@ export function AnalystChatPane({
           }
         }
 
-        // Approval prompt resolved — clear banner/bus.
+        // Approval prompt resolved. Clear banner/bus.
         setAwaitingApproval(null);
         setPendingPrompt(null);
         return;
@@ -567,7 +567,7 @@ export function AnalystChatPane({
         skus.length === 1
           ? `Please roll back ${list}. Call rollbackMenuChange and confirm briefly.`
           : `Please roll back the following skus: ${list}. Call rollbackMenuChange once per sku in order and confirm briefly.`;
-      // Fire and forget — the send() call guards against concurrent streams.
+      // Fire and forget. The send() call guards against concurrent streams.
       void send(msg);
     });
   }, [send]);
@@ -591,7 +591,7 @@ export function AnalystChatPane({
 
     // Reconcile: ops-data state is in-memory and wiped on server restart /
     // HMR. Any persisted applied-proposal whose sku the server no longer
-    // recognizes as rollbackable would fail with "no_history" — drop it so
+    // recognizes as rollbackable would fail with "no_history", so drop it to ensure
     // the phone's checklist never offers an undo that can't execute.
     if (persisted?.appliedProposals && persisted.appliedProposals.length > 0) {
       void (async () => {
@@ -603,7 +603,7 @@ export function AnalystChatPane({
           const valid = new Set(skus);
           setApplied((prev) => prev.filter((p) => valid.has(p.sku)));
         } catch {
-          // Best-effort — if the endpoint is down, leave the list intact.
+          // Best-effort. If the endpoint is down, leave the list intact.
         }
       })();
     }
@@ -634,7 +634,7 @@ export function AnalystChatPane({
         if (cancelled || !res.body) return;
         await consumeStream(res.body, assistantId);
       } catch {
-        // Run may have finished or expired — just drop the reconnect.
+        // Run may have finished or expired. Just drop the reconnect.
       } finally {
         if (!cancelled) {
           setIsStreaming(false);
@@ -728,18 +728,18 @@ export function AnalystChatPane({
         </div>
       </div>
 
-      {/* Suspension bar — CLS-safe: always reserves height, fades via opacity */}
+      {/* Suspension bar (CLS-safe: always reserves height, fades via opacity) */}
       <div
         aria-hidden={!awaitingApproval}
         className={`flex h-14 items-center gap-4 border-b px-8 transition-[opacity,border-color,background-color] duration-500 ${suspensionBarClass}`}
       >
         <span className="h-3 w-3 animate-pulse rounded-full bg-amber-400" />
         <span className="font-mono text-lg uppercase tracking-[0.2em] text-amber-200">
-          agent suspended — waiting for human
+          agent suspended, waiting for human
         </span>
       </div>
 
-      {/* Main area: two columns — conversation text | tool call history */}
+      {/* Main area, two columns: conversation text | tool call history */}
       <div className="grid min-h-0 flex-1 grid-cols-[1fr_320px]">
         {/* ── Conversation text column ── */}
         <div

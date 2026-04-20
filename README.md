@@ -2,7 +2,7 @@
 
 A Next.js 16 presentation app for the Workflow SDK GA story. The root `/` redirects to the deck at `/slides/title`; everything is a slide.
 
-The deck reframes the SDK around **three properties of reliable software** — `stable`, `suspendable`, `undoable` — and carries them through matching workflow and durable-agent demos.
+The deck reframes the SDK around **three properties of reliable software** (`stable`, `suspendable`, `undoable`) and carries them through matching workflow and durable-agent demos.
 
 ## Running It
 
@@ -22,18 +22,18 @@ npx vercel link            # associate this checkout with a Vercel project
 npx vercel env pull        # writes .env.local with the OIDC token used by the gateway
 ```
 
-If you skip this step the AI calls will fall back to the scripted **mock mode** described below — fine for working on visuals, but the real Haiku/Anthropic completions won't run. Re-run `npx vercel env pull` whenever the token rotates.
+If you skip this step the AI calls will fall back to the scripted **mock mode** described below. That is fine for working on visuals, but the real Haiku/Anthropic completions won't run. Re-run `npx vercel env pull` whenever the token rotates.
 
-### Observing runs — `npx workflow web`
+### Observing runs with `npx workflow web`
 
 Every scenario slide fires a real Workflow run. Two CLI tools, used throughout the demo, let you watch and poke at those runs from another terminal while `pnpm dev` is up:
 
 ```bash
-# Live, browser-based dashboard — timeline, step state, payloads, streams
+# Live, browser-based dashboard: timeline, step state, payloads, streams
 npx workflow web
 npx workflow web <runId>          # jump straight to a specific run
 
-# Terminal-native inspection — great for scripting and quick checks
+# Terminal-native inspection, great for scripting and quick checks
 npx workflow inspect runs         # list recent runs
 npx workflow inspect run <runId>  # full run detail
 npx workflow inspect steps -d     # step outputs and errors
@@ -42,15 +42,15 @@ npx workflow inspect sleeps -r <runId>  # sleeping timers for a run
 
 The deck surfaces these commands in five places so the audience never has to guess how to pivot from the presentation to a real run:
 
-- **`ObservableCallout`** (slide 3 — `the-setup`): an ambient emerald strip under the setup code prints `npx workflow web <run_id>` with the live run ID filled in. Clicking it opens the workflow web UI at the exact run.
-- **Observability slide** (slide 6 — `/slides/observability`): the dedicated "Every run is observable" payoff beat. Three cards — **Human surface** (`npx workflow web`), **Event log**, **Agent surface** (`npx workflow inspect`) — make the dual-consumer story explicit before the first failure demo. Static; no polling.
-- **`RunInspectCallout`** (every demo slide — 7, 10, 13, 17, 20, 23): a fixed-height emerald chip next to the headline prints `npx workflow inspect run <run_id>` with the latest run ID filled in, clickable to the workflow web UI. Lives in `DemoSlideLayout`, so every demo teaches the inspect surface passively.
-- **`InspectorBand`** (every pattern slide — 9, 12, 15, 19, 22, 25): a 180px static band at the bottom renders `npx workflow inspect run <run_id>` on the left and a "Paste to your agent" caption on the right with a **Coding-Agent Friendly** badge. Inspector output is LLM-readable — hand it to Claude / Cursor / any coding agent and ask it to explain the pattern or apply it to your codebase.
-- **Debug drawer** (`Shift+D` from any slide): a single clickable `npx workflow inspect run <id>` line. The older scrolling event feed was removed — the drawer is now just the link, per the "no developer consoles on stage" rule in `.impeccable.md`.
+- **`ObservableCallout`** (slide 3, `the-setup`): an ambient emerald strip under the setup code prints `npx workflow web <run_id>` with the live run ID filled in. Clicking it opens the workflow web UI at the exact run.
+- **Observability slide** (slide 6, `/slides/observability`): the dedicated "Every run is observable" payoff beat. Three cards (**Human surface** via `npx workflow web`, **Event log**, **Agent surface** via `npx workflow inspect`) make the dual-consumer story explicit before the first failure demo. Static; no polling.
+- **`RunInspectCallout`** (every demo slide, i.e. 7, 10, 13, 17, 20, 23): a fixed-height emerald chip next to the headline prints `npx workflow inspect run <run_id>` with the latest run ID filled in, clickable to the workflow web UI. Lives in `DemoSlideLayout`, so every demo teaches the inspect surface passively.
+- **`InspectorBand`** (every pattern slide, i.e. 9, 12, 15, 19, 22, 25): a 180px static band at the bottom renders `npx workflow inspect run <run_id>` on the left and a "Paste to your agent" caption on the right with a **Coding-Agent Friendly** badge. Inspector output is LLM-readable. Hand it to Claude / Cursor / any coding agent and ask it to explain the pattern or apply it to your codebase.
+- **Debug drawer** (`Shift+D` from any slide): a single clickable `npx workflow inspect run <id>` line. The older scrolling event feed was removed. The drawer is now just the link, per the "no developer consoles on stage" rule in `.impeccable.md`.
 
 The workflow code itself (`src/workflows/place-order.ts`) also references these commands in comments next to the behaviour they expose.
 
-### Install the skill — the main CTA
+### Install the skill (the main CTA)
 
 The final slide (`/slides/close`) hands the audience the one command the workshop asks them to run tonight:
 
@@ -58,11 +58,11 @@ The final slide (`/slides/close`) hands the audience the one command the worksho
 npx skills add https://github.com/vercel/workflow --skill workflow-init
 ```
 
-This installs a Claude Code / AI-agent skill that teaches coding agents how to work with the Workflow SDK on arbitrary projects. After installing, point an agent at your own repo and ask it to make a step **stable**, a workflow **suspendable**, or an operation **undoable** — the skill plus `npx workflow inspect` output is enough context for the agent to propose the correct SDK migration.
+This installs a Claude Code / AI-agent skill that teaches coding agents how to work with the Workflow SDK on arbitrary projects. After installing, point an agent at your own repo and ask it to make a step **stable**, a workflow **suspendable**, or an operation **undoable**. The skill plus `npx workflow inspect` output is enough context for the agent to propose the correct SDK migration.
 
 ### Running without an AI Gateway
 
-The three `DurableAgent` demos (Hello World, Autonomous, Optimize) call the Vercel AI Gateway by default. When the gateway is unreachable — offline laptop, expired key, transient outage — each demo **falls back automatically** to a scripted mock turn so the stage stays live.
+The three `DurableAgent` demos (Hello World, Autonomous, Optimize) call the Vercel AI Gateway by default. When the gateway is unreachable (offline laptop, expired key, transient outage) each demo **falls back automatically** to a scripted mock turn so the stage stays live.
 
 Detection is handled by `src/workflows/_shared/mock-agent.ts`. The fallback triggers when:
 
@@ -72,20 +72,20 @@ Detection is handled by `src/workflows/_shared/mock-agent.ts`. The fallback trig
 In mock mode:
 
 - **Hello World agent** emits a scripted `fetchOrderDetails` turn for `ord-8842`.
-- **Autonomous agent** still runs `fetchRecentOrders` / `analyzeWindow` / `appendToReport` as real workflow steps, then emits synthetic text chunks so the chat shows the scan — the report keeps growing even offline.
+- **Autonomous agent** still runs `fetchRecentOrders` / `analyzeWindow` / `appendToReport` as real workflow steps, then emits synthetic text chunks so the chat shows the scan. The report keeps growing even offline.
 - **Optimize agent** emits a one-line offline notice (the interactive proposal / manager-approval / rollback dance needs the live model).
 
-Real agent calls are unchanged — the fallback only engages when the gateway actually fails.
+Real agent calls are unchanged. The fallback only engages when the gateway actually fails.
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts` — a 34-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
+The deck is defined in `src/app/slides/config.ts`, a 34-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
 
-- **Setup** (1–6) — cold open, happy-path demo, the `placeOrder` starter code with the `ObservableCallout`, the three properties (`/slides/reliable-software`), the Break → Fix → Name rhythm (`/slides/how-it-works`), and the **Observability** payoff slide (`/slides/observability`) that makes the human + agent dual-consumer story explicit before the first failure demo.
-- **Three properties × three beats** (7–15) — each property runs the same three-beat rhythm:
-  1. **Demo** — a real run fires, the scenario plays out on stage. The demo header carries a live `RunInspectCallout` with the current run ID.
-  2. **Code** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
-  3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the `InspectorBand` (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
+- **Setup** (1–6): cold open, happy-path demo, the `placeOrder` starter code with the `ObservableCallout`, the three properties (`/slides/reliable-software`), the Break → Fix → Name rhythm (`/slides/how-it-works`), and the **Observability** payoff slide (`/slides/observability`) that makes the human + agent dual-consumer story explicit before the first failure demo.
+- **Three properties × three beats** (7–15): each property runs the same three-beat rhythm:
+  1. **Demo**: a real run fires, the scenario plays out on stage. The demo header carries a live `RunInspectCallout` with the current run ID.
+  2. **Code**: the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
+  3. **Pattern**: names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the `InspectorBand` (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
 
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
 - **The Pivot** (16) — same durable run, new caller: agents.

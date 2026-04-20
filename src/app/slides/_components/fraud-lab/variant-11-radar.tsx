@@ -22,8 +22,8 @@ import {
 // Variant 11 · Radar ping (submarine)
 // Full-bleed circular radar with phosphor-green sweep rotating once every 3s.
 // Cleared charges appear as small pips around the field as the sweep crosses
-// them. On fraud, the sweep reveals an outsized red blip — next pass doubles
-// it — then the sweep LOCKS, a TARGET LOCK bracket appears, and a red ring
+// them. On fraud, the sweep reveals an outsized red blip. The next pass doubles
+// it, then the sweep LOCKS, a TARGET LOCK bracket appears, and a red ring
 // ripples outward. Crash freezes the sweep. Replay reignites the glow. Resume
 // leaves the lock and the red contact permanent.
 // ---------------------------------------------------------------------------
@@ -44,7 +44,7 @@ const PIPS: { angle: number; radius: number }[] = [
   { angle: 298, radius: 0.66 },
   { angle: 340, radius: 0.52 },
   { angle: 80,  radius: 0.28 },
-  // fraud — far rim, SW bearing
+  // fraud: far rim, SW bearing
   { angle: 225, radius: 0.84 },
 ];
 
@@ -227,7 +227,7 @@ export function RadarDemo() {
               );
             })}
 
-            {/* Fraud blip — grows from single → doubled once sweep exposes it */}
+            {/* Fraud blip: grows from single to doubled once sweep exposes it */}
             {(m.active) && (
               <g
                 opacity={
@@ -294,7 +294,7 @@ export function RadarDemo() {
               </g>
             )}
 
-            {/* Sweep beam — wedge from center outward rotating */}
+            {/* Sweep beam: wedge from center outward, rotating */}
             <g
               transform={`rotate(${sweepAngle} 50 50)`}
               style={{

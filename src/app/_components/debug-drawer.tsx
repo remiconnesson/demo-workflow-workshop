@@ -87,7 +87,7 @@ export function DebugDrawer({
           <span className="text-zinc-600">$</span> {command}
         </a>
       </div>
-      {/* Event feed — presenter-only, hidden from audience */}
+      {/* Event feed (presenter-only, hidden from audience) */}
       {events.length > 0 && (
         <div
           ref={feedRef}
