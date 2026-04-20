@@ -42,7 +42,7 @@ export function AgentDebugDrawer({
   }, [events.length]);
 
   return (
-    <div className="flex min-h-[48px] flex-1 flex-col rounded-lg border border-white/10 bg-zinc-950/95 px-5 py-3">
+    <div className="flex min-h-[48px] max-h-40 flex-1 flex-col overflow-hidden rounded-lg border border-white/10 bg-zinc-950/95 px-5 py-3">
       {runId ? (
         <a
           href={`http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`}

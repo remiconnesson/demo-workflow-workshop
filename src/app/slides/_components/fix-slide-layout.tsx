@@ -92,12 +92,13 @@ function wrapLines(html: string, highlightLines?: Record<number, string>): strin
   const lines = html.split("<br>");
   return lines
     .map((line, i) => {
+      const body = line || "&nbsp;";
       const tooltip = highlightLines[i + 1];
-      if (tooltip === undefined) return `<div>${line}</div>`;
+      if (tooltip === undefined) return `<div>${body}</div>`;
       const tip = tooltip
         ? `<div class="code-hl-tip">${formatTip(tooltip)}</div>`
         : "";
-      return `<div class="code-hl">${line}${tip}</div>`;
+      return `<div class="code-hl">${body}${tip}</div>`;
     })
     .join("");
 }
@@ -274,7 +275,7 @@ export async function FixSlideLayout({
             <div className="flex items-center border-b border-white/10 px-6 py-3">
               <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
             </div>
-            <div className="code-scroll-area min-h-0 flex-1 overflow-y-auto px-8 py-6">
+            <div className="code-scroll-area min-h-0 flex-1 overflow-auto px-8 py-6">
               <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" highlightLines={workflowFix.highlightLines} />
             </div>
           </div>

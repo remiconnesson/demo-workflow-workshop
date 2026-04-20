@@ -20,7 +20,11 @@ export default function AgentFirstFixSlide() {
         },
         {
           label: <>Upgrade to <code className="font-mono">DurableAgent</code></>,
-          detail: <>LLM calls stream through a <span className="text-zinc-300">writable</span></>,
+          detail: <>drop-in — LLM calls become <span className="text-zinc-300">durable steps</span></>,
+        },
+        {
+          label: <>Pipe through a <code className="font-mono">writable</code></>,
+          detail: <>client <span className="text-zinc-300">reconnects mid-sentence</span></>,
         },
         {
           label: <>Mark the tool <code className="font-mono">&quot;use step&quot;</code></>,
@@ -30,7 +34,9 @@ export default function AgentFirstFixSlide() {
       workflowFix={{
         progression: [
           {
-            code: `async function fetchOrderDetails({ orderId }) {
+            code: `import { Agent, convertToModelMessages } from "ai"
+
+async function fetchOrderDetails({ orderId }) {
   return db.orders.findById(orderId)
 }
 
@@ -48,9 +54,11 @@ export async function supportAgent(messages) {
           },
           {
             highlightLines: {
-              7: "Makes this entire agent run [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — survives **server restarts** and deploys",
+              9: "Makes this entire agent run [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — survives **server restarts** and deploys",
             },
-            code: `async function fetchOrderDetails({ orderId }) {
+            code: `import { Agent, convertToModelMessages } from "ai"
+
+async function fetchOrderDetails({ orderId }) {
   return db.orders.findById(orderId)
 }
 
@@ -70,21 +78,51 @@ export async function supportAgent(messages) {
           },
           {
             highlightLines: {
-              10: "A [durable output stream](https://workflow-sdk.dev/docs/foundations/streaming) — the client can [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) mid-sentence",
-              13: "Swap in [DurableAgent](https://workflow-sdk.dev/docs/api-reference/workflow-ai/durable-agent) — every LLM call is now a **durable step**, replayed on resume",
-              20: "",
+              2: "Import the [DurableAgent](https://workflow-sdk.dev/docs/api-reference/workflow-ai/durable-agent) class — a **drop-in** for `Agent` that makes every LLM call a durable step",
+              13: "Swap `new Agent(...)` → `new DurableAgent(...)` — no other changes yet",
             },
-            code: `async function fetchOrderDetails({ orderId }) {
+            code: `import { convertToModelMessages } from "ai"
+import { DurableAgent } from "@workflow/ai/agent"
+
+async function fetchOrderDetails({ orderId }) {
   return db.orders.findById(orderId)
 }
 
 export async function supportAgent(messages) {
   "use workflow"
 
-  // durable output stream — client reconnects mid-sentence
+  // drop-in replacement — every LLM call is now a durable step,
+  // replayed from the event log on resume
+  const agent = new DurableAgent({
+    model: "anthropic/claude-haiku-4.5",
+    tools: { fetchOrderDetails },
+  })
+
+  return agent.stream({
+    messages: convertToModelMessages(messages),
+  })
+}`,
+          },
+          {
+            highlightLines: {
+              3: "Import [getWritable](https://workflow-sdk.dev/docs/foundations/streaming) — a durable output stream scoped to this run",
+              12: "Allocate the writable — chunks persist so a refreshed client can **reconnect mid-sentence**",
+              22: "Pipe the agent's LLM tokens into the durable writable",
+            },
+            code: `import { convertToModelMessages } from "ai"
+import { DurableAgent } from "@workflow/ai/agent"
+import { getWritable } from "workflow"
+
+async function fetchOrderDetails({ orderId }) {
+  return db.orders.findById(orderId)
+}
+
+export async function supportAgent(messages) {
+  "use workflow"
+
+  // durable output stream — client can reconnect after F5
   const writable = getWritable()
 
-  // every LLM call becomes a durable step
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
     tools: { fetchOrderDetails },
@@ -98,9 +136,13 @@ export async function supportAgent(messages) {
           },
           {
             highlightLines: {
-              3: "Tool call becomes a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — its result is **replayed from the event log** on resume, never refetched",
+              7: "Tool call becomes a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — its result is **replayed from the event log** on resume, never refetched",
             },
-            code: `async function fetchOrderDetails({ orderId }) {
+            code: `import { convertToModelMessages } from "ai"
+import { DurableAgent } from "@workflow/ai/agent"
+import { getWritable } from "workflow"
+
+async function fetchOrderDetails({ orderId }) {
   // tool call becomes a durable step — replays on resume
   "use step"
   return db.orders.findById(orderId)
@@ -129,7 +171,9 @@ export async function supportAgent(messages) {
             tone: "sky",
             progression: [
               {
-                code: `export async function POST(req) {
+                code: `import { supportAgent } from "@/workflows/supportAgent"
+
+export async function POST(req) {
   const { messages } = await req.json()
   // no durability — refresh kills the response
   const result = await supportAgent(messages)
@@ -138,9 +182,13 @@ export async function supportAgent(messages) {
               },
               {
                 highlightLines: {
-                  4: "[start()](https://workflow-sdk.dev/docs/api-reference/workflow-api/start) kicks off a durable run and returns a handle with a [readable stream](https://workflow-sdk.dev/docs/foundations/streaming) + **run ID**",
+                  1: "[start()](https://workflow-sdk.dev/docs/api-reference/workflow-api/start) from `workflow/api` — kicks off a durable run on the server",
+                  7: "Returns a **handle** with a [readable stream](https://workflow-sdk.dev/docs/foundations/streaming) + **run ID** — the run keeps going even if this request ends",
                 },
-                code: `export async function POST(req) {
+                code: `import { start } from "workflow/api"
+import { supportAgent } from "@/workflows/supportAgent"
+
+export async function POST(req) {
   const { messages } = await req.json()
   // start() launches a durable run, returns a handle
   const run = await start(supportAgent, [messages])
@@ -149,11 +197,16 @@ export async function supportAgent(messages) {
               },
               {
                 highlightLines: {
-                  6: "Pipe the [durable stream](https://workflow-sdk.dev/docs/foundations/streaming) directly into the HTTP response",
-                  7: "",
-                  8: "",
+                  1: "[createUIMessageStreamResponse](https://ai-sdk.dev/docs/reference/ai-sdk-ui/ai-sdk-ui-response) from `ai` — formats a stream as a UI-message HTTP response",
+                  10: "Pipe the [durable stream](https://workflow-sdk.dev/docs/foundations/streaming) directly into the HTTP response",
+                  11: "",
+                  12: "",
                 },
-                code: `export async function POST(req) {
+                code: `import { createUIMessageStreamResponse } from "ai"
+import { start } from "workflow/api"
+import { supportAgent } from "@/workflows/supportAgent"
+
+export async function POST(req) {
   const { messages } = await req.json()
   const run = await start(supportAgent, [messages])
 
@@ -165,11 +218,15 @@ export async function supportAgent(messages) {
               },
               {
                 highlightLines: {
-                  8: "Client stores this **run ID** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to the **exact same run** after refresh",
-                  9: "",
-                  10: "",
+                  11: "Client stores this **run ID** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to the **exact same run** after refresh",
+                  12: "",
+                  13: "",
                 },
-                code: `export async function POST(req) {
+                code: `import { createUIMessageStreamResponse } from "ai"
+import { start } from "workflow/api"
+import { supportAgent } from "@/workflows/supportAgent"
+
+export async function POST(req) {
   const { messages } = await req.json()
   const run = await start(supportAgent, [messages])
 
@@ -189,21 +246,28 @@ export async function supportAgent(messages) {
             tone: "emerald",
             progression: [
               {
-                code: `// plain chat — refresh drops the reply mid-sentence
+                code: `import { useChat } from "@ai-sdk/react"
+
+// plain chat — refresh drops the reply mid-sentence
 const { messages, sendMessage } = useChat({
   api: "/api/chat",
 })`,
               },
               {
                 highlightLines: {
-                  3: "Handles [reconnection](https://workflow-sdk.dev/docs/api-reference/workflow-ai/workflow-chat-transport) — stores the run ID on every message",
-                  5: "",
-                  6: "",
+                  2: "[WorkflowChatTransport](https://workflow-sdk.dev/docs/api-reference/workflow-ai/workflow-chat-transport) from `@workflow/ai` — handles the run-ID round-trip",
+                  6: "Transport [stores the run ID](https://workflow-sdk.dev/docs/api-reference/workflow-ai/workflow-chat-transport) on every message",
                   7: "",
                   8: "",
                   9: "",
+                  10: "",
+                  11: "",
+                  12: "",
                 },
-                code: `const { messages, sendMessage } = useChat({
+                code: `import { useChat } from "@ai-sdk/react"
+import { WorkflowChatTransport } from "@workflow/ai"
+
+const { messages, sendMessage } = useChat({
   // stores the run id so we can reconnect later
   transport: new WorkflowChatTransport({
     api: "/api/chat",
@@ -217,9 +281,12 @@ const { messages, sendMessage } = useChat({
               },
               {
                 highlightLines: {
-                  3: "On page load, check if there's an **active run** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to",
+                  6: "On page load, check if there's an **active run** to [reconnect](https://workflow-sdk.dev/docs/ai/resumable-streams) to",
                 },
-                code: `const { messages, sendMessage } = useChat({
+                code: `import { useChat } from "@ai-sdk/react"
+import { WorkflowChatTransport } from "@workflow/ai"
+
+const { messages, sendMessage } = useChat({
   // on load, reconnect if a run is already in flight
   resume: Boolean(localStorage.getItem("run-id")),
   transport: new WorkflowChatTransport({
@@ -234,12 +301,15 @@ const { messages, sendMessage } = useChat({
               },
               {
                 highlightLines: {
-                  11: "On reconnect, redirect to the [run-specific stream endpoint](https://workflow-sdk.dev/docs/ai/resumable-streams)",
-                  12: "",
-                  13: "",
-                  14: "",
+                  14: "On reconnect, redirect to the [run-specific stream endpoint](https://workflow-sdk.dev/docs/ai/resumable-streams)",
+                  15: "",
+                  16: "",
+                  17: "",
                 },
-                code: `const { messages, sendMessage } = useChat({
+                code: `import { useChat } from "@ai-sdk/react"
+import { WorkflowChatTransport } from "@workflow/ai"
+
+const { messages, sendMessage } = useChat({
   resume: Boolean(localStorage.getItem("run-id")),
   transport: new WorkflowChatTransport({
     api: "/api/chat",

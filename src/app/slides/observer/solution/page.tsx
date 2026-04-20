@@ -56,7 +56,7 @@ export async function observerAgentWorkflow() {
               3: "Makes this fetch [durable](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — on replay, returns the **cached result** instead of re-executing",
             },
             code: `async function fetchRecentOrders({ limit }) {
-  // durable tool call — the event log replays it
+  // on retry, replays from log (no db hit)
   "use step"
   return getRecentOrders(limit)
 }

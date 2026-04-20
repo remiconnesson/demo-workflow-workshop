@@ -22,6 +22,7 @@
     "react-dom": "19.2.4",
     "shiki": "^4.0.2",
     "streamdown": "^2.5.0",
+    "vercel": "^51.6.1",
     "workflow": "^4.2.2",
     "zod": "^4.3.6"
   },

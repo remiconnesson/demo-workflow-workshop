@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { TabTone } from "./code-editor-tabs";
 import type { FixStep } from "./fix-slide-layout";
 
@@ -85,6 +85,22 @@ export function ProgressiveFixContent({
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
   const [visited, setVisited] = useState<Set<number>>(() => new Set([0]));
+  const overlayRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const prevOverlayKeyRef = useRef<string>("0-0");
+
+  useLayoutEffect(() => {
+    const nextKey = `${activeTab}-${activeIndex}`;
+    const prevKey = prevOverlayKeyRef.current;
+    if (nextKey !== prevKey) {
+      const prev = overlayRefs.current.get(prevKey);
+      const next = overlayRefs.current.get(nextKey);
+      if (prev && next) {
+        next.scrollTop = prev.scrollTop;
+        next.scrollLeft = prev.scrollLeft;
+      }
+      prevOverlayKeyRef.current = nextKey;
+    }
+  }, [activeIndex, activeTab]);
   const total = codeHtmls.length;
   const hasTabs = !!extraTabs && extraTabs.length > 0;
   const tabCount = 1 + (extraTabs?.length ?? 0);
@@ -271,11 +287,16 @@ export function ProgressiveFixContent({
           {/* progression overlays: visible only when the primary tab is active */}
           {codeHtmls.map((html, i) => {
             const isActive = activeTab === 0 && i === activeIndex;
+            const key = `0-${i}`;
             return (
               <div
                 key={`prog-${i}`}
                 aria-hidden={!isActive}
-                className={`absolute inset-0 px-8 py-6 transition-opacity duration-200 ${
+                ref={(el) => {
+                  if (el) overlayRefs.current.set(key, el);
+                  else overlayRefs.current.delete(key);
+                }}
+                className={`absolute inset-0 overflow-auto px-8 py-6 transition-opacity duration-200 ${
                   isActive ? "opacity-100" : "pointer-events-none opacity-0"
                 }`}
               >
@@ -292,11 +313,16 @@ export function ProgressiveFixContent({
             const tabIsActive = activeTab === tabIdx + 1;
             return tab.htmls.map((html, i) => {
               const isActive = tabIsActive && i === activeIndex;
+              const key = `${tabIdx + 1}-${i}`;
               return (
                 <div
                   key={`extra-${tab.filename}-${i}`}
                   aria-hidden={!isActive}
-                  className={`absolute inset-0 overflow-y-auto px-8 py-6 transition-opacity duration-200 ${
+                  ref={(el) => {
+                    if (el) overlayRefs.current.set(key, el);
+                    else overlayRefs.current.delete(key);
+                  }}
+                  className={`absolute inset-0 overflow-auto px-8 py-6 transition-opacity duration-200 ${
                     isActive ? "opacity-100" : "pointer-events-none opacity-0"
                   }`}
                 >

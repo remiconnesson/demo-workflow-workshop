@@ -100,7 +100,7 @@ export function CodeEditorTabs({ tabs, textClass = "text-[26px]" }: Props) {
           })}
         </div>
       </div>
-      <div className="code-scroll-area min-h-0 flex-1 overflow-y-auto px-8 py-6">
+      <div className="code-scroll-area min-h-0 flex-1 overflow-auto px-8 py-6">
         <pre
           className={`m-0 whitespace-pre font-mono ${textClass} leading-[1.5]`}
           // biome-ignore lint: Shiki emits trusted, pre-escaped HTML

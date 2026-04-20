@@ -11,12 +11,12 @@ export default function SuspendFixSlide() {
       statusTone="amber"
       steps={[
         {
-          label: <>Create a <code className="font-mono">webhook</code> URL</>,
-          detail: <><span className="text-zinc-300">createWebhook()</span> — one line, no custom route</>,
+          label: <>Create a <code className="font-mono">webhook</code> URL and send it</>,
+          detail: <><span className="text-zinc-300">createWebhook()</span> — pass <code className="font-mono">webhook.url</code> to the restaurant</>,
         },
         {
           label: <><code className="font-mono">Await</code> the webhook</>,
-          detail: <>suspends until the restaurant taps accept — but waits forever</>,
+          detail: <>suspends until the restaurant taps the URL — but waits forever</>,
         },
         {
           label: <><code className="font-mono">Race</code> it against a 24h <code className="font-mono">sleep</code></>,
@@ -24,7 +24,7 @@ export default function SuspendFixSlide() {
         },
         {
           label: <><code className="font-mono">Throw</code> if the sleep wins</>,
-          detail: <>compensation triggers the refund</>,
+          detail: <>the workflow fails cleanly instead of hanging forever</>,
         },
       ]}
       workflowFix={{
@@ -38,25 +38,25 @@ export default function SuspendFixSlide() {
           },
           {
             highlightLines: {
-              4: "Creates a [unique URL](https://workflow-sdk.dev/docs/api-reference/workflow/create-webhook) that [wakes this workflow up](https://workflow-sdk.dev/docs/foundations/hooks) — **no custom route, no polling**",
+              4: "Creates a [unique URL](https://workflow-sdk.dev/docs/api-reference/workflow/create-webhook) and **hands it to the restaurant** — they tap it to [wake this workflow up](https://workflow-sdk.dev/docs/foundations/hooks)",
             },
             code: `async function placeOrder(orderId: string) {
   "use workflow"
-  // one URL the restaurant can hit to resume us
+  // create a URL, then send it to the restaurant to tap
   using webhook = createWebhook()
   await pingRestaurant(orderId, webhook.url)
 }`,
           },
           {
             highlightLines: {
-              7: "Suspends the workflow until the restaurant [hits the webhook URL](https://workflow-sdk.dev/docs/foundations/hooks) — **but what if they never do?**",
+              7: "Suspends the workflow until the restaurant [taps the URL we sent them](https://workflow-sdk.dev/docs/foundations/hooks) — **but what if they never do?**",
             },
             code: `async function placeOrder(orderId: string) {
   "use workflow"
   using webhook = createWebhook()
   await pingRestaurant(orderId, webhook.url)
 
-  // await the webhook — but this blocks forever
+  // suspend until the restaurant taps the URL — but this blocks forever
   await webhook
 }`,
           },
@@ -81,7 +81,7 @@ export default function SuspendFixSlide() {
           },
           {
             highlightLines: {
-              12: "Throwing enters the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) — your rollback steps [run in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
+              12: "Throw on timeout so the workflow fails cleanly instead of [hanging forever](https://workflow-sdk.dev/docs/foundations/errors-and-retries)",
               13: "",
               14: "",
             },
@@ -95,7 +95,7 @@ export default function SuspendFixSlide() {
     sleep("24h").then(() => false),
   ])
 
-  // throw on timeout → compensation unwinds the order
+  // throw on timeout so the workflow fails cleanly
   if (!accepted) {
     throw new Error("Restaurant never accepted")
   }

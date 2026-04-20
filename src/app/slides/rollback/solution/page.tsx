@@ -11,16 +11,16 @@ export default function RollbackFixSlide() {
       statusTone="fuchsia"
       steps={[
         {
-          label: <>Open a dispute <code className="font-mono">hook</code></>,
-          detail: <><span className="text-zinc-300">createHook</span> tokenized by orderId</>,
+          label: <>Each success <code className="font-mono">pushes</code> its undo</>,
+          detail: <>rollbacks <span className="text-zinc-300">stack up</span> as steps complete</>,
         },
         {
-          label: <><code className="font-mono">Race</code> hook vs 24h <code className="font-mono">sleep</code></>,
-          detail: <><span className="text-zinc-300">Promise.race</span> — whichever resolves first</>,
+          label: <><code className="font-mono">Race</code> a dispute hook vs 24h <code className="font-mono">sleep</code></>,
+          detail: <>throw if the customer <span className="text-zinc-300">disputes</span></>,
         },
         {
-          label: <><code className="font-mono">Throw</code> on disputed verdict</>,
-          detail: <>saga <span className="text-zinc-300">unwinds in reverse</span></>,
+          label: <><code className="font-mono">Reverse</code> the stack in catch</>,
+          detail: <>last pushed, <span className="text-zinc-300">first unwound</span></>,
         },
       ]}
       workflowFix={{
@@ -28,170 +28,180 @@ export default function RollbackFixSlide() {
           {
             code: `async function placeOrder(orderId: string) {
   "use workflow"
-  // ...prior steps each pushed their undo onto the saga.
 
-  // how do we catch a dispute within 24h of delivery?
-  // poll the db? have another service call us?
+  try {
+    await reserveInventory(orderId)
+    await chargeCard(orderId)
+    await pingRestaurant(orderId)
+    // how do we catch a dispute within 24h — and unwind if so?
+  } catch (e) {
+    throw e
+  }
 }`,
           },
           {
             highlightLines: {
-              6: "Opens a [dispute window](https://workflow-sdk.dev/docs/api-reference/workflow/create-hook) — any external system can [trigger it](https://workflow-sdk.dev/docs/foundations/hooks) via this token",
+              3: "Each successful step [pushes its own undo](https://workflow-sdk.dev/docs/foundations/common-patterns) onto a stack",
               7: "",
-              8: "",
-            },
-            code: `async function placeOrder(orderId: string) {
-  "use workflow"
-  // ...prior steps each pushed their undo onto the saga.
-
-  // open a post-delivery dispute window
-  const disputeHook = createHook<{ reason: string }>({
-    token: \`order:\${orderId}:delivery-dispute\`,
-  })
-}`,
-          },
-          {
-            highlightLines: {
-              10: "**Race**: customer disputes within 24 hours, or the window **closes cleanly**",
-              11: "",
-              12: "",
+              10: "",
               13: "",
             },
             code: `async function placeOrder(orderId: string) {
   "use workflow"
-  // ...prior steps each pushed their undo onto the saga.
+  const rollbacks: Array<() => Promise<void>> = []
 
-  const disputeHook = createHook<{ reason: string }>({
-    token: \`order:\${orderId}:delivery-dispute\`,
-  })
+  try {
+    await reserveInventory(orderId)
+    rollbacks.push(() => releaseInventory(orderId))
 
-  // race the dispute hook against a 24h closing window
-  const verdict = await Promise.race([
-    disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
-    sleep("24h").then(() => ({ kind: "ok" as const })),
-  ])
+    await chargeCard(orderId)
+    rollbacks.push(() => refundPayment(orderId))
+
+    await pingRestaurant(orderId)
+    rollbacks.push(() => cancelRestaurantOrder(orderId))
+  } catch (e) {
+    throw e
+  }
 }`,
           },
           {
             highlightLines: {
-              15: "Throwing triggers the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) → every pushed compensation [runs in reverse](https://workflow-sdk.dev/docs/foundations/common-patterns)",
-              16: "",
-              17: "",
+              15: "This hook pauses until **something outside** wakes it. See the `/dispute` route tab →",
+              16: "[createHook](https://workflow-sdk.dev/docs/api-reference/workflow/create-hook) registers a promise keyed by token",
+              17: "**This token string is the wiring** — the route computes the same string to resolve this hook",
+              18: "",
+              20: "**Race**: customer disputes within 24 hours, or the window **closes cleanly**",
+              21: "",
+              22: "",
+              23: "",
+              25: "Throwing routes execution to the [catch block](https://workflow-sdk.dev/docs/foundations/errors-and-retries) below",
+              26: "",
+              27: "",
             },
             code: `async function placeOrder(orderId: string) {
   "use workflow"
-  // ...prior steps each pushed their undo onto the saga.
+  const rollbacks: Array<() => Promise<void>> = []
 
-  const disputeHook = createHook<{ reason: string }>({
-    token: \`order:\${orderId}:delivery-dispute\`,
-  })
+  try {
+    await reserveInventory(orderId)
+    rollbacks.push(() => releaseInventory(orderId))
 
-  const verdict = await Promise.race([
-    disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
-    sleep("24h").then(() => ({ kind: "ok" as const })),
-  ])
+    await chargeCard(orderId)
+    rollbacks.push(() => refundPayment(orderId))
 
-  // throw to unwind every saga compensation in reverse
-  if (verdict.kind === "disputed") {
-    throw new Error(\`Disputed: \${verdict.reason}\`)
+    await pingRestaurant(orderId)
+    rollbacks.push(() => cancelRestaurantOrder(orderId))
+
+    // paused until the /dispute route fires (see route tab →)
+    const disputeHook = createHook<{ reason: string }>({
+      token: \`order:\${orderId}:delivery-dispute\`,
+    })
+
+    const verdict = await Promise.race([
+      disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
+      sleep("24h").then(() => ({ kind: "ok" as const })),
+    ])
+
+    if (verdict.kind === "disputed") {
+      throw new Error(\`Disputed: \${verdict.reason}\`)
+    }
+  } catch (e) {
+    throw e
+  }
+}`,
+          },
+          {
+            highlightLines: {
+              30: "Unwind in [reverse order](https://workflow-sdk.dev/docs/foundations/common-patterns) — last pushed, **first undone**",
+              31: "",
+              32: "",
+              33: "",
+              34: "",
+              35: "",
+              36: "",
+            },
+            code: `async function placeOrder(orderId: string) {
+  "use workflow"
+  const rollbacks: Array<() => Promise<void>> = []
+
+  try {
+    await reserveInventory(orderId)
+    rollbacks.push(() => releaseInventory(orderId))
+
+    await chargeCard(orderId)
+    rollbacks.push(() => refundPayment(orderId))
+
+    await pingRestaurant(orderId)
+    rollbacks.push(() => cancelRestaurantOrder(orderId))
+
+    // paused until the /dispute route fires (see route tab →)
+    const disputeHook = createHook<{ reason: string }>({
+      token: \`order:\${orderId}:delivery-dispute\`,
+    })
+
+    const verdict = await Promise.race([
+      disputeHook.then((d) => ({ kind: "disputed" as const, ...d })),
+      sleep("24h").then(() => ({ kind: "ok" as const })),
+    ])
+
+    if (verdict.kind === "disputed") {
+      throw new Error(\`Disputed: \${verdict.reason}\`)
+    }
+  } catch (e) {
+    // unwind in reverse — each rollback is a "use step"
+    // so it's durable and retried automatically
+    for (const rollback of rollbacks.reverse()) {
+      await rollback()
+    }
+    // → cancelRestaurantOrder ✓ → refundPayment ✓ → releaseInventory ✓
+    throw e
   }
 }`,
           },
         ],
         tabs: [
           {
-            filename: "saga.ts",
-            tone: "fuchsia",
+            filename: "dispute/route.ts",
+            tone: "sky",
             progression: [
               {
-                code: `// no saga yet — how do we unwind on failure?
-try {
-  await reserveInventory(orderId)
-  await chargeCard(orderId)
-  await pingRestaurant(orderId)
-} catch (e) {
-  // undo by hand? in what order?
-  throw e
+                code: `// src/app/api/orders/[orderId]/dispute/route.ts
+// A plain Next.js route — nothing workflow-specific yet.
+export async function POST(
+  _req: Request,
+  { params }: { params: Promise<{ orderId: string }> },
+) {
+  const { orderId } = await params
+  // customer just disputed — how do we wake the paused workflow?
+  return Response.json({ ok: true })
 }`,
               },
               {
                 highlightLines: {
-                  1: "Each successful step [pushes its own undo](https://workflow-sdk.dev/docs/foundations/common-patterns) onto a stack",
-                  5: "",
-                  8: "",
-                  11: "",
+                  1: "[resumeHook](https://workflow-sdk.dev/docs/api-reference/workflow/resume-hook) is an SDK function — any server code (route, tool, webhook) can import and call it",
+                  2: "",
+                  11: "**Same token string** the workflow passes to createHook — that's the entire mapping",
+                  12: "",
+                  13: "",
+                  14: "",
                 },
-                code: `const rollbacks: Array<() => Promise<void>> = []
+                code: `// src/app/api/orders/[orderId]/dispute/route.ts
+import { resumeHook } from "workflow/api"
 
-try {
-  await reserveInventory(orderId)
-  rollbacks.push(() => releaseInventory(orderId))
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ orderId: string }> },
+) {
+  const { orderId } = await params
+  const { reason } = await req.json()
 
-  await chargeCard(orderId)
-  rollbacks.push(() => refundPayment(orderId))
+  // same string as the workflow's createHook token →
+  await resumeHook(
+    \`order:\${orderId}:delivery-dispute\`,
+    { reason },
+  )
 
-  await pingRestaurant(orderId)
-  rollbacks.push(() => cancelRestaurantOrder(orderId))
-} catch (e) {
-  throw e
-}`,
-              },
-              {
-                highlightLines: {
-                  13: "The dispute hook is about to throw — **every push above is now pending unwind**",
-                },
-                code: `const rollbacks: Array<() => Promise<void>> = []
-
-try {
-  await reserveInventory(orderId)
-  rollbacks.push(() => releaseInventory(orderId))
-
-  await chargeCard(orderId)
-  rollbacks.push(() => refundPayment(orderId))
-
-  await pingRestaurant(orderId)
-  rollbacks.push(() => cancelRestaurantOrder(orderId))
-
-  // ... dispute hook throws here
-} catch (e) {
-  throw e
-}`,
-              },
-              {
-                highlightLines: {
-                  15: "Unwind in [reverse order](https://workflow-sdk.dev/docs/foundations/common-patterns) — last step undone first, like **popping a stack**",
-                  16: "",
-                  17: "",
-                  18: "",
-                  19: "",
-                  20: "",
-                  21: "",
-                  22: "",
-                },
-                code: `const rollbacks: Array<() => Promise<void>> = []
-
-try {
-  await reserveInventory(orderId)
-  rollbacks.push(() => releaseInventory(orderId))
-
-  await chargeCard(orderId)
-  rollbacks.push(() => refundPayment(orderId))
-
-  await pingRestaurant(orderId)
-  rollbacks.push(() => cancelRestaurantOrder(orderId))
-
-  // ... dispute hook throws here
-} catch (e) {
-  // unwind in reverse — each rollback is a "use step"
-  // so it's durable and retried automatically
-  for (const rollback of rollbacks.reverse()) {
-    await rollback()
-  }
-  // → cancelRestaurantOrder ✓
-  // → refundPayment ✓
-  // → releaseInventory ✓
-
-  throw e
+  return Response.json({ ok: true })
 }`,
               },
             ],

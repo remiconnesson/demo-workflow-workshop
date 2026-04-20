@@ -65,25 +65,26 @@ function wrapLines(
   return lines
     .map((line, i) => {
       const lineNumber = i + 1;
+      const body = line || "&nbsp;";
       const tooltip = highlightLines[lineNumber];
       const lineClass = `code-line code-line-${lineNumber}`;
       if (tooltip === undefined) {
-        return `<div class="${lineClass}" data-line-number="${lineNumber}">${line}</div>`;
+        return `<div class="${lineClass}" data-line-number="${lineNumber}">${body}</div>`;
       }
       if (!tooltip || suppressTips) {
-        return `<div class="${lineClass} code-hl" data-line-number="${lineNumber}">${line}</div>`;
+        return `<div class="${lineClass} code-hl" data-line-number="${lineNumber}">${body}</div>`;
       }
       const flip = lineNumber < FLIP_DOWN_BEFORE_LINE;
       const tipClass = flip ? "code-hl-tip code-hl-tip--below" : "code-hl-tip";
       const hlClass = flip
         ? `${lineClass} code-hl code-hl--flip`
         : `${lineClass} code-hl`;
-      const { label, body } = splitEyebrow(tooltip);
+      const { label, body: tipBody } = splitEyebrow(tooltip);
       const eyebrow = label
         ? `<div class="code-hl-tip-eyebrow">${label}</div>`
         : "";
-      const tip = `<div class="${tipClass}">${eyebrow}<div class="code-hl-tip-body">${formatTip(body)}</div></div>`;
-      return `<div class="${hlClass}" data-line-number="${lineNumber}">${line}${tip}</div>`;
+      const tip = `<div class="${tipClass}">${eyebrow}<div class="code-hl-tip-body">${formatTip(tipBody)}</div></div>`;
+      return `<div class="${hlClass}" data-line-number="${lineNumber}">${body}${tip}</div>`;
     })
     .join("");
 }
