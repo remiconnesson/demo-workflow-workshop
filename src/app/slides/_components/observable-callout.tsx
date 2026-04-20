@@ -33,7 +33,7 @@ export function ObservableCallout() {
   }, []);
 
   const display = runId ?? RUN_ID_PLACEHOLDER;
-  const command = `npx workflow web run ${display}`;
+  const command = `npx workflow web ${display}`;
   const href = runId
     ? `http://localhost:${WORKFLOW_WEB_PORT}/run/${runId}`
     : undefined;

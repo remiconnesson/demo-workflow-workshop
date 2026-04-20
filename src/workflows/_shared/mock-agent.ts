@@ -45,6 +45,12 @@ export type RunMockAgentOpts = {
   script: MockAgentScript;
   /** Override the text-delta character cadence (ms). Default 18ms. */
   deltaDelayMs?: number;
+  /**
+   * Prefix for text-part IDs so repeated fallback turns (e.g. observer's
+   * 20-loop scan) don't collide on stream IDs. Include whatever makes the
+   * caller unique — e.g. `mock-observer-${loopIndex}`.
+   */
+  idPrefix?: string;
 };
 
 /**
@@ -124,8 +130,12 @@ export async function runMockAgentTurn({
   writable,
   script,
   deltaDelayMs = 18,
+  idPrefix,
 }: RunMockAgentOpts): Promise<void> {
   const writer = writable.getWriter();
+  const prefix =
+    idPrefix ??
+    `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   try {
     await writer.write({
       type: "start",
@@ -134,14 +144,13 @@ export async function runMockAgentTurn({
       type: "start-step",
     } as UIMessageChunk);
 
-    // Diagnostic chunk — lets callers filter to see when mock mode engaged.
-    await writer.write({
-      type: "data-mock-agent",
-      data: { reason: "ai-gateway-fallback" },
-    } as unknown as UIMessageChunk);
-
     if (script.preludeText) {
-      await streamText(writer, "mock-prelude", script.preludeText, deltaDelayMs);
+      await streamText(
+        writer,
+        `${prefix}-prelude`,
+        script.preludeText,
+        deltaDelayMs,
+      );
     }
 
     if (script.toolCalls) {
@@ -161,7 +170,12 @@ export async function runMockAgentTurn({
     }
 
     if (script.closingText) {
-      await streamText(writer, "mock-closing", script.closingText, deltaDelayMs);
+      await streamText(
+        writer,
+        `${prefix}-closing`,
+        script.closingText,
+        deltaDelayMs,
+      );
     }
 
     await writer.write({
