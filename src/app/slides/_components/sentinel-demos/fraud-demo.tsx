@@ -142,64 +142,114 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
   const handleChunk = useCallback((chunk: ChunkLike) => {
     const type = chunk.type ?? "";
 
+    // --- data-fraud events (emitted by step tools via getWritable) ---
     if (type === "data-fraud" && chunk.data) {
       const event = chunk.data;
-
       if (event.type === "charge-scored") {
-        const score: RowScore = {
-          risk: event.risk,
-          cleared: event.cleared,
-          reason: event.reason,
-        };
-        setScores((prev) => new Map(prev).set(event.index, score));
-        setDebugEvents((prev) => [
-          ...prev,
-          {
-            kind: event.cleared ? "OK " : "ERR",
-            msg: `reportCharge(${event.card} · risk ${event.risk.toFixed(2)})`,
-          },
-        ]);
+        applyChargeScored(event);
       }
-
       if (event.type === "freeze") {
-        setFrozenCards((prev) => new Set(prev).add(event.card));
-        setDebugEvents((prev) => [
-          ...prev,
-          { kind: "ERR", msg: `freezeAccount(${event.card})` },
-        ]);
+        applyFreeze(event);
       }
-
       if (event.type === "batch-summary") {
-        setCallouts((prev) => [
-          ...prev,
-          {
-            id: `callout-${prev.length}`,
-            avatar: "F",
-            agentName: "Fraud sentinel",
-            timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
-            tone: event.message.toLowerCase().includes("freez") ? "red" : "emerald",
-            message: event.message,
-            citations: event.citations,
-            verdict: event.message.toLowerCase().includes("freez")
-              ? `froze ${event.citations[0] ?? ""}`
-              : `cleared ${event.citations.length}`,
-          },
-        ]);
-        setLoopCount((n) => n + 1);
-        setDebugEvents((prev) => [
-          ...prev,
-          { kind: "CMP", msg: `batchSummary(${event.message.slice(0, 50)}…)` },
-        ]);
+        applyBatchSummary(event);
       }
+      return;
     }
 
-    if (type === "tool-input-available" && chunk.toolName) {
-      setDebugEvents((prev) => [
-        ...prev,
-        { kind: "RUN", msg: `${chunk.toolName as string}(…)` },
-      ]);
+    // --- tool-input-available: the agent's decision is in the input ---
+    // These arrive as the LLM streams, BEFORE the step executes,
+    // so we render rows immediately instead of waiting for data-fraud.
+    if (type === "tool-input-available") {
+      const toolName = chunk.toolName as string | undefined;
+      const input = chunk.input as Record<string, unknown> | undefined;
+      if (!toolName || !input) return;
+
+      if (toolName === "reportCharge") {
+        applyChargeScored({
+          index: input.index as number,
+          card: input.card as string,
+          risk: input.risk as number,
+          cleared: input.cleared as boolean,
+          reason: input.reason as string,
+        });
+      }
+      if (toolName === "freezeAccount") {
+        applyFreeze({
+          card: input.card as string,
+          reason: input.reason as string,
+        });
+      }
+      if (toolName === "batchSummary") {
+        applyBatchSummary({
+          message: input.message as string,
+          citations: input.citations as string[],
+        });
+      }
+      return;
     }
   }, []);
+
+  const applyChargeScored = useCallback(
+    (event: { index: number; card: string; risk: number; cleared: boolean; reason: string }) => {
+      setScores((prev) => {
+        if (prev.has(event.index)) return prev;
+        const next = new Map(prev);
+        next.set(event.index, { risk: event.risk, cleared: event.cleared, reason: event.reason });
+        return next;
+      });
+      setDebugEvents((prev) => [
+        ...prev,
+        {
+          kind: event.cleared ? "OK " : "ERR",
+          msg: `reportCharge(${event.card} · risk ${event.risk.toFixed(2)})`,
+        },
+      ]);
+    },
+    [],
+  );
+
+  const applyFreeze = useCallback(
+    (event: { card: string; reason: string }) => {
+      setFrozenCards((prev) => {
+        if (prev.has(event.card)) return prev;
+        return new Set(prev).add(event.card);
+      });
+      setDebugEvents((prev) => [
+        ...prev,
+        { kind: "ERR", msg: `freezeAccount(${event.card})` },
+      ]);
+    },
+    [],
+  );
+
+  const applyBatchSummary = useCallback(
+    (event: { message: string; citations: string[] }) => {
+      setCallouts((prev) => [
+        ...prev,
+        {
+          id: `callout-${prev.length}`,
+          avatar: "F",
+          agentName: "Fraud sentinel",
+          timestamp: new Date().toLocaleTimeString("en-US", { hour12: false }),
+          tone: event.message.toLowerCase().includes("froze") || event.message.toLowerCase().includes("frozen")
+            ? "red"
+            : "emerald",
+          message: event.message,
+          citations: event.citations,
+          verdict: event.message.toLowerCase().includes("froze") || event.message.toLowerCase().includes("frozen")
+            ? `froze ${event.citations[0] ?? ""}`
+            : `cleared ${event.citations.length}`,
+        },
+      ]);
+      setLoopCount((n) => n + 1);
+      setDebugEvents((prev) => [
+        ...prev,
+        { kind: "CMP", msg: `batchSummary(${event.message.slice(0, 50)}…)` },
+      ]);
+    },
+    [],
+  );
 
   // --- auto-scroll ---
   useEffect(() => {
@@ -435,21 +485,21 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
 
         {/* idle hint */}
         <div
-          className={`pointer-events-none absolute inset-0 flex items-center justify-center bg-black/60 transition-opacity duration-500 ${
-            phase === "idle" && !crashPhase ? "opacity-100" : "opacity-0"
+          className={`absolute inset-0 flex items-center justify-center bg-black/60 transition-opacity duration-500 ${
+            phase === "idle" && !crashPhase ? "opacity-100" : "pointer-events-none opacity-0"
           }`}
         >
           <div className="text-center">
             <p className="text-4xl font-semibold tracking-tight text-white whitespace-pre-line">
               {variant.purposeLine}
             </p>
-            <p className="mt-4 text-base text-zinc-400">
-              Press{" "}
-              <kbd className="mx-1 rounded-md border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-base">
-                r
-              </kbd>{" "}
-              to start the agent loop.
-            </p>
+            <button
+              type="button"
+              onClick={handleStart}
+              className="mt-6 rounded-xl bg-white px-8 py-4 text-lg font-semibold text-black transition-colors hover:bg-zinc-200"
+            >
+              Start agent
+            </button>
           </div>
         </div>
       </div>

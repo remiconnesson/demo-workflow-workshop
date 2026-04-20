@@ -1,4 +1,3 @@
-import { createUIMessageStreamResponse } from "ai";
 import { getRun } from "workflow/api";
 
 export async function GET(
@@ -15,12 +14,18 @@ export async function GET(
 
   const run = getRun(runId);
   const readable = run.getReadable({ startIndex });
-  const tailIndex = await readable.getTailIndex();
 
-  return createUIMessageStreamResponse({
-    stream: readable,
+  const encoder = new TextEncoder();
+  const ndjson = new TransformStream<unknown, Uint8Array>({
+    transform(chunk, controller) {
+      controller.enqueue(encoder.encode(JSON.stringify(chunk) + "\n"));
+    },
+  });
+
+  return new Response(readable.pipeThrough(ndjson), {
     headers: {
-      "x-workflow-stream-tail-index": String(tailIndex),
+      "Content-Type": "application/x-ndjson",
+      "Cache-Control": "no-cache, no-transform",
     },
   });
 }
