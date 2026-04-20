@@ -49,7 +49,7 @@ This installs a Claude Code / AI-agent skill that teaches coding agents how to w
 
 ### Running without an AI Gateway
 
-The three `DurableAgent` demos (First Agent, Observer, Analyst) call the Vercel AI Gateway by default. When the gateway is unreachable — offline laptop, expired key, transient outage — each demo **falls back automatically** to a scripted mock turn so the stage stays live.
+The three `DurableAgent` demos (Hello World, Autonomous, Optimize) call the Vercel AI Gateway by default. When the gateway is unreachable — offline laptop, expired key, transient outage — each demo **falls back automatically** to a scripted mock turn so the stage stays live.
 
 Detection is handled by `src/workflows/_shared/mock-agent.ts`. The fallback triggers when:
 
