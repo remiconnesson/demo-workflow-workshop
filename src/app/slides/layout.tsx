@@ -3,8 +3,199 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
-import { getSlideNav, SLIDES } from "./config";
+import { getSlideNav, SLIDES, type SlideInfo } from "./config";
 import { WorkflowMark } from "./_components/workflow-mark";
+import { SlidesDebugProvider } from "./_components/slides-debug-context";
+
+type RailTone =
+  | "zinc"
+  | "sky"
+  | "amber"
+  | "fuchsia"
+  | "emerald"
+  | "amber-fuchsia";
+
+type AudienceRailInfo = {
+  family: string;
+  beat: string;
+  tone: RailTone;
+  proof?: string;
+};
+
+const RAIL_TONE_CLASS: Record<
+  RailTone,
+  {
+    dot: string;
+    line: string;
+    proof: string;
+  }
+> = {
+  zinc: {
+    dot: "bg-zinc-500",
+    line: "bg-white/35",
+    proof: "border-white/10 bg-white/5 text-zinc-300",
+  },
+  sky: {
+    dot: "bg-sky-400 shadow-[0_0_18px_rgba(56,189,248,0.55)]",
+    line: "bg-sky-400",
+    proof: "border-sky-400/30 bg-sky-500/10 text-sky-300",
+  },
+  amber: {
+    dot: "bg-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.55)]",
+    line: "bg-amber-400",
+    proof: "border-amber-400/30 bg-amber-500/10 text-amber-300",
+  },
+  fuchsia: {
+    dot: "bg-fuchsia-400 shadow-[0_0_18px_rgba(232,121,249,0.55)]",
+    line: "bg-fuchsia-400",
+    proof: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-300",
+  },
+  emerald: {
+    dot: "bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.55)]",
+    line: "bg-emerald-400",
+    proof: "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
+  },
+  "amber-fuchsia": {
+    dot: "bg-gradient-to-r from-amber-400 to-fuchsia-400 shadow-[0_0_18px_rgba(232,121,249,0.45)]",
+    line: "bg-gradient-to-r from-amber-400 to-fuchsia-400",
+    proof:
+      "border-fuchsia-400/30 bg-gradient-to-r from-amber-500/10 to-fuchsia-500/10 text-white",
+  },
+};
+
+// Slug-indexed rail metadata. Numeric ranges used to live here and bit
+// us every time a slide got renumbered; keying off `slug` keeps the rail
+// stable when the order shifts.
+const RAIL_BY_SLUG: Record<string, AudienceRailInfo> = {
+  "the-demo": { family: "Setup", beat: "Happy path", tone: "zinc" },
+  "the-setup": { family: "Setup", beat: "Starting code", tone: "zinc" },
+  "reliable-software": { family: "Setup", beat: "Three properties", tone: "zinc" },
+  "how-it-works": { family: "Setup", beat: "Workshop map", tone: "zinc" },
+  observability: {
+    family: "Setup",
+    beat: "Observability",
+    tone: "emerald",
+  },
+
+  "retry/demo": { family: "Stable", beat: "Demo", tone: "sky" },
+  "retry/solution": { family: "Stable", beat: "Code", tone: "sky" },
+  "retry/pattern": { family: "Stable", beat: "Pattern", tone: "sky" },
+
+  "suspend/demo": { family: "Suspendable", beat: "Demo", tone: "amber" },
+  "suspend/solution": { family: "Suspendable", beat: "Code", tone: "amber" },
+  "suspend/pattern": { family: "Suspendable", beat: "Pattern", tone: "amber" },
+
+  "rollback/demo": { family: "Undoable", beat: "Demo", tone: "fuchsia" },
+  "rollback/solution": { family: "Undoable", beat: "Code", tone: "fuchsia" },
+  "rollback/pattern": { family: "Undoable", beat: "Pattern", tone: "fuchsia" },
+
+  "the-pivot": { family: "Pivot", beat: "Workflows → Agents", tone: "zinc" },
+
+  "first-agent/demo": {
+    family: "Hello World",
+
+    beat: "Demo",
+    tone: "emerald",
+  },
+  "first-agent/solution": {
+    family: "Hello World",
+
+    beat: "Code",
+    tone: "emerald",
+  },
+  "first-agent/pattern": {
+    family: "Hello World",
+
+    beat: "Pattern",
+    tone: "emerald",
+  },
+
+  "observer/demo": {
+    family: "Autonomous",
+
+    beat: "Demo",
+    tone: "sky",
+  },
+  "observer/solution": {
+    family: "Autonomous",
+
+    beat: "Code",
+    tone: "sky",
+  },
+  "observer/pattern": {
+    family: "Autonomous",
+
+    beat: "Pattern",
+    tone: "sky",
+  },
+
+  "analyst/demo": {
+    family: "Optimize",
+
+    beat: "Demo",
+    tone: "amber-fuchsia",
+  },
+  "analyst/solution": {
+    family: "Optimize",
+
+    beat: "Code",
+    tone: "amber-fuchsia",
+  },
+  "analyst/pattern": {
+    family: "Optimize",
+
+    beat: "Pattern",
+    tone: "amber-fuchsia",
+  },
+
+  "the-mirror": {
+    family: "Close",
+    proof: "Workflow → Agent",
+    beat: "Mirror",
+    tone: "zinc",
+  },
+  "it-is-that-easy": {
+    family: "Close",
+    beat: "Original function",
+    tone: "emerald",
+  },
+  "closer/step": { family: "Close", proof: "1 / 6", beat: "Step", tone: "sky" },
+  "closer/idempotency": {
+    family: "Close",
+    proof: "2 / 6",
+    beat: "Idempotency",
+    tone: "sky",
+  },
+  "closer/hook": { family: "Close", proof: "3 / 6", beat: "Hook", tone: "amber" },
+  "closer/sleep": {
+    family: "Close",
+    proof: "4 / 6",
+    beat: "Sleep + Race",
+    tone: "amber",
+  },
+  "closer/compensation": {
+    family: "Close",
+    proof: "5 / 6",
+    beat: "Compensation",
+    tone: "fuchsia",
+  },
+  "closer/replay": {
+    family: "Close",
+    proof: "6 / 6",
+    beat: "Replay",
+    tone: "sky",
+  },
+  close: { family: "Close", beat: "Ship it", tone: "zinc" },
+};
+
+function getAudienceRailInfo(
+  slide: SlideInfo | null,
+): AudienceRailInfo | null {
+  if (!slide || slide.slug === "title") return null;
+  const hit = RAIL_BY_SLUG[slide.slug];
+  if (hit) return hit;
+  return { family: slide.title, beat: "", tone: "zinc" };
+}
 
 export default function SlidesLayout({
   children,
@@ -15,9 +206,14 @@ export default function SlidesLayout({
   const router = useRouter();
   const slug = pathname.replace(/^\/slides\//, "");
   const { current, prev, next, total } = getSlideNav(slug);
+  const railInfo = getAudienceRailInfo(current);
+  const railTone = railInfo ? RAIL_TONE_CLASS[railInfo.tone] : null;
+  const progressPercent =
+    current && total > 0 ? `${(current.number / total) * 100}%` : "0%";
 
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // Listen for workflow run events from child slides
@@ -37,9 +233,10 @@ export default function SlidesLayout({
     setRunInfo(null);
   }, [slug]);
 
-  // Close picker on slide change
+  // Close picker and debug drawer on slide change
   useEffect(() => {
     setPickerOpen(false);
+    setDebugOpen(false);
   }, [slug]);
 
   // Close picker on outside click
@@ -62,10 +259,6 @@ export default function SlidesLayout({
   }, [router]);
 
   useEffect(() => {
-    console.info("[slides] open", { slug });
-  }, [slug]);
-
-  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setPickerOpen(false);
@@ -78,11 +271,28 @@ export default function SlidesLayout({
         tag === "TEXTAREA" ||
         tag === "SELECT" ||
         !!target?.isContentEditable;
-      if (isEditable) return;
+      const isArrowNavKey =
+        e.key === "ArrowRight" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowUp";
+      const hasTextSelection =
+        (target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement) &&
+        typeof target.selectionStart === "number" &&
+        typeof target.selectionEnd === "number" &&
+        target.selectionStart !== target.selectionEnd;
+      if (isEditable) {
+        if (isArrowNavKey && !hasTextSelection) {
+          target?.blur();
+        } else {
+          return;
+        }
+      }
 
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      if (e.key === "ArrowRight" && next) {
+      if ((e.key === "ArrowRight" || e.key === "ArrowDown") && next) {
         e.preventDefault();
         const consumed = !window.dispatchEvent(
           new CustomEvent("slide:nav-forward", { cancelable: true, detail: { slug } }),
@@ -90,7 +300,7 @@ export default function SlidesLayout({
         if (consumed) return;
         router.push(`/slides/${next.slug}`);
       }
-      if (e.key === "ArrowLeft" && prev) {
+      if ((e.key === "ArrowLeft" || e.key === "ArrowUp") && prev) {
         e.preventDefault();
         const consumed = !window.dispatchEvent(
           new CustomEvent("slide:nav-back", { cancelable: true, detail: { slug } }),
@@ -104,14 +314,12 @@ export default function SlidesLayout({
       }
       if (e.key === "r") {
         e.preventDefault();
-        console.info("[slides] run_current", { slug });
         window.dispatchEvent(
           new CustomEvent("slide:run", { detail: { slug } }),
         );
       }
       if (e.key === "R") {
         e.preventDefault();
-        console.info("[slides] reset_current", { slug });
         window.dispatchEvent(
           new CustomEvent("slide:reset", { detail: { slug } }),
         );
@@ -120,27 +328,65 @@ export default function SlidesLayout({
         e.preventDefault();
         setPickerOpen((v) => !v);
       }
+      if (e.key === "D" && e.shiftKey) {
+        e.preventDefault();
+        setDebugOpen((v) => !v);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [prev, next, router, slug]);
 
   return (
+    <SlidesDebugProvider value={debugOpen}>
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {children}
 
-      {slug !== "title" && (
+      {slug !== "title" && slug !== "close" && (
         <div className="pointer-events-none fixed top-8 right-8 z-50">
           <WorkflowMark size={32} className="text-white/70" />
         </div>
       )}
 
-      {current?.breadcrumb && (
-        <div className="pointer-events-none fixed top-8 left-8 z-50">
-          <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            {current.breadcrumb}
-          </span>
-        </div>
+      {railInfo && railTone && (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] bg-white/[0.06]"
+          >
+            <div
+              className={`h-full transition-[width] duration-300 ease-out ${railTone.line}`}
+              style={{ width: progressPercent }}
+            />
+          </div>
+          <div className="pointer-events-none fixed left-1/2 top-4 z-50 flex max-w-[calc(100vw-12rem)] -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-black/45 px-5 py-2 shadow-[0_18px_60px_rgba(0,0,0,0.38)] backdrop-blur-md">
+            <span
+              aria-hidden
+              className={`h-2.5 w-2.5 shrink-0 rounded-full ${railTone.dot}`}
+            />
+            <span className="whitespace-nowrap text-xl font-semibold leading-none text-zinc-100">
+              {railInfo.family}
+            </span>
+            {railInfo.proof ? (
+              <>
+                <span aria-hidden className="h-5 w-px bg-white/15" />
+                <span
+                  className={`whitespace-nowrap rounded-full border px-3.5 py-1.5 font-mono text-base font-semibold leading-none tracking-tight ${railTone.proof}`}
+                >
+                  {railInfo.proof}
+                </span>
+              </>
+            ) : null}
+            {railInfo.beat ? (
+              <>
+                <span aria-hidden className="h-5 w-px bg-white/15" />
+                <span className="whitespace-nowrap text-lg font-medium leading-none text-zinc-400">
+                  {railInfo.beat}
+                </span>
+              </>
+            ) : null}
+          </div>
+        </>
       )}
 
 
@@ -159,7 +405,7 @@ export default function SlidesLayout({
           &larr;
         </button>
 
-        {/* slide number — click to open picker */}
+        {/* slide number: click to open picker */}
         <div className="relative" ref={pickerRef}>
           <button
             onClick={() => setPickerOpen((v) => !v)}
@@ -211,8 +457,8 @@ export default function SlidesLayout({
       </div>
 
 
-      {/* debug drawer — always open when a run is active */}
-      {runInfo && (
+      {/* debug drawer: opt-in via Shift+D when a run is active */}
+      {debugOpen && runInfo && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">
             <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
@@ -220,5 +466,6 @@ export default function SlidesLayout({
         </div>
       )}
     </div>
+    </SlidesDebugProvider>
   );
 }

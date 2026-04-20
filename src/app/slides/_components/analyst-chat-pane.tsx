@@ -348,7 +348,7 @@ export function AnalystChatPane({
             patch: cached?.patch ?? {},
             rationale:
               cached?.rationale ??
-              "Analyst proposed a menu change. Review and decide.",
+              "Agent proposed a menu optimization. Review and decide.",
           });
         }
         return;
@@ -539,7 +539,7 @@ export function AnalystChatPane({
           return;
         }
 
-        const runId = res.headers.get("X-Run-Id");
+        const runId = res.headers.get("x-workflow-run-id");
         if (runId) {
           activeRunIdRef.current = runId;
           onRunIdChange?.(runId);
@@ -714,7 +714,7 @@ export function AnalystChatPane({
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Analyst
+            Optimize agent
           </span>
           <span className="font-mono text-sm text-zinc-500">
             anthropic/claude-haiku-4.5
@@ -774,7 +774,7 @@ export function AnalystChatPane({
           <div className="flex items-center gap-3 border-b border-white/10 px-5 py-3">
             <span className="h-2 w-2 rounded-full bg-zinc-600" />
             <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Tool + operator history
+              Tool + manager history
             </span>
             <span className="ml-auto font-mono text-xs text-zinc-600">
               {historyRows.length}

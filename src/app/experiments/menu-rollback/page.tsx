@@ -215,7 +215,7 @@ export default function MenuRollbackExperimentPage() {
         runningRef.current = false;
         return;
       }
-      const xRunId = res.headers.get("X-Run-Id");
+      const xRunId = res.headers.get("x-workflow-run-id");
       if (xRunId) setRunId(xRunId);
 
       const reader = res.body.getReader();

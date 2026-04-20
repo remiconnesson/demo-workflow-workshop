@@ -15,6 +15,11 @@ import {
   type Scenario,
 } from "@/lib/ops-data";
 import { approvalHook } from "./_hooks";
+import {
+  isGatewayFailure,
+  runMockAgentTurn,
+  shouldForceMockAgent,
+} from "./_shared/mock-agent";
 
 // ---------------------------------------------------------------------------
 // Step-backed tools
@@ -124,8 +129,8 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
     instructions: [
-      "You are an ops analyst for a food delivery app.",
-      "NEVER ask the operator clarifying questions — always act.",
+      "You are the restaurant manager's AI assistant for a food delivery app.",
+      "NEVER ask the manager clarifying questions — always act.",
       "",
       "DEFAULT FLOW — for any investigative user message (e.g. 'what's",
       "going wrong', 'why are we refunding so much', 'should we hide",
@@ -133,15 +138,15 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       "(1) call readReport and queryOrders to spot patterns.",
       "(2) pick ONE highest-impact menu change and call proposeMenuChange.",
       "(3) immediately call requestApproval with that proposalId.",
-      "(4) after the operator approves, call applyMenuChange with the",
+      "(4) after the manager approves, call applyMenuChange with the",
       "SAME proposalId, sku, and patch you used in proposeMenuChange,",
       "then emit one short confirmation sentence and stop.",
-      "If the operator rejects, acknowledge in one sentence and stop.",
+      "If the manager rejects, acknowledge in one sentence and stop.",
       "",
-      "ROLLBACK FLOW — if the operator asks you to roll back, undo, or",
+      "ROLLBACK FLOW — if the manager asks you to roll back, undo, or",
       "revert one or more SKUs (e.g. 'roll back sushi-omakase' or",
       "'please roll back: burger-classic, pho-beef'), call",
-      "rollbackMenuChange ONCE per sku the operator named, in order,",
+      "rollbackMenuChange ONCE per sku the manager named, in order,",
       "then emit one short confirmation sentence per sku and stop.",
       "Do not re-investigate or propose new changes during a rollback.",
       "",
@@ -183,7 +188,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       requestApproval: {
         description:
-          "Suspend and ask the human operator to approve or reject a proposal.",
+          "Suspend and ask the human manager to approve or reject a proposal.",
         inputSchema: z.object({ proposalId: z.string() }),
         execute: requestApproval,
       },
@@ -207,19 +212,46 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       rollbackMenuChange: {
         description:
-          "Roll back the most recent change to this menu item. Call once per sku when the operator asks to undo previously applied changes.",
+          "Roll back the most recent change to this menu item. Call once per sku when the manager asks to undo previously applied changes.",
         inputSchema: z.object({ sku: z.string() }),
         execute: rollbackMenuChange,
       },
     },
   });
 
-  const result = await agent.stream({
-    messages,
-    writable,
-    collectUIMessages: true,
-    maxSteps: 12,
-  });
+  const runFallback = async () => {
+    await runMockAgentTurn({
+      // Deterministic — derived from workflow input (the messages array
+      // length is stable across replays of the same turn).
+      idPrefix: `mock-analyst-turn-${messages.length}`,
+      script: {
+        preludeText: [
+          "The AI Gateway is unreachable right now, so I'm running in",
+          "offline-demo mode — interactive proposals, approvals, and",
+          "rollbacks need the live model to drive them end-to-end.",
+          "Restore the gateway connection and retry.",
+        ].join(" "),
+      },
+    });
+  };
 
-  return { messages: result.messages, uiMessages: result.uiMessages };
+  if (shouldForceMockAgent()) {
+    await runFallback();
+    return { messages: [] as unknown[], uiMessages: [] as unknown[] };
+  }
+
+  try {
+    const result = await agent.stream({
+      messages,
+      writable,
+      collectUIMessages: true,
+      maxSteps: 12,
+    });
+
+    return { messages: result.messages, uiMessages: result.uiMessages };
+  } catch (err) {
+    if (!isGatewayFailure(err)) throw err;
+    await runFallback();
+    return { messages: [] as unknown[], uiMessages: [] as unknown[] };
+  }
 }

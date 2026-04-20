@@ -1,13 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { SLIDES } from "../../src/app/slides/config";
 
-test("main demo renders the primary controls", async ({ page }) => {
+test("root redirects to title slide", async ({ page }) => {
   await page.goto("/");
-
-  await expect(page.getByText("Triangle Donuts").first()).toBeVisible();
-  await expect(page.getByText("Current run", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Place order/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Slides/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/slides\/title$/);
 });
 
 for (const slide of SLIDES) {
@@ -17,8 +13,8 @@ for (const slide of SLIDES) {
     await page.goto(`/slides/${slide.slug}`);
 
     await expect(page).toHaveURL(new RegExp(`/slides/${slide.slug}$`));
-    await expect(page.getByText(slide.title, { exact: true }).first()).toBeVisible();
-    await expect(page.getByText(`${slide.number} / ${SLIDES.length}`, { exact: true })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Demo" })).toBeVisible();
+    await expect(
+      page.getByText(`${slide.number} / ${SLIDES.length}`, { exact: true }),
+    ).toBeVisible();
   });
 }

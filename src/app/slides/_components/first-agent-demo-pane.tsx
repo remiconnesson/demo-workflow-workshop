@@ -4,12 +4,13 @@ import { useChat } from "@ai-sdk/react";
 import { WorkflowChatTransport } from "@workflow/ai";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AgentDebugDrawer, type DebugEvent } from "./agent-debug-drawer";
+import { useSlidesDebug } from "./slides-debug-context";
 
 const STORAGE_KEY = "slides:first-agent:run-id";
 const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
 
 /**
- * Presenter-scale chat pane for the "Our First Agent" slide.
+ * Presenter-scale chat pane for the "Hello World" agent demo slide.
  *
  * Reuses the `/api/experiments/our-first-agent` routes. The slide's job
  * is to let the presenter:
@@ -22,6 +23,7 @@ const PRESET_PROMPT = "My food was cold and late. Order ord-8842.";
  * badge in Geist Mono that stays identical across the reload.
  */
 export function FirstAgentDemoPane() {
+  const debugOpen = useSlidesDebug();
   const [mounted, setMounted] = useState(false);
   const [activeRunId, setActiveRunId] = useState<string | undefined>(undefined);
   const [wasResumed, setWasResumed] = useState(false);
@@ -195,9 +197,15 @@ export function FirstAgentDemoPane() {
       </div>
 
       {/* RIGHT — the F5 hint + under-the-hood */}
-      <aside className="flex min-h-0 flex-col gap-6 overflow-hidden">
+      <aside
+        className={`flex min-h-0 flex-col overflow-hidden ${
+          debugOpen ? "gap-6" : "justify-center"
+        }`}
+      >
         <div
           className={`flex flex-col gap-4 rounded-2xl border p-8 transition-colors duration-300 ${
+            debugOpen ? "" : "min-h-[340px] justify-center"
+          } ${
             wasResumed && hasMessages
               ? "border-emerald-500/40 bg-emerald-500/10"
               : isWorking
@@ -245,10 +253,12 @@ export function FirstAgentDemoPane() {
           </div>
         </div>
 
-        <AgentDebugDrawer
-          runId={mounted ? activeRunId : undefined}
-          events={debugEvents}
-        />
+        {debugOpen ? (
+          <AgentDebugDrawer
+            runId={mounted ? activeRunId : undefined}
+            events={debugEvents}
+          />
+        ) : null}
       </aside>
     </div>
   );

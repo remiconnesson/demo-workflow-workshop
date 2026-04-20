@@ -10,6 +10,11 @@ import {
   type ReportEntry,
 } from "@/lib/ops-data";
 import { approvalHook } from "./_hooks";
+import {
+  isGatewayFailure,
+  runMockAgentTurn,
+  shouldForceMockAgent,
+} from "./_shared/mock-agent";
 
 // ---------------------------------------------------------------------------
 // Step-backed tools
@@ -73,29 +78,33 @@ async function appendToReport({ entries }: { entries: ReportEntry[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Workflow-level tool: human ack via hook
+// Workflow-level tool: human ack via hook (factory — closure captures counter)
 // ---------------------------------------------------------------------------
 
-async function flagForHuman({
-  summary,
-  severity,
-}: {
-  summary: string;
-  severity: "info" | "warn" | "critical";
-}) {
-  // No "use step" — hooks must be awaited at the workflow level.
-  const token = `observer-flag:${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const hook = approvalHook.create({ token });
+function makeFlagForHuman() {
+  let flagCallCount = 0;
 
-  const ack = await hook;
-  hook.dispose();
-
-  return {
-    acknowledged: ack.approved,
-    reason: ack.reason ?? null,
-    severity,
+  return async function flagForHuman({
     summary,
-    token,
+    severity,
+  }: {
+    summary: string;
+    severity: "info" | "warn" | "critical";
+  }) {
+    // No "use step" — hooks must be awaited at the workflow level.
+    const token = `observer-flag:${++flagCallCount}`;
+    const hook = approvalHook.create({ token });
+
+    const ack = await hook;
+    hook.dispose();
+
+    return {
+      acknowledged: ack.approved,
+      reason: ack.reason ?? null,
+      severity,
+      summary,
+      token,
+    };
   };
 }
 
@@ -107,6 +116,7 @@ export async function observerAgentWorkflow() {
   "use workflow";
 
   const writable = getWritable<UIMessageChunk>();
+  const flagForHuman = makeFlagForHuman();
 
   const agent = new DurableAgent({
     model: "anthropic/claude-haiku-4.5",
@@ -158,23 +168,86 @@ export async function observerAgentWorkflow() {
     },
   });
 
-  const MAX_LOOPS = 20;
-  for (let i = 0; i < MAX_LOOPS; i++) {
-    await agent.stream({
-      messages: [
+  const runLoopFallback = async (loopIndex: number) => {
+    const orders = await fetchRecentOrders({ limit: 25 });
+    const window = await analyzeWindow({ orders });
+    const summary = [
+      `Loop ${loopIndex + 1}: scanned ${window.total} orders,`,
+      `${window.slowWaits} slow waits, ${window.highRetries} retry-heavy,`,
+      `${window.compensations} compensations.`,
+    ].join(" ");
+    await appendToReport({
+      entries: [
         {
-          role: "user",
-          content: [
-            `Loop ${i + 1} of ${MAX_LOOPS}.`,
-            "Fetch the last 25 orders, analyze them, and append 1-3 short",
-            "report entries covering any notable metrics or flags.",
-            "Only call flagForHuman if severity is critical.",
-          ].join(" "),
+          at: new Date().toISOString(),
+          kind: "summary",
+          text: summary,
         },
       ],
-      writable,
-      maxSteps: 6,
     });
+    await runMockAgentTurn({
+      idPrefix: `mock-observer-${loopIndex}`,
+      script: {
+        preludeText: `Loop ${loopIndex + 1}: starting scan.`,
+        toolCalls: [
+          {
+            toolName: "fetchRecentOrders",
+            toolCallId: `mock-observer-fetch-${loopIndex}`,
+            input: { limit: 25 },
+            output: orders,
+          },
+          {
+            toolName: "analyzeWindow",
+            toolCallId: `mock-observer-analyze-${loopIndex}`,
+            input: { orders },
+            output: window,
+          },
+          {
+            toolName: "appendToReport",
+            toolCallId: `mock-observer-append-${loopIndex}`,
+            input: {
+              entries: [
+                {
+                  at: new Date().toISOString(),
+                  kind: "summary",
+                  text: summary,
+                },
+              ],
+            },
+            output: { appended: 1 },
+          },
+        ],
+        closingText: summary,
+      },
+    });
+  };
+
+  const MAX_LOOPS = 20;
+  for (let i = 0; i < MAX_LOOPS; i++) {
+    if (shouldForceMockAgent()) {
+      await runLoopFallback(i);
+    } else {
+      try {
+        await agent.stream({
+          messages: [
+            {
+              role: "user",
+              content: [
+                `Loop ${i + 1} of ${MAX_LOOPS}.`,
+                "Fetch the last 25 orders, analyze them, and append 1-3 short",
+                "report entries covering any notable metrics or flags.",
+                "Only call flagForHuman if severity is critical.",
+              ].join(" "),
+            },
+          ],
+          writable,
+          maxSteps: 6,
+        });
+      } catch (err) {
+        if (!isGatewayFailure(err)) throw err;
+        await runLoopFallback(i);
+      }
+    }
 
     await sleep("30s");
   }

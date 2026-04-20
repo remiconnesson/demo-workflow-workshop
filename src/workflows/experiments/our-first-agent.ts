@@ -6,6 +6,11 @@ import {
   type UIMessage,
   type UIMessageChunk,
 } from "ai";
+import {
+  isGatewayFailure,
+  runMockAgentTurn,
+  shouldForceMockAgent,
+} from "../_shared/mock-agent";
 
 /**
  * "Our First Agent" — the zeroth demo of the Workflow SDK + Agents story.
@@ -63,8 +68,45 @@ export async function ourFirstAgentWorkflow(messages: UIMessage[]) {
     },
   });
 
-  await agent.stream({
-    messages: await convertToModelMessages(messages),
-    writable,
-  });
+  const runFallback = async () => {
+    const orderId = "ord-8842";
+    const details = await fetchOrderDetails({ orderId });
+    await runMockAgentTurn({
+      idPrefix: "mock-first-agent",
+      script: {
+        preludeText:
+          "Thanks for reaching out — I'm pulling up your order now.",
+        toolCalls: [
+          {
+            toolName: "fetchOrderDetails",
+            toolCallId: "mock-first-agent-1",
+            input: { orderId },
+            output: details,
+          },
+        ],
+        closingText: [
+          `I found order ${details.orderId} for ${details.customer}:`,
+          `one ${details.items[0].name} from ${details.restaurant} at`,
+          `$${details.items[0].price.toFixed(2)}, delivered`,
+          `at ${details.deliveredAt}. Let me know if you'd like a refund`,
+          "or a follow-up.",
+        ].join(" "),
+      },
+    });
+  };
+
+  if (shouldForceMockAgent()) {
+    await runFallback();
+    return;
+  }
+
+  try {
+    await agent.stream({
+      messages: await convertToModelMessages(messages),
+      writable,
+    });
+  } catch (err) {
+    if (!isGatewayFailure(err)) throw err;
+    await runFallback();
+  }
 }

@@ -38,7 +38,7 @@ export default function ExperimentsIndexPage() {
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
             A DurableAgent with one slow tool. Hit F5 while it&apos;s
             streaming — the same sentence finishes itself. The quick
-            win before the three verbs.
+            win before the three properties.
           </p>
           <p className="mt-3 font-mono text-xs text-zinc-500">
             /experiments/our-first-agent

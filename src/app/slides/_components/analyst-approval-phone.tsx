@@ -127,7 +127,7 @@ export function AnalystApprovalPhone() {
     const itemName = pending.itemName;
     pushOperatorEvent({
       kind: approved ? "approve" : "reject",
-      label: `operator ${approved ? "approved" : "rejected"} · ${itemName}`,
+      label: `manager ${approved ? "approved" : "rejected"} · ${itemName}`,
     });
     const body: { token: string; approved: boolean; reason?: string } = {
       token: pending.token,
@@ -190,8 +190,8 @@ export function AnalystApprovalPhone() {
       kind: "undo-requested",
       label:
         skus.length === 1
-          ? `operator requested undo · ${skus[0]}`
-          : `operator requested undo · ${skus.length} changes`,
+          ? `manager requested undo · ${skus[0]}`
+          : `manager requested undo · ${skus.length} changes`,
     });
     try {
       // If an approval is currently pending, clear it out first so the
@@ -282,8 +282,8 @@ export function AnalystApprovalPhone() {
       kind: "optimize",
       label:
         focusedSkus.size > 0
-          ? `operator optimize · ${focusedSkus.size} in focus`
-          : "operator optimize · full menu",
+          ? `manager optimize · ${focusedSkus.size} in focus`
+          : "manager optimize · full menu",
     });
     try {
       const res = await fetch("/api/agent/analyst/optimize", {
@@ -300,7 +300,7 @@ export function AnalystApprovalPhone() {
       setSuggestedProposals(next);
       pushOperatorEvent({
         kind: "optimize",
-        label: `analyst returned ${next.length} proposal${next.length === 1 ? "" : "s"}`,
+        label: `agent returned ${next.length} proposal${next.length === 1 ? "" : "s"}`,
       });
     } catch (err) {
       console.error("[approval-phone] optimize failed", err);

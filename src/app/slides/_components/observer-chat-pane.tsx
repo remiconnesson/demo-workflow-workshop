@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Search, BarChart3, FileText, Check } from "lucide-react";
 import { AgentDebugDrawer, type DebugEvent } from "./agent-debug-drawer";
+import { useSlidesDebug } from "./slides-debug-context";
 
 // ---------------------------------------------------------------------------
 // Observer demo, chat-window edition.
@@ -118,6 +119,7 @@ const CRASH_FRAME = 7;
 // ---------------------------------------------------------------------------
 
 export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string }) {
+  const debugOpen = useSlidesDebug();
   const [fi, setFi] = useState(0);
   const frame = FRAMES[fi];
 
@@ -248,7 +250,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
               }`}
             />
             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Observer agent · autonomous loop
+              Autonomous agent · forever loop
             </span>
             <span
               className={`rounded-full border border-white/10 bg-white/5 px-3 py-0.5 font-mono text-sm tabular-nums text-zinc-300 transition-opacity duration-500 ${
@@ -315,9 +317,15 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
       </div>
 
       {/* RIGHT — kill-server CTA + debug drawer */}
-      <aside className="flex min-h-0 flex-col gap-6 overflow-hidden">
+      <aside
+        className={`flex min-h-0 flex-col overflow-hidden ${
+          debugOpen ? "gap-6" : "justify-center"
+        }`}
+      >
         <div
           className={`flex flex-col gap-4 rounded-2xl border p-8 transition-colors duration-300 ${
+            debugOpen ? "" : "min-h-[340px] justify-center"
+          } ${
             frame.crashReady
               ? "border-red-500/40 bg-red-500/10"
               : isResumed
@@ -375,7 +383,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
           </button>
         </div>
 
-        <AgentDebugDrawer runId={runId} events={debugEvents} />
+        {debugOpen ? <AgentDebugDrawer runId={runId} events={debugEvents} /> : null}
       </aside>
     </div>
   );
@@ -509,7 +517,7 @@ function LoopBlock({
       <div className="flex justify-start">
         <div className="max-w-[86%] flex-1 rounded-2xl border border-white/10 bg-black px-6 py-5">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
-            Observer agent
+            Autonomous agent
           </p>
           <p className="mt-2 text-lg leading-[1.35] text-zinc-100">
             {isCrashed

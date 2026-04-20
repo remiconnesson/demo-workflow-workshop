@@ -188,7 +188,7 @@ export default function OrderRollbackPage() {
       setRunStatus("error");
       return;
     }
-    setRunId(res.headers.get("X-Run-Id"));
+    setRunId(res.headers.get("x-workflow-run-id"));
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();

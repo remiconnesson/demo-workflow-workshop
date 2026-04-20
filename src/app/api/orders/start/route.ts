@@ -33,5 +33,5 @@ export async function POST(req: Request) {
     demoMode: input.demoMode,
     driverTimeout: input.driverTimeout,
   });
-  return NextResponse.json({ runId: run.runId, orderId: input.orderId });
+  return NextResponse.json({ runId: run.runId, orderId: input.orderId }, { status: 202 });
 }

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { OrderStepId } from "@/lib/order-contract";
-import { CopyablePrompt } from "./copyable-prompt";
+import { InspectorBand } from "./inspector-band";
 import {
   CreditCard,
   Mail,
@@ -29,36 +29,37 @@ import {
   Landmark,
   Eye,
   Rocket,
+  ArrowUpRight,
 } from "lucide-react";
 
 const EXAMPLE_ICONS: Record<string, ReactNode> = {
-  "Payment processing": <CreditCard size={16} />,
-  "Email delivery": <Mail size={16} />,
-  "Webhook delivery": <Webhook size={16} />,
-  "SMS notifications": <MessageSquare size={16} />,
-  "File uploads to S3": <CloudUpload size={16} />,
-  "KYC identity verification": <ShieldCheck size={16} />,
-  "Manager approvals": <CircleCheckBig size={16} />,
-  "Third-party webhook callbacks": <Clock size={16} />,
-  "Multi-day onboarding sequences": <Calendar size={16} />,
-  "Legal document signing": <PenLine size={16} />,
-  "Order cancellations": <XCircle size={16} />,
-  "Travel booking cancellations": <Plane size={16} />,
-  "Subscription downgrades": <ArrowDownCircle size={16} />,
-  "Multi-service provisioning": <Server size={16} />,
-  "Releasing inventory holds": <Package size={16} />,
-  "AI customer support chats": <MessageCircle size={16} />,
-  "Long-running code generation": <Code size={16} />,
-  "Research assistants": <Search size={16} />,
-  "AI-powered form wizards": <ClipboardList size={16} />,
-  "Infrastructure monitoring": <Activity size={16} />,
-  "Log anomaly detection": <AlertTriangle size={16} />,
-  "Scheduled report generation": <BarChart3 size={16} />,
-  "Compliance auditing": <Shield size={16} />,
-  "PR merge approvals": <GitMerge size={16} />,
-  "Financial trade authorization": <Landmark size={16} />,
-  "Content moderation": <Eye size={16} />,
-  "Deployment sign-offs": <Rocket size={16} />,
+  "Payment processing": <CreditCard size={22} />,
+  "Email delivery": <Mail size={22} />,
+  "Webhook delivery": <Webhook size={22} />,
+  "SMS notifications": <MessageSquare size={22} />,
+  "File uploads to S3": <CloudUpload size={22} />,
+  "KYC identity verification": <ShieldCheck size={22} />,
+  "Manager approvals": <CircleCheckBig size={22} />,
+  "Third-party webhook callbacks": <Clock size={22} />,
+  "Multi-day onboarding sequences": <Calendar size={22} />,
+  "Legal document signing": <PenLine size={22} />,
+  "Order cancellations": <XCircle size={22} />,
+  "Travel booking cancellations": <Plane size={22} />,
+  "Subscription downgrades": <ArrowDownCircle size={22} />,
+  "Multi-service provisioning": <Server size={22} />,
+  "Releasing inventory holds": <Package size={22} />,
+  "AI customer support chats": <MessageCircle size={22} />,
+  "Long-running code generation": <Code size={22} />,
+  "Research assistants": <Search size={22} />,
+  "AI-powered form wizards": <ClipboardList size={22} />,
+  "Infrastructure monitoring": <Activity size={22} />,
+  "Log anomaly detection": <AlertTriangle size={22} />,
+  "Scheduled report generation": <BarChart3 size={22} />,
+  "Compliance auditing": <Shield size={22} />,
+  "PR merge approvals": <GitMerge size={22} />,
+  "Financial trade authorization": <Landmark size={22} />,
+  "Content moderation": <Eye size={22} />,
+  "Deployment sign-offs": <Rocket size={22} />,
 };
 
 type PatternSlideLayoutProps = {
@@ -75,94 +76,35 @@ type PatternSlideLayoutProps = {
   realWorldExamples?: string[];
 };
 
-const INSTALL_PROMPT = `npx skills add https://github.com/vercel/workflow --skill workflow-init`;
-
-/**
- * The "concept / pattern" slide — two-tone layout with a left rail
- * showing real-world examples and a main stage split into a hero zone
- * (title + API primitive + description) and a bottom prompt band.
- */
 export function PatternSlideLayout({
   patternName,
   description,
   docUrl,
+  docSection,
   apiPrimitive,
   inspectPrompt,
   comparePrompt,
   realWorldExamples,
 }: PatternSlideLayoutProps) {
   const docHref = docUrl.startsWith("http") ? docUrl : `https://${docUrl}`;
-
-  const defaultInspectPrompt = `npx workflow inspect run <run_id>
-
-Explain this run to me in detail. Walk me through each step that
-executed, what state transitions happened, and how the "${patternName}"
-pattern played out. I want to understand exactly what the Workflow SDK
-did under the hood.`;
-
-  const examplesBlock =
-    realWorldExamples && realWorldExamples.length > 0
-      ? `\n\nReal-world scenarios to look for:\n${realWorldExamples.map((ex) => `- ${ex}`).join("\n")}\n\nUse these as starting points to find similar patterns in my codebase.`
-      : "";
-
-  const defaultComparePrompt = `Compare my current code to what it might look like if I was using
-the Workflow SDK's "${patternName}" pattern. Ask me for the absolute
-path to my project, cd there, then find the places this pattern would
-apply and show me before/after diffs.
-
-API primitive: ${Array.isArray(apiPrimitive) ? apiPrimitive.join(", ") : apiPrimitive}
-Docs: ${docHref}${examplesBlock}`;
-
-  const leftPrompt = inspectPrompt ?? defaultInspectPrompt;
-  const rightPrompt = comparePrompt ?? defaultComparePrompt;
+  const primitives = Array.isArray(apiPrimitive) ? apiPrimitive : [apiPrimitive];
+  const visibleExamples = realWorldExamples?.slice(0, 6) ?? [];
 
   return (
-    <div className="flex h-full w-full overflow-hidden bg-black text-white">
-      {/* Rail */}
-      <div className="flex w-64 shrink-0 flex-col border-r border-white/5 bg-zinc-950">
-        {realWorldExamples && realWorldExamples.length > 0 && (
-          <div className="flex flex-1 flex-col justify-center gap-4 px-8">
-            <p className="mb-1 text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-              Real-world use
-            </p>
-            {realWorldExamples.map((ex) => (
-              <div
-                key={ex}
-                className="flex items-center gap-3 text-lg text-zinc-400"
-              >
-                {EXAMPLE_ICONS[ex] && (
-                  <span className="shrink-0 text-zinc-600">
-                    {EXAMPLE_ICONS[ex]}
-                  </span>
-                )}
-                <span>{ex}</span>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="border-t border-white/5 px-8 py-5">
-          <a
-            href={docHref}
-            target="_blank"
-            rel="noreferrer"
-            className="font-mono text-sm text-zinc-600 underline decoration-zinc-800 underline-offset-4 hover:text-white"
-          >
-            Docs
-          </a>
-        </div>
-      </div>
+    <div className="flex h-full w-full items-center justify-center overflow-hidden bg-black text-white">
+      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col gap-5 px-20 pt-20 pb-10">
+        <div className="grid grid-cols-[1.2fr_0.8fr] gap-12">
+          {/* Left: pattern name, API primitive, description */}
+          <div className="flex flex-col gap-5">
+            <h1 className="text-[72px] font-bold leading-[0.96] tracking-tight">
+              {patternName}
+            </h1>
 
-      {/* Main — two zones */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Hero zone */}
-        <div className="flex flex-1 flex-col justify-center gap-6 px-16">
-          <h1 className="text-8xl font-bold tracking-tight">{patternName}</h1>
-          <div className="flex self-start items-center gap-4">
-            {(Array.isArray(apiPrimitive) ? apiPrimitive : [apiPrimitive]).map(
-              (primitive) => (
+            <div className="flex flex-wrap items-center gap-4">
+              {primitives.map((primitive) => (
                 <div
                   key={primitive}
-                  className="inline-flex items-center gap-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/5 px-8 py-4"
+                  className="inline-flex items-center gap-5 rounded-2xl border border-emerald-400/25 bg-emerald-400/5 px-8 py-5"
                 >
                   <span className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-500/70">
                     API
@@ -171,31 +113,64 @@ Docs: ${docHref}${examplesBlock}`;
                     {primitive}
                   </code>
                 </div>
-              )
-            )}
+              ))}
+            </div>
+
+            <p className="max-w-4xl text-[28px] leading-[1.3] text-zinc-400">
+              {description}
+            </p>
           </div>
-          <p className="max-w-4xl text-2xl leading-relaxed text-zinc-400">
-            {description}
-          </p>
+
+          {/* Right: where this applies + docs */}
+          <div className="flex flex-col justify-center gap-8">
+            {visibleExamples.length > 0 && (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                  Where this applies
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  {visibleExamples.map((ex) => (
+                    <span
+                      key={ex}
+                      className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/[0.03] px-5 py-2.5 text-lg text-zinc-200"
+                    >
+                      {EXAMPLE_ICONS[ex] && (
+                        <span className="shrink-0 text-zinc-500">
+                          {EXAMPLE_ICONS[ex]}
+                        </span>
+                      )}
+                      <span>{ex}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <a
+              href={docHref}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit items-center gap-3 rounded-full border border-white/15 bg-white/[0.04] px-7 py-3.5 font-mono text-lg text-zinc-300 transition-colors hover:border-white/30 hover:bg-white/[0.08] hover:text-white"
+            >
+              <span className="text-sm uppercase tracking-[0.22em] text-zinc-500">
+                Docs
+              </span>
+              <span className="text-zinc-500">·</span>
+              <span>{docSection}</span>
+              <ArrowUpRight size={18} className="text-zinc-500" />
+            </a>
+          </div>
         </div>
 
-        {/* Prompt band */}
-        <div className="shrink-0 border-t border-white/5 bg-zinc-950/40 px-16 py-8">
-          <div className="grid grid-cols-2 gap-8">
-            <CopyablePrompt prompt={leftPrompt} label="Inspect the run" />
-            <CopyablePrompt
-              prompt={rightPrompt}
-              label="Try it on your code"
-            />
-          </div>
-          <div className="mt-6">
-            <CopyablePrompt
-              prompt={INSTALL_PROMPT}
-              label="Install skill"
-              compact
-            />
-          </div>
-        </div>
+        {/* Prompt band, full width at bottom */}
+        <InspectorBand
+          inspectPrompt={inspectPrompt}
+          comparePrompt={comparePrompt}
+          patternName={patternName}
+          apiPrimitive={apiPrimitive}
+          docUrl={docHref}
+          realWorldExamples={realWorldExamples}
+        />
       </div>
     </div>
   );

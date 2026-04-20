@@ -130,7 +130,7 @@ export default function ComplianceRetryPage() {
       if (!res.ok || !res.body) {
         throw new Error(`HTTP ${res.status}`);
       }
-      setRunId(res.headers.get("X-Run-Id"));
+      setRunId(res.headers.get("x-workflow-run-id"));
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();

@@ -19,7 +19,7 @@ export default async function ItIsThatEasySlide() {
       <div>
         <h2 className="mt-3 text-6xl font-semibold tracking-tight">
           It is that easy.
-          <span className="text-zinc-500"> Same shape. Durable underneath.</span>
+          <span className="text-zinc-500"> Just add the Workflow SDK.</span>
         </h2>
       </div>
 
@@ -33,7 +33,7 @@ export default async function ItIsThatEasySlide() {
             7: "**idempotency**: stepId keys Stripe; retry returns original charge",
             9: "**hook/webhook**: workflow parks; restaurant tap resumes this await",
             11: "**sleep+race**: no driver times out cleanly; retry or unwind",
-            13: "**compensation**: driver cancel throws; saga unwinds restaurant first",
+            13: "**compensation**: customer cancel throws; saga unwinds restaurant first",
             15: "**replay**: event log resumes after crash; receipts still send",
           }}
         />

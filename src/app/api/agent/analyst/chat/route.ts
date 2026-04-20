@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     headers: {
       "Content-Type": "application/x-ndjson",
       "Cache-Control": "no-cache, no-transform",
-      "X-Run-Id": run.runId,
+      "x-workflow-run-id": run.runId,
     },
   });
 }

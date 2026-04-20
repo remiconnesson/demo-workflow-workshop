@@ -21,13 +21,13 @@ export type WorkflowFixTab =
       lang?: "ts" | "tsx" | "js" | "jsx";
       /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
       highlightLines?: Record<number, string>;
-      /** Optional semantic tone — adds a colored dot in the tab strip. */
+      /** Optional semantic tone that adds a colored dot in the tab strip. */
       tone?: TabTone;
       progression?: never;
     }
   | {
       filename: string;
-      /** Progressive states — scrubs alongside the primary tab. */
+      /** Progressive states that scrub alongside the primary tab. */
       progression: ProgressionState[];
       lang?: "ts" | "tsx" | "js" | "jsx";
       tone?: TabTone;
@@ -41,9 +41,9 @@ export type WorkflowFixTab =
  *
  * Progressive mode: the presenter scrubs through an ordered series of code
  * states (via ArrowRight/ArrowLeft) that build the snippet up one primitive
- * at a time. `progression.length` should equal `steps.length + 1` — state 0
- * is the baseline (no concepts yet), each subsequent state corresponds to the
- * concept described by the matching step.
+ * at a time. `progression.length` should equal `steps.length + 1`: state 0
+ * is the baseline with no concepts yet, and each subsequent state corresponds
+ * to the concept described by the matching step.
  */
 export type WorkflowFix =
   | {
@@ -159,7 +159,7 @@ const DOT_GLOW: Record<StatusTone, string> = {
 };
 
 /**
- * Workflow-code slide — Geist-aligned split.
+ * Workflow-code slide: Geist-aligned split.
  * Left rail: eyebrow, headline, three numbered steps, status dot.
  * Right: code card with mono filename + "use workflow" directive label.
  */
@@ -205,7 +205,7 @@ export async function FixSlideLayout({
     return (
       <div className="flex h-full w-full flex-col gap-0 px-14 pt-14 pb-8">
         {strip}
-        <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
+        <div className="grid min-h-0 flex-1 grid-cols-[420px_minmax(0,1fr)] gap-10">
           <ProgressiveFixContent
             headline={headline}
             filename={filename}
@@ -225,26 +225,23 @@ export async function FixSlideLayout({
     <div className="flex h-full w-full flex-col gap-0 px-14 pt-14 pb-8">
       {strip}
 
-      <div className="grid min-h-0 flex-1 grid-cols-[340px_1fr] gap-12">
-        <div className="flex flex-col">
-          <h2
-            className="mt-6 text-[44px] font-semibold text-white"
-            style={{ lineHeight: "46px", letterSpacing: "-2.2px" }}
-          >
+      <div className="grid min-h-0 flex-1 grid-cols-[420px_minmax(0,1fr)] gap-10">
+        <div className="flex min-h-0 flex-col">
+          <h2 className="mt-6 text-[44px] font-semibold leading-[46px] tracking-[-2.2px] text-white">
             {headline}
           </h2>
 
-          <ol className="mt-8 flex flex-col gap-4">
+          <ol className="mt-8 flex flex-col gap-5">
             {steps.map((step, i) => (
-              <li key={i} className="flex gap-4">
-                <span className="pt-1 font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+              <li key={i} className="flex min-h-[78px] gap-5">
+                <span className="pt-1.5 font-mono text-base leading-none uppercase tracking-[0.18em] text-zinc-500">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[15px] font-medium text-zinc-100">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-xl font-semibold leading-snug text-zinc-100">
                     {step.label}
                   </span>
-                  <span className="font-mono text-[12px] text-zinc-500">
+                  <span className="font-mono text-lg leading-snug text-zinc-500">
                     {step.detail}
                   </span>
                 </div>
@@ -252,17 +249,7 @@ export async function FixSlideLayout({
             ))}
           </ol>
 
-          {pillLabel ? (
-            <div className="mt-auto flex items-center gap-2 border-t border-white/10 pt-6">
-              <span
-                className={`inline-block h-[7px] w-[7px] rounded-full ${DOT_COLOR[statusTone]}`}
-                style={{ boxShadow: DOT_GLOW[statusTone] }}
-              />
-              <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-400">
-                {pillLabel}
-              </span>
-            </div>
-          ) : null}
+          <div className="mt-auto min-h-[58px]" />
         </div>
 
         {workflowFix.tabs && workflowFix.tabs.length > 0 ? (
@@ -271,9 +258,9 @@ export async function FixSlideLayout({
             textClass="text-[26px]"
           />
         ) : (
-          <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">
-            <div className="flex items-center border-b border-white/10 px-6 py-3">
-              <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
+          <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
+            <div className="flex min-h-[58px] items-center border-b border-white/10 px-6 py-4">
+              <span className="font-mono text-base leading-none text-zinc-500">{filename}</span>
             </div>
             <div className="code-scroll-area min-h-0 flex-1 overflow-auto px-8 py-6">
               <CodeBlock code={workflowFix.code} lang="ts" textClass="text-[26px]" highlightLines={workflowFix.highlightLines} />
