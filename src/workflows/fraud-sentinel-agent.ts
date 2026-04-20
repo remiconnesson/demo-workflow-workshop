@@ -1,9 +1,10 @@
 import { DurableAgent } from "@workflow/ai/agent";
-import { getWritable, sleep } from "workflow";
+import { getWritable, getStepMetadata, getWorkflowMetadata, sleep } from "workflow";
+import { RetryableError } from "workflow";
 import { z } from "zod";
 import type { UIMessageChunk } from "ai";
+import { consumeCrashFlag } from "@/lib/crash-flags";
 import {
-  isGatewayFailure,
   shouldForceMockAgent,
 } from "./_shared/mock-agent";
 
@@ -14,6 +15,11 @@ import {
 // and batch summaries itself. Tools are the mechanism for the agent to
 // report what it found — each tool emits a `data-fraud` event onto the
 // workflow's writable stream so the UI can render in real-time.
+//
+// Crash simulation: the /api/agent/fraud-sentinel/crash route arms a flag.
+// The next tool step to run checks the flag, throws RetryableError on
+// attempt 1, and recovers on attempt 2. This shows up in `npx workflow web`
+// as step_retrying → step_completed.
 // ---------------------------------------------------------------------------
 
 export type FraudEvent =
@@ -34,6 +40,14 @@ export type FraudEvent =
       type: "freeze";
       card: string;
       reason: string;
+    }
+  | {
+      type: "crash";
+      step: string;
+    }
+  | {
+      type: "recovered";
+      step: string;
     };
 
 type Charge = {
@@ -60,18 +74,30 @@ const CHARGES: Charge[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Crash-flag check: shared by every tool step.
+// On attempt 1, if the flag is armed, emit a crash event and throw.
+// On attempt 2+, emit a recovered event and continue normally.
+// ---------------------------------------------------------------------------
+
+function checkCrashFlag(stepLabel: string): void {
+  const { attempt, stepId } = getStepMetadata();
+  const { workflowRunId } = getWorkflowMetadata();
+
+  if (attempt === 1 && consumeCrashFlag(`fraud:${workflowRunId}`, { runId: workflowRunId, step: stepLabel })) {
+    throw new RetryableError(
+      `Simulated crash in ${stepLabel}`,
+      { retryAfter: "1s" },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Step-backed tools — each emits a data-fraud event to the stream
 // ---------------------------------------------------------------------------
 
-function writeFraudEvent(event: FraudEvent) {
-  const writer = getWritable<UIMessageChunk>().getWriter();
-  return writer
-    .write({ type: "data-fraud", data: event } as unknown as UIMessageChunk)
-    .finally(() => writer.releaseLock());
-}
-
 async function fetchChargeBatch() {
   "use step";
+  checkCrashFlag("fetchChargeBatch");
   return CHARGES;
 }
 
@@ -89,6 +115,7 @@ async function reportCharge({
   reason: string;
 }) {
   "use step";
+  checkCrashFlag("reportCharge");
   const writer = getWritable<UIMessageChunk>().getWriter();
   try {
     await writer.write({
@@ -109,6 +136,7 @@ async function freezeAccount({
   reason: string;
 }) {
   "use step";
+  checkCrashFlag("freezeAccount");
   const writer = getWritable<UIMessageChunk>().getWriter();
   try {
     await writer.write({
@@ -129,6 +157,7 @@ async function batchSummary({
   citations: string[];
 }) {
   "use step";
+  checkCrashFlag("batchSummary");
   const writer = getWritable<UIMessageChunk>().getWriter();
   try {
     await writer.write({
@@ -139,6 +168,49 @@ async function batchSummary({
     writer.releaseLock();
   }
   return { summarized: true };
+}
+
+async function runMockBatch() {
+  "use step";
+  checkCrashFlag("runMockBatch");
+  const writer = getWritable<UIMessageChunk>().getWriter();
+  try {
+    for (const c of CHARGES) {
+      const isFraud = c.country !== "US" || c.merchant.includes("Cryptonome");
+      await writer.write({
+        type: "data-fraud",
+        data: {
+          type: "charge-scored",
+          index: c.index,
+          card: c.card,
+          risk: isFraud ? 0.93 : 0.05 + c.index * 0.02,
+          cleared: !isFraud,
+          reason: isFraud
+            ? "Foreign crypto merchant, high amount"
+            : "Normal domestic purchase",
+        },
+      } as unknown as UIMessageChunk);
+    }
+    await writer.write({
+      type: "data-fraud",
+      data: {
+        type: "freeze",
+        card: "•••• 8891",
+        reason: "First charge at Cryptonome-XYZ, RU merchant, $2,400",
+      },
+    } as unknown as UIMessageChunk);
+    await writer.write({
+      type: "data-fraud",
+      data: {
+        type: "batch-summary",
+        message:
+          "10 charges cleared, 1 frozen: •••• 8891 flagged for foreign crypto transaction.",
+        citations: ["•••• 8891", "Cryptonome-XYZ"],
+      },
+    } as unknown as UIMessageChunk);
+  } finally {
+    writer.releaseLock();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -165,16 +237,19 @@ export async function fraudSentinelWorkflow() {
       "- reason: one short sentence explaining your assessment",
       "",
       "After scoring all charges, if any charge had risk > 0.7, call",
-      "freezeAccount for that card with a reason.",
+      "freezeAccount for that card with a reason. Freezing does NOT stop",
+      "your analysis. Continue processing every remaining charge.",
       "",
-      "Finally, call batchSummary with a one-sentence overview and the",
-      "card numbers you cited as citations array.",
+      "After all charges are scored and any freezes issued, call",
+      "batchSummary with a one-sentence overview and the card numbers",
+      "you cited as a citations array. Always finish with batchSummary.",
       "",
       "Red flags: unusual countries (non-US), crypto merchants, amounts",
       "over $1000, velocity (same card twice in seconds), mismatched",
       "merchant categories. Most normal US purchases are low risk (0.02-0.15).",
       "",
       "Process charges in order by index. Be concise in reasons.",
+      "Never stop early. Always score every charge and always emit a summary.",
     ].join("\n"),
     tools: {
       fetchChargeBatch: {
@@ -214,28 +289,7 @@ export async function fraudSentinelWorkflow() {
 
   while (true) {
     if (shouldForceMockAgent()) {
-      const charges = await fetchChargeBatch();
-      for (const c of charges) {
-        const isFraud = c.country !== "US" || c.merchant.includes("Cryptonome");
-        await writeFraudEvent({
-          type: "charge-scored",
-          index: c.index,
-          card: c.card,
-          risk: isFraud ? 0.93 : Math.random() * 0.15,
-          cleared: !isFraud,
-          reason: isFraud ? "Foreign crypto merchant, high amount" : "Normal domestic purchase",
-        });
-      }
-      await writeFraudEvent({
-        type: "freeze",
-        card: "•••• 8891",
-        reason: "First charge at Cryptonome-XYZ, RU merchant, $2,400",
-      });
-      await writeFraudEvent({
-        type: "batch-summary",
-        message: "10 charges cleared, 1 frozen: •••• 8891 flagged for foreign crypto transaction.",
-        citations: ["•••• 8891", "Cryptonome-XYZ"],
-      });
+      await runMockBatch();
     } else {
       try {
         await agent.stream({
@@ -248,9 +302,8 @@ export async function fraudSentinelWorkflow() {
           writable,
           maxSteps: 20,
         });
-      } catch (err) {
-        if (!isGatewayFailure(err)) throw err;
-        // On gateway failure, skip this loop iteration
+      } catch {
+        // Gateway failure or unexpected error — skip this iteration, loop continues
       }
     }
 

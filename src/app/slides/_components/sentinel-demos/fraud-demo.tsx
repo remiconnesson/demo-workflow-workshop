@@ -306,16 +306,20 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
   }, []);
 
   const handleKill = useCallback(() => {
-    if (isLive) {
-      abortRef.current?.abort();
+    if (isLive && runId) {
+      fetch("/api/agent/fraud-sentinel/crash", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runId }),
+      }).catch(() => {});
       setCrashPhase("crashed");
       setCrashCount((n) => n + 1);
       setDebugEvents((prev) => [
         ...prev,
-        { kind: "ERR", msg: "server down · process killed" },
+        { kind: "ERR", msg: "server down · next step will fail and retry" },
       ]);
     }
-  }, [isLive]);
+  }, [isLive, runId]);
 
   useSlideRunReset({ onStart: handleStart, onReset: handleReset });
 
