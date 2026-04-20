@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { OrderStepId } from "@/lib/order-contract";
+import { InspectorBand } from "./inspector-band";
 import {
   CreditCard,
   Mail,
@@ -81,9 +82,10 @@ type PatternSlideLayoutProps = {
  * The "concept / pattern" slide — stage-sized. One idea per screen:
  *   1. the pattern's name,
  *   2. the API primitive,
- *   3. where it applies.
- * Prompts/copy-paste cards and the install command are handout material
- * and intentionally not on the live slide (see .impeccable.md rule #8).
+ *   3. where it applies,
+ *   4. a static inspector band for the hand-off to an AI agent.
+ * Per .impeccable.md rule #8, the inspector band is a single static command
+ * and caption — not a feed, log, or terminal.
  */
 export function PatternSlideLayout({
   patternName,
@@ -98,10 +100,10 @@ export function PatternSlideLayout({
 
   return (
     <div className="flex h-full w-full items-center justify-center overflow-hidden bg-black text-white">
-      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-12 px-20 py-24">
+      <div className="mx-auto flex h-full w-full max-w-[1720px] flex-col justify-center gap-10 px-20 py-16">
         {/* Hero — pattern name, API primitive, description */}
         <div className="flex flex-col gap-8">
-          <h1 className="text-[104px] font-bold leading-[0.96] tracking-tight">
+          <h1 className="text-[96px] font-bold leading-[0.96] tracking-tight">
             {patternName}
           </h1>
 
@@ -166,6 +168,9 @@ export function PatternSlideLayout({
             <ArrowUpRight size={18} className="text-zinc-500" />
           </a>
         </div>
+
+        {/* Inspector band — hand off the run to an AI agent */}
+        <InspectorBand />
       </div>
     </div>
   );
