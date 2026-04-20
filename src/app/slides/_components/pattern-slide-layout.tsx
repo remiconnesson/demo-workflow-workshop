@@ -83,7 +83,7 @@ type PatternSlideLayoutProps = {
  *   2. the API primitive,
  *   3. where it applies.
  * Prompts/copy-paste cards and the install command are handout material
- * and intentionally not on the live slide (see the-impeccable.md rule #8).
+ * and intentionally not on the live slide (see .impeccable.md rule #8).
  */
 export function PatternSlideLayout({
   patternName,

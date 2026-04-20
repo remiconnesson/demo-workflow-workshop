@@ -10,7 +10,7 @@ export default function TitleSlide() {
       </h1>
 
       <p className="text-3xl text-zinc-400 text-center max-w-3xl">
-        Build Reliable Agents.
+        Build reliable agents
       </p>
 
       <div className="mt-16 flex flex-col items-center gap-4">
