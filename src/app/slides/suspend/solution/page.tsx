@@ -16,7 +16,7 @@ export default function SuspendFixSlide() {
         },
         {
           label: <><code className="font-mono">Await</code> the webhook</>,
-          detail: <>suspends until the restaurant taps accept — but waits forever</>,
+          detail: <>parks until the restaurant taps accept</>,
         },
         {
           label: <><code className="font-mono">Race</code> it against a 24h <code className="font-mono">sleep</code></>,

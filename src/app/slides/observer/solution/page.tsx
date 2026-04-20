@@ -16,7 +16,7 @@ export default function AgentObserverFixSlide() {
       steps={[
         {
           label: <>Mark the fetch <code className="font-mono">&quot;use step&quot;</code></>,
-          detail: <>on replay, the result is <span className="text-zinc-300">cached</span>, not refetched</>,
+          detail: <>replay returns the <span className="text-zinc-300">cached</span> result</>,
         },
         {
           label: <>Run the agent in a <code className="font-mono">loop</code></>,

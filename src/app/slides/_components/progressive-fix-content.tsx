@@ -140,40 +140,37 @@ export function ProgressiveFixContent({
 
   return (
     <>
-      <div className="flex flex-col">
-        <h2
-          className="mt-6 text-[44px] font-semibold text-white"
-          style={{ lineHeight: "46px", letterSpacing: "-2.2px" }}
-        >
+      <div className="flex min-h-0 flex-col">
+        <h2 className="mt-6 text-[44px] font-semibold leading-[46px] tracking-[-2.2px] text-white">
           {headline}
         </h2>
 
-        <ol className="mt-8 flex flex-col gap-4">
+        <ol className="mt-8 flex flex-col gap-5">
           {steps.map((step, i) => {
             const applied = i < appliedCount;
             return (
               <li
                 key={i}
-                className="flex gap-4 transition-opacity duration-200"
+                className="flex min-h-[78px] gap-5 transition-opacity duration-200"
                 style={{ opacity: applied ? 1 : 0.35 }}
               >
                 <span
-                  className={`pt-1 font-mono text-[11px] uppercase tracking-[0.22em] transition-colors duration-200 ${
+                  className={`pt-1.5 font-mono text-base leading-none uppercase tracking-[0.18em] transition-colors duration-200 ${
                     applied ? "text-zinc-400" : "text-zinc-700"
                   }`}
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <span
-                    className={`text-[15px] font-medium transition-colors duration-200 ${
+                    className={`text-xl font-semibold leading-snug transition-colors duration-200 ${
                       applied ? "text-zinc-100" : "text-zinc-500"
                     }`}
                   >
                     {step.label}
                   </span>
                   <span
-                    className={`font-mono text-[12px] transition-colors duration-200 ${
+                    className={`font-mono text-lg leading-snug transition-colors duration-200 ${
                       applied ? "text-zinc-500" : "text-zinc-700"
                     }`}
                   >
@@ -185,69 +182,116 @@ export function ProgressiveFixContent({
           })}
         </ol>
 
-        {pillLabel ? (
-          <div className="mt-auto flex items-center gap-2 border-t border-white/10 pt-6">
-            <span
-              className={`inline-block h-[7px] w-[7px] rounded-full ${DOT_COLOR[statusTone]}`}
-              style={{ boxShadow: DOT_GLOW[statusTone] }}
-            />
-            <span className="font-mono text-[12px] uppercase tracking-[0.22em] text-zinc-400">
-              {pillLabel}
-            </span>
-          </div>
-        ) : null}
+        <div
+          className={`mt-auto flex min-h-[58px] items-center gap-3 border-t border-white/10 pt-6 transition-opacity duration-200 ${
+            pillLabel ? "opacity-100" : "opacity-0"
+          }`}
+          aria-hidden={!pillLabel}
+        >
+          <span
+            className={`inline-block h-2.5 w-2.5 rounded-full ${DOT_COLOR[statusTone]}`}
+            style={{ boxShadow: DOT_GLOW[statusTone] }}
+          />
+          <span className="font-mono text-base leading-none uppercase tracking-[0.20em] text-zinc-400">
+            {pillLabel ?? "\u00A0"}
+          </span>
+        </div>
       </div>
 
-      <div className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-white/10 bg-[#0a0a0a]">
+      <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-white/10 bg-[#0a0a0a]">
         {hasTabs ? (
-          <div className="flex items-stretch border-b border-white/10">
-            {[{ filename, tone: undefined as TabTone | undefined }, ...extraTabs!.map((t) => ({ filename: t.filename, tone: t.tone }))].map((tab, i) => {
-              const isActive = i === activeTab;
-              const showTone = !!tab.tone && !visited.has(i);
-              const toneText = showTone
-                ? isActive
-                  ? TONE_ACTIVE_TEXT[tab.tone!]
-                  : TONE_INACTIVE_TEXT[tab.tone!]
-                : isActive
-                  ? "text-white"
-                  : "text-zinc-500 hover:text-zinc-300";
-              return (
-                <button
-                  type="button"
-                  key={tab.filename}
-                  onClick={() => {
-                    setActiveTab(i);
-                    setActiveIndex(0);
-                    setVisited((prev) => {
-                      if (prev.has(i)) return prev;
-                      const next = new Set(prev);
-                      next.add(i);
-                      return next;
-                    });
-                  }}
-                  className={`flex items-center gap-2 border-r border-white/10 px-6 py-3 font-mono text-[12px] transition-colors ${
-                    isActive ? "bg-white/[0.04]" : ""
-                  } ${toneText}`}
-                >
-                  <span
-                    className={`inline-block h-[6px] w-[6px] rounded-full transition-opacity duration-300 ${
-                      showTone ? TONE_DOT[tab.tone!] : "bg-transparent"
-                    }`}
-                    style={{
-                      boxShadow: showTone ? TONE_GLOW[tab.tone!] : undefined,
-                      opacity: showTone ? 1 : 0,
+          <div className="flex min-h-[58px] items-stretch justify-between border-b border-white/10">
+            <div className="flex min-w-0 overflow-hidden">
+              {[{ filename, tone: undefined as TabTone | undefined }, ...extraTabs!.map((t) => ({ filename: t.filename, tone: t.tone }))].map((tab, i) => {
+                const isActive = i === activeTab;
+                const showTone = !!tab.tone && !visited.has(i);
+                const toneText = showTone
+                  ? isActive
+                    ? TONE_ACTIVE_TEXT[tab.tone!]
+                    : TONE_INACTIVE_TEXT[tab.tone!]
+                  : isActive
+                    ? "text-white"
+                    : "text-zinc-500 hover:text-zinc-300";
+                return (
+                  <button
+                    type="button"
+                    key={tab.filename}
+                    onClick={() => {
+                      setActiveTab(i);
+                      setActiveIndex(0);
+                      setVisited((prev) => {
+                        if (prev.has(i)) return prev;
+                        const next = new Set(prev);
+                        next.add(i);
+                        return next;
+                      });
                     }}
-                  />
-                  {tab.filename}
-                </button>
-              );
-            })}
+                    className={`relative flex min-h-[58px] max-w-[280px] items-center gap-3 border-r border-white/10 px-6 py-4 font-mono text-base leading-none transition-colors ${
+                      isActive ? "bg-white/[0.05]" : "hover:bg-white/[0.03]"
+                    } ${toneText}`}
+                  >
+                    <span
+                      className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full transition-opacity duration-300 ${
+                        showTone ? TONE_DOT[tab.tone!] : "bg-transparent"
+                      }`}
+                      style={{
+                        boxShadow: showTone ? TONE_GLOW[tab.tone!] : undefined,
+                        opacity: showTone ? 1 : 0,
+                      }}
+                    />
+                    <span className="truncate">{tab.filename}</span>
+                    <span
+                      className={`pointer-events-none absolute inset-x-0 bottom-0 h-[3px] transition-colors duration-200 ${
+                        isActive
+                          ? tab.tone
+                            ? TONE_DOT[tab.tone]
+                            : "bg-white"
+                          : "bg-transparent"
+                      }`}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="ml-auto flex shrink-0 items-center gap-3 border-l border-white/10 px-5 py-4 font-mono text-base leading-none text-zinc-500">
+              <span className="text-zinc-700">file</span>
+              <span className="tabular-nums text-zinc-300">
+                {activeTab + 1}/{tabCount}
+              </span>
+              <span className="text-zinc-700">·</span>
+              <span className="text-zinc-700">step</span>
+              <span className="tabular-nums text-zinc-300">
+                {activeIndex + 1}/{currentTabLength}
+              </span>
+            </div>
           </div>
         ) : (
-          <div className="flex items-center border-b border-white/10 px-6 py-3">
-            <span className="font-mono text-[12px] text-zinc-500">{filename}</span>
+          <div className="flex min-h-[58px] items-center justify-between border-b border-white/10 px-6 py-4">
+            <span className="font-mono text-base leading-none text-zinc-500">{filename}</span>
+            <span className="font-mono text-base leading-none text-zinc-500">
+              <span className="text-zinc-700">step</span>{" "}
+              <span className="tabular-nums text-zinc-300">
+                {activeIndex + 1}/{currentTabLength}
+              </span>
+            </span>
           </div>
         )}
+        <div
+          aria-hidden
+          className="grid h-1.5 shrink-0 gap-px bg-white/[0.03]"
+          style={{
+            gridTemplateColumns: `repeat(${currentTabLength}, minmax(0, 1fr))`,
+          }}
+        >
+          {Array.from({ length: currentTabLength }).map((_, i) => (
+            <span
+              key={i}
+              className={`h-full transition-colors duration-200 ${
+                i <= activeIndex ? DOT_COLOR[statusTone] : "bg-white/10"
+              }`}
+            />
+          ))}
+        </div>
         <div className="code-scroll-area relative min-h-0 flex-1 overflow-hidden">
           {/* height ghost: stack every tab's final state so the container grows to the tallest */}
           <div

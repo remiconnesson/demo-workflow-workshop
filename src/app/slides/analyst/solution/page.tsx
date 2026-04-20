@@ -16,15 +16,15 @@ export default function AgentAnalystFixSlide() {
       steps={[
         {
           label: <><span className="font-mono text-emerald-300">retry</span> — tools become <code className="font-mono">steps</code></>,
-          detail: <>every tool call <span className="text-zinc-300">replays from the event log</span> — same primitive as the charge</>,
+          detail: <>tool calls <span className="text-zinc-300">replay from the log</span></>,
         },
         {
           label: <><span className="font-mono text-amber-300">suspend</span> — <code className="font-mono">await approvalHook</code></>,
-          detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span> — same primitive as the slow restaurant</>,
+          detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span></>,
         },
         {
           label: <><span className="font-mono text-fuchsia-300">rollback</span> — <code className="font-mono">rollbackMenuChange</code></>,
-          detail: <>compensation becomes a tool the agent <span className="text-zinc-300">can call on request</span> — same unwind as the dispute</>,
+          detail: <>undo is <span className="text-zinc-300">another durable tool</span></>,
         },
       ]}
       workflowFix={{
