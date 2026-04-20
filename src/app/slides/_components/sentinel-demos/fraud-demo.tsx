@@ -99,25 +99,29 @@ const FRAMES: Frame[] = [
   { loopOffset: 0, visibleIdx: 0,  scoringIdx: null, delayMs: 0,
     c0Chars: 0, c1Chars: 0 },
 
-  // 1-5 rows 0..4 score one-by-one
-  { loopOffset: 1, visibleIdx: 1,  scoringIdx: 0,    delayMs: 500,
+  // 1-5 rows 0..4 score one-by-one (slower so audience reads the ledger)
+  { loopOffset: 1, visibleIdx: 1,  scoringIdx: 0,    delayMs: 900,
     c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 2,  scoringIdx: 1,    delayMs: 500,
+  { loopOffset: 1, visibleIdx: 2,  scoringIdx: 1,    delayMs: 800,
     c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 3,  scoringIdx: 2,    delayMs: 500,
+  { loopOffset: 1, visibleIdx: 3,  scoringIdx: 2,    delayMs: 800,
     c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 4,  scoringIdx: 3,    delayMs: 500,
+  { loopOffset: 1, visibleIdx: 4,  scoringIdx: 3,    delayMs: 800,
     c0Chars: 0, c1Chars: 0 },
-  { loopOffset: 1, visibleIdx: 5,  scoringIdx: 4,    delayMs: 600,
+  { loopOffset: 1, visibleIdx: 5,  scoringIdx: 4,    delayMs: 900,
     c0Chars: 0, c1Chars: 0 },
 
-  // 6-7 agent speaks up (C0 typewriter → delivered)
+  // 6 beat: rows settle before the agent speaks
+  { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 1200,
+    c0Chars: 0, c1Chars: 0 },
+
+  // 7-8 agent speaks up (C0 typewriter → delivered)
   { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 550,
     c0Chars: 36, c1Chars: 0 },
   { loopOffset: 1, visibleIdx: 5,  scoringIdx: null, delayMs: 900,
     c0Chars: C0_LEN, c1Chars: 0 },
 
-  // 8-12 rows 5..9 score
+  // 9-13 rows 5..9 score
   { loopOffset: 2, visibleIdx: 6,  scoringIdx: 5,    delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 0 },
   { loopOffset: 2, visibleIdx: 7,  scoringIdx: 6,    delayMs: 500,
@@ -129,21 +133,21 @@ const FRAMES: Frame[] = [
   { loopOffset: 2, visibleIdx: 10, scoringIdx: 9,    delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 0 },
 
-  // 13 freeze row begins scoring
+  // 14 freeze row begins scoring
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 650,
     c0Chars: C0_LEN, c1Chars: 0 },
 
-  // 14-15 agent speaks up (C1 typewriter)
+  // 15-16 agent speaks up (C1 typewriter)
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 32 },
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 500,
     c0Chars: C0_LEN, c1Chars: 62 },
 
-  // 16 C1 fully delivered, brief hold
+  // 17 C1 fully delivered, brief hold
   { loopOffset: 2, visibleIdx: 11, scoringIdx: 10,   delayMs: 1500,
     c0Chars: C0_LEN, c1Chars: C1_LEN },
 
-  // 17 batch complete: freeze row resolves
+  // 18 batch complete: freeze row resolves
   { loopOffset: 2, visibleIdx: 11, scoringIdx: null,  delayMs: 3000,
     c0Chars: C0_LEN, c1Chars: C1_LEN },
 ];
@@ -203,10 +207,11 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
     return () => clearTimeout(id);
   }, [crashPhase]);
 
-  // auto-scroll
+  // auto-scroll only when content overflows
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    if (el.scrollHeight <= el.clientHeight) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [fi]);
 
@@ -390,37 +395,37 @@ export function FraudDemo({ variant }: { variant: SentinelVariant }) {
           />
         </div>
 
-        {/* status toast — one slot, three states */}
-        <div className="pointer-events-none absolute top-4 right-4 flex flex-col items-end gap-2">
+        {/* status toast — single slot, bottom-right, three states swap in place */}
+        <div className="pointer-events-none absolute bottom-6 right-6">
           <span
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 font-mono text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
+            className={`absolute bottom-0 right-0 inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-6 py-3 font-mono text-lg uppercase tracking-[0.15em] transition-all duration-300 ${
               isCrashed
-                ? "border-red-500/50 bg-red-500/15 text-red-200 opacity-100 shadow-[0_0_24px_rgba(248,113,113,0.4)]"
-                : "border-red-500/50 bg-red-500/15 text-red-200 opacity-0"
+                ? "translate-y-0 border-red-500/50 bg-red-500/15 text-red-200 opacity-100 shadow-[0_0_32px_rgba(248,113,113,0.5)]"
+                : "translate-y-3 border-red-500/50 bg-red-500/15 text-red-200 opacity-0"
             }`}
           >
-            <span className={`h-2 w-2 rounded-full bg-red-400 ${isCrashed ? "animate-pulse" : ""}`} />
-            server down · {lastToolCall}
+            <span className={`h-3 w-3 rounded-full bg-red-400 ${isCrashed ? "animate-pulse" : ""}`} />
+            Server down · {lastToolCall}
           </span>
           <span
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 font-mono text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
+            className={`absolute bottom-0 right-0 inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-6 py-3 font-mono text-lg uppercase tracking-[0.15em] transition-all duration-300 ${
               isReplaying
-                ? "border-sky-500/40 bg-sky-500/10 text-sky-200 opacity-100"
-                : "border-sky-500/40 bg-sky-500/10 text-sky-200 opacity-0"
+                ? "translate-y-0 border-sky-500/40 bg-sky-500/10 text-sky-200 opacity-100 shadow-[0_0_32px_rgba(56,189,248,0.3)]"
+                : "translate-y-3 border-sky-500/40 bg-sky-500/10 text-sky-200 opacity-0"
             }`}
           >
-            <span className={`h-2 w-2 rounded-full bg-sky-400 ${isReplaying ? "animate-pulse" : ""}`} />
-            replaying event log · 0 re-executions
+            <span className={`h-3 w-3 rounded-full bg-sky-400 ${isReplaying ? "animate-pulse" : ""}`} />
+            Replaying event log · 0 re-executions
           </span>
           <span
-            className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 font-mono text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
+            className={`absolute bottom-0 right-0 inline-flex items-center gap-3 whitespace-nowrap rounded-2xl border px-6 py-3 font-mono text-lg uppercase tracking-[0.15em] transition-all duration-300 ${
               isResumed
-                ? "border-emerald-400/50 bg-emerald-500/10 text-emerald-200 opacity-100 shadow-[0_0_24px_rgba(52,211,153,0.35)]"
-                : "border-emerald-400/50 bg-emerald-500/10 text-emerald-200 opacity-0"
+                ? "translate-y-0 border-emerald-400/50 bg-emerald-500/10 text-emerald-200 opacity-100 shadow-[0_0_32px_rgba(52,211,153,0.4)]"
+                : "translate-y-3 border-emerald-400/50 bg-emerald-500/10 text-emerald-200 opacity-0"
             }`}
           >
-            <span className={`h-2 w-2 rounded-full bg-emerald-400`} />
-            auto-recovered · 0 re-executions
+            <span className="h-3 w-3 rounded-full bg-emerald-400" />
+            Auto-recovered · 0 re-executions
           </span>
         </div>
 
@@ -484,8 +489,8 @@ function CalloutSlot({
 }) {
   return (
     <div
-      className={`px-6 py-2 transition-opacity duration-500 ${
-        visible ? "opacity-100" : "opacity-0"
+      className={`transition-all duration-500 ${
+        visible ? "px-6 py-2 opacity-100" : "h-0 overflow-hidden opacity-0"
       }`}
     >
       <AgentCallout callout={callout} state={state} />
@@ -521,8 +526,8 @@ function ChargeRow({
 
   return (
     <div
-      className={`grid grid-cols-[110px_130px_1fr_120px_60px_260px_140px] items-center gap-4 border-b border-white/5 px-6 py-2 transition-all duration-500 ${
-        visible ? "opacity-100" : "opacity-0"
+      className={`grid grid-cols-[110px_130px_1fr_120px_60px_260px_140px] items-center gap-4 border-b border-white/5 transition-all duration-500 ${
+        visible ? "px-6 py-2 opacity-100" : "h-0 overflow-hidden opacity-0"
       } ${frozen ? "bg-red-500/5" : ""}`}
     >
       <span className="font-mono text-sm tabular-nums text-zinc-500">
