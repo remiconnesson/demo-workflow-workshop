@@ -20,14 +20,14 @@ const PROPERTIES = [
 
 export default function CloseSlide() {
   return (
-    <div className="mx-auto flex h-full w-full max-w-[1280px] flex-col items-center justify-center px-20 text-center">
-      <div className="flex flex-col items-center gap-12">
+    <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col items-center justify-center px-20 text-center">
+      <div className="flex flex-col items-center gap-10">
         <div className="relative">
           <div
             aria-hidden
             className="absolute -inset-10 rounded-full bg-white/[0.035] blur-3xl"
           />
-          <WorkflowMark size={104} className="relative text-white" />
+          <WorkflowMark size={96} className="relative text-white" />
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -41,7 +41,7 @@ export default function CloseSlide() {
           ))}
         </div>
 
-        <div className="flex flex-col items-center gap-6">
+        <div className="flex flex-col items-center gap-5">
           <h1 className="text-8xl font-semibold leading-[0.95] tracking-tight text-white">
             Ship it tonight
           </h1>
@@ -50,8 +50,22 @@ export default function CloseSlide() {
           </p>
         </div>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-zinc-950/70 px-8 py-5">
-          <p className="font-mono text-3xl text-white">workflow-sdk.dev</p>
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-sm font-semibold uppercase tracking-[0.28em] text-emerald-300/70">
+            Install the skill
+          </p>
+          <div className="rounded-3xl border border-emerald-400/30 bg-emerald-500/10 px-10 py-7 shadow-[0_0_48px_rgba(52,211,153,0.12)]">
+            <p className="font-mono text-[34px] leading-tight text-emerald-200">
+              npx skills add https://github.com/vercel/workflow --skill workflow-init
+            </p>
+          </div>
+          <p className="max-w-3xl text-2xl leading-snug text-zinc-400">
+            Point it at your repo. Make one workflow stable, suspendable, or undoable tonight.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-zinc-950/70 px-8 py-4">
+          <p className="font-mono text-2xl text-zinc-200">workflow-sdk.dev</p>
         </div>
       </div>
     </div>

@@ -1,16 +1,16 @@
-# Workflow SDK GA — Three Verbs, Then Agents
+# Workflow SDK GA — Three Properties, Then Agents
 
-**The central conceit:** Teach the whole Workflow SDK with three verbs — **retry**, **suspend**, **rollback** — using one food-delivery order. Then flip the stage and show that those same three verbs power **durable agents**. One mental model covers both long-running workflows and long-running LLM loops.
+**The central conceit:** Teach the whole Workflow SDK with three properties of reliable software — **stable**, **suspendable**, **undoable** — using one food-delivery order. Then flip the stage and show that those same three properties power **durable agents**. One mental model covers both long-running workflows and long-running LLM loops.
 
 **The organizing question:** Every demo slide opens with the same rhythm — *"What happens when…?"* — so the audience is always answering a question, not parsing a feature. The three workflow demos ask it out loud ("What happens when an API call fails?"). The three agent demos finish it on the same breath ("…an Agent loses its stream?"). Same rhythm, new subject. The headline tells them what to watch for.
 
-**Why this shape:** A small, rhyming vocabulary is easier to hold than a taxonomy of nine failure modes. By slide 4 the audience can say the three verbs back. By slide 14 they've seen each one break and heal. By slide 18 they've seen an agent survive a page refresh. By slide 21 they've seen one survive a server crash. By slide 24 they've seen one pause for a human. The deck closes itself.
+**Why this shape:** A small, rhyming vocabulary is easier to hold than a taxonomy of nine failure modes. By slide 4 the audience can say the three properties back. By slide 14 they've seen each one break and heal. By slide 18 they've seen an agent survive a page refresh. By slide 21 they've seen one survive a server crash. By slide 24 they've seen one pause for a human. The deck closes itself.
 
 ---
 
 ## Locked decisions
 
-1. **Three verbs, not nine failures.** The deck is organized around `retry`, `suspend`, `rollback`. Everything else (sleep, hooks, saga, idempotency, streaming) shows up as an API inside one of those verbs, not as its own slide group. `durable` is the foundation the three verbs run on — not a fourth peer verb.
+1. **Three properties, not nine failures.** The deck is organized around `stable`, `suspendable`, `undoable`. Everything else (sleep, hooks, saga, idempotency, streaming) shows up as an API inside one of those properties, not as its own slide group. `durable` is the foundation the three properties rest on — not a fourth peer property. Route dirs keep the original verb names (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) so the presenter-voice bridge line still scans: "you need it to retry safely — that's what makes it stable."
 2. **Three-beat rhythm per scenario.** Every scenario is exactly three slides: **Demo → Solution → Pattern**. The demo establishes the pain, the solution slide is the fix, the pattern slide names the SDK vocabulary and links to docs.
 3. **"What happens when…?" is the demo headline.** Every demo slide — workflow or agent — leads with a question. Workflow demos use the full phrase; agent demos elide the opening with an ellipsis so the rhythm carries without the repetition.
 4. **Agents are the payoff, not an aside.** Acts IV–VI mirror the workflow act with three agent demos. First Agent proves resumable streams (F5 proof). Observer proves durable tool-call replay (kill-server proof). Analyst proves human-in-the-loop plus operator-driven undo inside the agent (suspend + rollback). They exist to prove the verbs carry over.
@@ -29,7 +29,7 @@
 | 1 | `title` | I — Setup | Cold open |
 | 2 | `the-demo` | I | Full happy-path demo |
 | 3 | `the-setup` | I | "Wouldn't it be nice if it was this simple?" |
-| 4 | `three-verbs` | I | Retry · Suspend · Rollback |
+| 4 | `three-verbs` | I | Stable · Suspendable · Undoable |
 | 5 | `how-it-works` | I | Break → Fix → Name rhythm |
 | 6 | `retry/demo` | II — Retry | "What happens when an API call fails?" |
 | 7 | `retry/solution` | II | Workflow code · `stepId` |
@@ -62,19 +62,19 @@
 
 ---
 
-## The three verbs
+## The three properties
 
-| Verb | Scenario | Step marker | What breaks | SDK pattern |
+| Property | Scenario | Step marker | What breaks | SDK pattern |
 |---|---|---|---|---|
-| **retry** | Never Charge Twice | `chargeCard` | Retry fires, charge runs twice | Idempotency — `getStepMetadata().stepId` |
-| **suspend** | Wait for Humans | `pingRestaurant` | Restaurant takes minutes to accept | Human-in-the-Loop — `createHook()` |
-| **rollback** | Dispute the Entire Order | `sendReceipts` | Happy path completes, then the customer disputes | Transactions & Rollbacks (Saga) — `compensations` + reverse unwind |
+| **stable** | Never Charge Twice | `chargeCard` | Retry fires, charge runs twice | Idempotency — `getStepMetadata().stepId` |
+| **suspendable** | Wait for Humans | `pingRestaurant` | Restaurant takes minutes to accept | Human-in-the-Loop — `createHook()` |
+| **undoable** | Dispute the Entire Order | `sendReceipts` | Happy path completes, then the customer disputes | Transactions & Rollbacks (Saga) — `compensations` + reverse unwind |
 
 The three workflow-demo headlines (source: `src/app/slides/_data/scenario-groups.ts`):
 
-- **retry** — "What happens when an API call fails?"
-- **suspend** — "What happens when your code needs to wait for humans?"
-- **rollback** — "What happens when you need to undo everything?"
+- **stable** — "What happens when an API call fails?"
+- **suspendable** — "What happens when your code needs to wait for humans?"
+- **undoable** — "What happens when you need to undo everything?"
 
 ---
 
@@ -82,11 +82,11 @@ The three workflow-demo headlines (source: `src/app/slides/_data/scenario-groups
 
 Acts IV–VI reuse the same rhythm on LLM loops. Each agent demo elides the "What happens when" so the repetition tightens into a refrain.
 
-| Agent | Demo headline | Proof beat | Verb it mirrors |
+| Agent | Demo headline | Proof beat | Property it mirrors |
 |---|---|---|---|
 | **First Agent** (16–18) | "…an Agent loses its stream?" | Press "Open ticket", hit F5 mid-response — stream reconnects, sentence finishes itself, tool doesn't re-fire | Foundation — resumable streams underlie all three |
-| **Observer** (19–21) | "…an Agent loses its server?" | Three tool-call nodes loop autonomously; kill the server mid-loop — crash overlay → replay → cached badges → zero re-execution | **retry** — durable tool-call replay |
-| **Analyst** (22–24) | "…an Agent needs approval / undo?" | Agent reaches a decision, suspends for approval, resumes after the operator tap, and can roll back prior changes on request | **suspend + rollback** — `defineHook` plus rollback tools inside the agent |
+| **Observer** (19–21) | "…an Agent loses its server?" | Three tool-call nodes loop autonomously; kill the server mid-loop — crash overlay → replay → cached badges → zero re-execution | **stable** — durable tool-call replay |
+| **Analyst** (22–24) | "…an Agent needs approval / undo?" | Agent reaches a decision, suspends for approval, resumes after the operator tap, and can roll back prior changes on request | **suspendable + undoable** — `defineHook` plus rollback tools inside the agent |
 
 The agent headlines and API primitives live in `src/app/slides/_data/agent-groups.ts`.
 
@@ -113,7 +113,7 @@ The same affordances appear in Act II and Acts IV–VI so the audience never has
 The canonical deck is the array in `src/app/slides/config.ts` — slide order, titles, breadcrumbs, and presenter notes all live there.
 
 Headlines and scenario metadata live in:
-- `src/app/slides/_data/scenario-groups.ts` — the three workflow demos (retry / suspend / rollback)
+- `src/app/slides/_data/scenario-groups.ts` — the three workflow demos (stable / suspendable / undoable; route slugs remain retry / suspend / rollback)
 - `src/app/slides/_data/agent-groups.ts` — the three agent demos (first / observer / analyst)
 - `src/app/slides/_lib/slide-scenarios.ts` — per-slide scenario configs driving the demo surface
 

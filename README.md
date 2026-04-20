@@ -27,19 +27,29 @@ npx workflow inspect steps -d     # step outputs and errors
 npx workflow inspect sleeps -r <runId>  # sleeping timers for a run
 ```
 
-When a slide starts a run, the opt-in debug drawer (`Shift+D`) surfaces the `runId` and an "Open in `workflow web`" link so you can pivot from the presentation to the inspector in one click. The workflow code itself (`src/workflows/place-order.ts`) references these commands in comments next to the behaviour they expose.
+Every pattern slide also shows a live **inspector band** at the bottom with the same `npx workflow inspect run <id>` command — the run ID auto-fills from the latest demo so the presenter can click (or the audience can copy) straight into the inspector. The opt-in debug drawer (`Shift+D`) surfaces the same link. The workflow code itself (`src/workflows/place-order.ts`) references these commands in comments next to the behaviour they expose.
+
+### Install the skill
+
+The main CTA of the workshop is on the final slide:
+
+```bash
+npx skills add https://github.com/vercel/workflow --skill workflow-init
+```
+
+This installs a Claude Code / AI-agent skill that teaches agents how to work with the Workflow SDK on your own projects. Point an agent at your repo after installing and ask it to make a step stable, a workflow suspendable, or an operation undoable.
 
 ## Deck Structure
 
-The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour workshop built around **three verbs**: `retry`, `suspend`, `rollback`. Those same primitives then carry into three durable-agent demos. The arc:
+The deck is defined in `src/app/slides/config.ts` — a 33-slide, ~1-hour workshop built around **three properties** of reliable software: `stable`, `suspendable`, `undoable`. Those same properties then carry into three durable-agent demos. The arc:
 
-- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code, the three verbs, Break → Fix → Name rhythm.
+- **Act I · Setup** (1–5) — cold open, happy-path demo, the setup code, the three properties, Break → Fix → Name rhythm.
 - **Act II · Three scenarios × three beats** (6–14) — each scenario runs the same three-beat rhythm:
   1. **Demo** — a real run fires, the scenario plays out on stage.
-  2. **Solution** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
-  3. **Pattern** — names the SDK pattern, shows real-world examples, and links to docs.
+  2. **Code** — the Workflow SDK fix. Directives, hooks, compensations. Short and obvious.
+  3. **Pattern** — names the SDK pattern, shows real-world examples, and hands the run to your AI agent via `npx workflow inspect`.
 
-  The three scenarios: **Retry** (idempotency), **Suspend** (hooks), **Rollback** (saga).
+  The three scenarios: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
 - **Act III · The Pivot** (15) — same durable run, new caller: agents.
 - **Act IV · First Agent** (16–18) — demo / solution / pattern for resumable streams (F5 proof).
 - **Act V · Observer agent** (19–21) — demo / solution / pattern for a long-running durable agent.
@@ -55,10 +65,10 @@ Important routes:
 - `/` redirects to `/slides/title`
 - `/slides/title` opening slide — Workshop intro
 - `/slides/the-demo` slide 2 — happy-path order demo
-- `/slides/three-verbs` slide 4 — introduces the retry / suspend / rollback framing
-- `/slides/retry/demo` ... `/slides/retry/pattern` — retry scenario group
-- `/slides/suspend/demo` ... `/slides/suspend/pattern` — suspend scenario group
-- `/slides/rollback/demo` ... `/slides/rollback/pattern` — rollback scenario group
+- `/slides/three-verbs` slide 4 — introduces the stable / suspendable / undoable framing (URL kept for backlink stability)
+- `/slides/retry/demo` ... `/slides/retry/pattern` — stable scenario group
+- `/slides/suspend/demo` ... `/slides/suspend/pattern` — suspendable scenario group
+- `/slides/rollback/demo` ... `/slides/rollback/pattern` — undoable scenario group
 - `/slides/the-pivot` slide 15 — the workflows-to-agents hinge
 - `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — first agent group
 - `/slides/observer/demo` ... `/slides/observer/pattern` — observer agent group

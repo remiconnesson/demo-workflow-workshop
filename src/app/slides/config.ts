@@ -255,7 +255,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "close",
     title: "Ship It",
     number: 33,
-    notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"",
+    notes: "SAY: \"One SDK. Workflows and agents. Stable, suspendable, undoable. It's GA tonight.\"\n\nPOINT at the npx skills block.\n\nSAY: \"Install the skill. Point it at your repo. Make one workflow stable, suspendable, or undoable tonight.\"",
   },
 ];
 
