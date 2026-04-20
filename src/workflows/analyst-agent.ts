@@ -221,7 +221,6 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
 
   const runFallback = async () => {
     await runMockAgentTurn({
-      writable,
       idPrefix: `mock-analyst-${Date.now().toString(36)}`,
       script: {
         preludeText: [

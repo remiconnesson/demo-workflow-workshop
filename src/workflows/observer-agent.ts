@@ -181,7 +181,6 @@ export async function observerAgentWorkflow() {
       ],
     });
     await runMockAgentTurn({
-      writable,
       idPrefix: `mock-observer-${loopIndex}`,
       script: {
         preludeText: `Loop ${loopIndex + 1}: starting scan.`,

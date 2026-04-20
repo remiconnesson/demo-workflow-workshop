@@ -72,7 +72,6 @@ export async function ourFirstAgentWorkflow(messages: UIMessage[]) {
     const orderId = "ord-8842";
     const details = await fetchOrderDetails({ orderId });
     await runMockAgentTurn({
-      writable,
       idPrefix: "mock-first-agent",
       script: {
         preludeText:

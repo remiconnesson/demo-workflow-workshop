@@ -1,3 +1,4 @@
+import { getWritable } from "workflow";
 import type { UIMessageChunk } from "ai";
 
 // ---------------------------------------------------------------------------
@@ -6,22 +7,24 @@ import type { UIMessageChunk } from "ai";
 // The three workshop agents (first-agent, observer, analyst) stream through
 // the Vercel AI Gateway. When that path fails — offline laptop, expired key,
 // gateway outage — the demo shouldn't go blank on stage. This helper emits
-// a minimal scripted turn onto the same `writable` the real agent uses, so
-// the audience sees text land in the chat and the timeline light up.
+// a minimal scripted turn onto the same writable the real agent would use,
+// so the audience sees text land in the chat and the timeline light up.
+//
+// Writer acquisition must happen inside a "use step" boundary (see
+// reference.md — "Stream progress"). We build the full chunk list at
+// workflow scope, then delegate the actual writes to a single step.
 //
 // Usage inside a workflow:
 //
 //   try {
-//     await agent.stream({ messages, writable });
+//     await agent.stream({ messages, writable: getWritable<UIMessageChunk>() });
 //   } catch (err) {
 //     if (isGatewayFailure(err)) {
-//       await runMockAgentTurn({ writable, script });
+//       await runMockAgentTurn({ script });
 //     } else {
 //       throw err;
 //     }
 //   }
-//
-// The mock is deliberately thin — it keeps the demo visible, not perfect.
 // ---------------------------------------------------------------------------
 
 export type MockToolStep = {
@@ -32,19 +35,16 @@ export type MockToolStep = {
 };
 
 export type MockAgentScript = {
-  /** Text chunks streamed before any tool call (optional). */
+  /** Text streamed before any tool call (optional). */
   preludeText?: string;
   /** Tool invocations to emit as tool-input-available + tool-output-available. */
   toolCalls?: MockToolStep[];
-  /** Text chunks streamed after all tool calls (optional). */
+  /** Text streamed after all tool calls (optional). */
   closingText?: string;
 };
 
 export type RunMockAgentOpts = {
-  writable: WritableStream<UIMessageChunk>;
   script: MockAgentScript;
-  /** Override the text-delta character cadence (ms). Default 18ms. */
-  deltaDelayMs?: number;
   /**
    * Prefix for text-part IDs so repeated fallback turns (e.g. observer's
    * 20-loop scan) don't collide on stream IDs. Include whatever makes the
@@ -94,97 +94,88 @@ export function shouldForceMockAgent(): boolean {
   return process.env.WORKFLOW_MOCK_AGENT === "1";
 }
 
-async function streamText(
-  writer: WritableStreamDefaultWriter<UIMessageChunk>,
-  id: string,
-  text: string,
-  deltaDelayMs: number,
-): Promise<void> {
-  await writer.write({ type: "text-start", id } as UIMessageChunk);
-  // Emit per-word deltas so the audience sees the "typing" feel rather
-  // than one big chunk.
-  for (const word of text.split(/(\s+)/)) {
-    if (word === "") continue;
-    await writer.write({
+function buildChunks(
+  script: MockAgentScript,
+  idPrefix: string,
+): UIMessageChunk[] {
+  const chunks: UIMessageChunk[] = [];
+  chunks.push({ type: "start" } as UIMessageChunk);
+  chunks.push({ type: "start-step" } as UIMessageChunk);
+
+  if (script.preludeText) {
+    const id = `${idPrefix}-prelude`;
+    chunks.push({ type: "text-start", id } as UIMessageChunk);
+    chunks.push({
       type: "text-delta",
       id,
-      delta: word,
+      delta: script.preludeText,
     } as UIMessageChunk);
-    if (deltaDelayMs > 0) {
-      await new Promise((resolve) => setTimeout(resolve, deltaDelayMs));
+    chunks.push({ type: "text-end", id } as UIMessageChunk);
+  }
+
+  if (script.toolCalls) {
+    for (const call of script.toolCalls) {
+      chunks.push({
+        type: "tool-input-available",
+        toolCallId: call.toolCallId,
+        toolName: call.toolName,
+        input: call.input,
+      } as UIMessageChunk);
+      chunks.push({
+        type: "tool-output-available",
+        toolCallId: call.toolCallId,
+        output: call.output,
+      } as UIMessageChunk);
     }
   }
-  await writer.write({ type: "text-end", id } as UIMessageChunk);
+
+  if (script.closingText) {
+    const id = `${idPrefix}-closing`;
+    chunks.push({ type: "text-start", id } as UIMessageChunk);
+    chunks.push({
+      type: "text-delta",
+      id,
+      delta: script.closingText,
+    } as UIMessageChunk);
+    chunks.push({ type: "text-end", id } as UIMessageChunk);
+  }
+
+  chunks.push({ type: "finish-step" } as UIMessageChunk);
+  chunks.push({ type: "finish" } as UIMessageChunk);
+  return chunks;
+}
+
+/**
+ * Step-boundary writer: acquires the workflow writable, writes every chunk,
+ * releases the lock. Writer acquisition inside a workflow function is only
+ * legal from a "use step" function (reference.md — "Stream progress").
+ */
+async function writeMockChunks(chunks: UIMessageChunk[]): Promise<void> {
+  "use step";
+  const writer = getWritable<UIMessageChunk>().getWriter();
+  try {
+    for (const chunk of chunks) {
+      await writer.write(chunk);
+    }
+  } finally {
+    writer.releaseLock();
+  }
 }
 
 /**
  * Emit a scripted turn onto the agent's UIMessageChunk stream.
  *
- * Note: we hold a writer for the lifetime of the scripted turn. This mirrors
- * what the real DurableAgent does — it owns the writer until the turn ends.
- * Workflows that use a single `getWritable` across multiple turns should
- * release the lock before calling this helper again; the three demo
- * workflows currently re-acquire per turn, so this is safe.
+ * Builds the full chunk list synchronously, then delegates the write to a
+ * single step. This is safe to call directly from workflow scope — the
+ * caller does NOT need to wrap it in "use step".
  */
 export async function runMockAgentTurn({
-  writable,
   script,
-  deltaDelayMs = 18,
   idPrefix,
 }: RunMockAgentOpts): Promise<void> {
-  const writer = writable.getWriter();
   const prefix =
     idPrefix ??
     `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  try {
-    await writer.write({
-      type: "start",
-    } as UIMessageChunk);
-    await writer.write({
-      type: "start-step",
-    } as UIMessageChunk);
-
-    if (script.preludeText) {
-      await streamText(
-        writer,
-        `${prefix}-prelude`,
-        script.preludeText,
-        deltaDelayMs,
-      );
-    }
-
-    if (script.toolCalls) {
-      for (const call of script.toolCalls) {
-        await writer.write({
-          type: "tool-input-available",
-          toolCallId: call.toolCallId,
-          toolName: call.toolName,
-          input: call.input,
-        } as UIMessageChunk);
-        await writer.write({
-          type: "tool-output-available",
-          toolCallId: call.toolCallId,
-          output: call.output,
-        } as UIMessageChunk);
-      }
-    }
-
-    if (script.closingText) {
-      await streamText(
-        writer,
-        `${prefix}-closing`,
-        script.closingText,
-        deltaDelayMs,
-      );
-    }
-
-    await writer.write({
-      type: "finish-step",
-    } as UIMessageChunk);
-    await writer.write({
-      type: "finish",
-    } as UIMessageChunk);
-  } finally {
-    writer.releaseLock();
-  }
+  const chunks = buildChunks(script, prefix);
+  await writeMockChunks(chunks);
 }
