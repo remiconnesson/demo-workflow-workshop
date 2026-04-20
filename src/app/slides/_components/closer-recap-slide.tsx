@@ -20,6 +20,108 @@ type CloserRecapSlideProps = {
 
 type VerbFamily = "retry" | "suspend" | "rollback";
 
+type CloserProgressTone = "sky" | "amber" | "fuchsia";
+
+type CloserProgressItem = {
+  primitive: CloserPrimitive;
+  label: string;
+  tone: CloserProgressTone;
+};
+
+const CLOSER_PROGRESS: CloserProgressItem[] = [
+  { primitive: "step", label: "Step", tone: "sky" },
+  { primitive: "idempotency", label: "Idempotency", tone: "sky" },
+  { primitive: "hook", label: "Hook", tone: "amber" },
+  { primitive: "sleep-race", label: "Sleep + Race", tone: "amber" },
+  { primitive: "compensation", label: "Compensation", tone: "fuchsia" },
+  { primitive: "replay", label: "Replay", tone: "sky" },
+];
+
+const PROGRESS_TONE_CLASS: Record<
+  CloserProgressTone,
+  {
+    dot: string;
+    line: string;
+    text: string;
+    glow: string;
+  }
+> = {
+  sky: {
+    dot: "bg-sky-400",
+    line: "bg-sky-400",
+    text: "text-sky-300",
+    glow: "shadow-[0_0_22px_rgba(56,189,248,0.55)]",
+  },
+  amber: {
+    dot: "bg-amber-400",
+    line: "bg-amber-400",
+    text: "text-amber-300",
+    glow: "shadow-[0_0_22px_rgba(251,191,36,0.55)]",
+  },
+  fuchsia: {
+    dot: "bg-fuchsia-400",
+    line: "bg-fuchsia-400",
+    text: "text-fuchsia-300",
+    glow: "shadow-[0_0_22px_rgba(232,121,249,0.55)]",
+  },
+};
+
+function CloserProgressFooter({
+  primitive,
+}: {
+  primitive: CloserPrimitive;
+}) {
+  const activeIndex = Math.max(
+    0,
+    CLOSER_PROGRESS.findIndex((item) => item.primitive === primitive),
+  );
+  const activeItem = CLOSER_PROGRESS[activeIndex] ?? CLOSER_PROGRESS[0];
+  const activeTone = PROGRESS_TONE_CLASS[activeItem.tone];
+
+  return (
+    <footer className="col-span-2 flex justify-center">
+      <div className="flex items-center gap-5 rounded-full border border-white/10 bg-zinc-950/75 px-6 py-3 shadow-[0_18px_60px_rgba(0,0,0,0.32)]">
+        <span className="whitespace-nowrap font-mono text-sm font-semibold uppercase tracking-[0.22em] text-zinc-600">
+          Original function
+        </span>
+        <div aria-hidden className="flex items-center gap-2">
+          {CLOSER_PROGRESS.map((item, index) => {
+            const tone = PROGRESS_TONE_CLASS[item.tone];
+            const isPast = index < activeIndex;
+            const isCurrent = index === activeIndex;
+            const isReached = index <= activeIndex;
+            return (
+              <div key={item.primitive} className="flex items-center gap-2">
+                <span
+                  className={`block rounded-full transition-all duration-300 ${
+                    isCurrent
+                      ? `h-4 w-14 ${tone.dot} ${tone.glow}`
+                      : isReached
+                        ? `h-3.5 w-3.5 ${tone.dot}`
+                        : "h-3.5 w-3.5 bg-white/10"
+                  }`}
+                />
+                {index < CLOSER_PROGRESS.length - 1 ? (
+                  <span
+                    className={`h-px w-8 transition-colors duration-300 ${
+                      isPast ? tone.line : "bg-white/10"
+                    }`}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+        <span
+          className={`whitespace-nowrap font-mono text-base font-semibold uppercase tracking-[0.18em] ${activeTone.text}`}
+        >
+          {activeIndex + 1} / 6 · {activeItem.label}
+        </span>
+      </div>
+    </footer>
+  );
+}
+
 const PRIMITIVE_FAMILY: Record<CloserPrimitive, VerbFamily> = {
   step: "retry",
   idempotency: "retry",
@@ -265,7 +367,7 @@ export function CloserRecapSlide({
   return (
     <div
       data-primitive={primitive}
-      className="mx-auto grid h-full w-full max-w-[1720px] grid-cols-[minmax(0,1.25fr)_minmax(440px,0.75fr)] items-center gap-12 overflow-hidden px-14 py-16"
+      className="mx-auto grid h-full w-full max-w-[1720px] grid-cols-[minmax(0,1.25fr)_minmax(440px,0.75fr)] grid-rows-[minmax(0,1fr)_auto] items-center gap-x-12 gap-y-7 overflow-hidden px-14 pt-16 pb-10"
     >
       <section className="flex min-w-0 flex-col gap-8 overflow-hidden">
         <h2 className="text-5xl font-semibold tracking-tight">
@@ -312,6 +414,7 @@ export function CloserRecapSlide({
           {explanation}
         </p>
       </aside>
+      <CloserProgressFooter primitive={primitive} />
     </div>
   );
 }
