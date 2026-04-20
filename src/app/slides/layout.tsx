@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
 import { getSlideNav, SLIDES } from "./config";
 import { WorkflowMark } from "./_components/workflow-mark";
+import { SlidesDebugProvider } from "./_components/slides-debug-context";
 
 export default function SlidesLayout({
   children,
@@ -18,6 +19,7 @@ export default function SlidesLayout({
 
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   // Listen for workflow run events from child slides
@@ -37,9 +39,10 @@ export default function SlidesLayout({
     setRunInfo(null);
   }, [slug]);
 
-  // Close picker on slide change
+  // Close picker and debug drawer on slide change
   useEffect(() => {
     setPickerOpen(false);
+    setDebugOpen(false);
   }, [slug]);
 
   // Close picker on outside click
@@ -120,12 +123,17 @@ export default function SlidesLayout({
         e.preventDefault();
         setPickerOpen((v) => !v);
       }
+      if (e.key === "d" || e.key === "D") {
+        e.preventDefault();
+        setDebugOpen((v) => !v);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [prev, next, router, slug]);
 
   return (
+    <SlidesDebugProvider value={debugOpen}>
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
       {children}
 
@@ -211,8 +219,8 @@ export default function SlidesLayout({
       </div>
 
 
-      {/* debug drawer — always open when a run is active */}
-      {runInfo && (
+      {/* debug drawer — opt-in via d key when a run is active */}
+      {debugOpen && runInfo && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">
             <DebugDrawer runId={runInfo.runId} orderId={runInfo.orderId} />
@@ -220,5 +228,6 @@ export default function SlidesLayout({
         </div>
       )}
     </div>
+    </SlidesDebugProvider>
   );
 }

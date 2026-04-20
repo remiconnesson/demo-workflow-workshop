@@ -7,8 +7,10 @@ import { AnalystChatPane } from "../../_components/analyst-chat-pane";
 import type { AnalystDebugEvent } from "../../_components/analyst-chat-pane";
 import { AnalystApprovalPhone } from "../../_components/analyst-approval-phone";
 import { AgentDebugDrawer } from "../../_components/agent-debug-drawer";
+import { useSlidesDebug } from "../../_components/slides-debug-context";
 
 function AnalystDemoSurface() {
+  const debugOpen = useSlidesDebug();
   const [debugRunId, setDebugRunId] = useState<string | null>(null);
   const [debugEvents, setDebugEvents] = useState<AnalystDebugEvent[]>([]);
 
@@ -20,14 +22,20 @@ function AnalystDemoSurface() {
           onEventsChange={setDebugEvents}
         />
       </div>
-      <div className="flex min-h-0 flex-col gap-4">
-        <div className="shrink-0">
+      <div
+        className={`flex min-h-0 flex-col ${
+          debugOpen ? "gap-4" : "justify-center"
+        }`}
+      >
+        <div className={debugOpen ? "shrink-0" : "flex flex-1 items-center"}>
           <AnalystApprovalPhone />
         </div>
-        <AgentDebugDrawer
-          runId={debugRunId ?? undefined}
-          events={debugEvents}
-        />
+        {debugOpen ? (
+          <AgentDebugDrawer
+            runId={debugRunId ?? undefined}
+            events={debugEvents}
+          />
+        ) : null}
       </div>
     </div>
   );

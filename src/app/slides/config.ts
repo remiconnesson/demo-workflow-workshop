@@ -255,7 +255,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "close",
     title: "Ship It",
     number: 33,
-    notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
+    notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress Home to restart the deck, or ArrowLeft for a victory lap. (Press d on any demo slide to reveal the debug drawer.)",
   },
 ];
 
