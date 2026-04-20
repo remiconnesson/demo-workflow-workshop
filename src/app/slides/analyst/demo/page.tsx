@@ -15,28 +15,30 @@ function AnalystDemoSurface() {
   const [debugEvents, setDebugEvents] = useState<AnalystDebugEvent[]>([]);
 
   return (
-    <div className="grid h-full w-full grid-cols-[1fr_420px] gap-8">
+    <div className="relative grid h-full w-full grid-cols-[1fr_420px] gap-8">
       <div className="min-h-0">
         <AnalystChatPane
           onRunIdChange={setDebugRunId}
           onEventsChange={setDebugEvents}
         />
       </div>
-      <div
-        className={`flex min-h-0 flex-col ${
-          debugOpen ? "gap-4" : "justify-center"
-        }`}
-      >
-        <div className={debugOpen ? "shrink-0" : "flex flex-1 items-center"}>
-          <AnalystApprovalPhone />
-        </div>
-        {debugOpen ? (
+      {debugOpen ? (
+        <div className="flex min-h-0 flex-col gap-4">
+          <div className="shrink-0">
+            <AnalystApprovalPhone />
+          </div>
           <AgentDebugDrawer
             runId={debugRunId ?? undefined}
             events={debugEvents}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : (
+        <div className="fixed inset-y-0 right-10 flex w-[420px] items-center justify-center pointer-events-none z-10">
+          <div className="pointer-events-auto">
+            <AnalystApprovalPhone />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
