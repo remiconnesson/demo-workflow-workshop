@@ -271,11 +271,28 @@ export default function SlidesLayout({
         tag === "TEXTAREA" ||
         tag === "SELECT" ||
         !!target?.isContentEditable;
-      if (isEditable) return;
+      const isArrowNavKey =
+        e.key === "ArrowRight" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowUp";
+      const hasTextSelection =
+        (target instanceof HTMLInputElement ||
+          target instanceof HTMLTextAreaElement) &&
+        typeof target.selectionStart === "number" &&
+        typeof target.selectionEnd === "number" &&
+        target.selectionStart !== target.selectionEnd;
+      if (isEditable) {
+        if (isArrowNavKey && !hasTextSelection) {
+          target?.blur();
+        } else {
+          return;
+        }
+      }
 
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      if (e.key === "ArrowRight" && next) {
+      if ((e.key === "ArrowRight" || e.key === "ArrowDown") && next) {
         e.preventDefault();
         const consumed = !window.dispatchEvent(
           new CustomEvent("slide:nav-forward", { cancelable: true, detail: { slug } }),
@@ -283,7 +300,7 @@ export default function SlidesLayout({
         if (consumed) return;
         router.push(`/slides/${next.slug}`);
       }
-      if (e.key === "ArrowLeft" && prev) {
+      if ((e.key === "ArrowLeft" || e.key === "ArrowUp") && prev) {
         e.preventDefault();
         const consumed = !window.dispatchEvent(
           new CustomEvent("slide:nav-back", { cancelable: true, detail: { slug } }),
@@ -313,7 +330,7 @@ export default function SlidesLayout({
         e.preventDefault();
         setPickerOpen((v) => !v);
       }
-      if (e.key === "d" || e.key === "D") {
+      if (e.key === "D" && e.shiftKey) {
         e.preventDefault();
         setDebugOpen((v) => !v);
       }
@@ -446,7 +463,7 @@ export default function SlidesLayout({
       </div>
 
 
-      {/* debug drawer — opt-in via d key when a run is active */}
+      {/* debug drawer — opt-in via Shift+D when a run is active */}
       {debugOpen && runInfo && (
         <div className="pointer-events-none fixed inset-x-0 bottom-0 z-50 flex justify-center px-8">
           <div className="pointer-events-auto">
