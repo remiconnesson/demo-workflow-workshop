@@ -9,8 +9,8 @@ export type SlideInfo = {
 /**
  * The 33-slide workshop arc (~1 hour).
  *
- * Act I — Setup (1–5): cold open, happy-path demo, code, reliability requirements, workshop map.
- * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
+ * Act I — Setup (1–5): cold open, happy-path demo, code, reliability properties, workshop map.
+ * Act II — Three properties × 3 beats each (6–14): stable, suspendable, undoable.
  * Act III — Pivot (15): workflows → agents.
  * Act IV — First agent (16–18): demo (F5 proof), workflow code, pattern.
  * Act V — Observer agent (19–21): demo, fix, pattern.
@@ -41,83 +41,83 @@ export const SLIDES: SlideInfo[] = [
     slug: "three-verbs",
     title: "Reliable Software",
     number: 4,
-    notes: "POINT at the three verbs: \"For each one, I'm going to ask — what do you do now?\"",
+    notes: "POINT at the three properties: \"Stable. Suspendable. Undoable. For each one, I'm going to ask — so what do you need from the system now?\"",
   },
   {
     slug: "how-it-works",
     title: "How This Workshop Works",
     number: 5,
-    notes: "SAY: \"Here's the shape of the next hour. Three verbs. Each one gets three beats: break it, fix it, name it. Same rhythm for nine slides. Then we pivot to agents.\"",
+    notes: "SAY: \"Here's the shape of the next hour. Three properties. Each one gets three beats: break it, fix it, name it. Same rhythm for nine slides. Then we pivot to agents.\"",
   },
 
-  // ─── Act II · Three scenarios × 3 beats ───────────────────
+  // ─── Act II · Three properties × 3 beats ───────────────────
 
-  // --- Retry ---
+  // --- Stable ---
   {
     slug: "retry/demo",
-    title: "The Retry · Demo",
+    title: "Stable · Demo",
     number: 6,
-    breadcrumb: "retry / demo",
-    notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. What do you do now?\"",
+    breadcrumb: "stable / demo",
+    notes: "PRESS r to run the idempotency scenario. Watch the retry fire with the same stepId.\n\nSAY: \"Retries happen. Networks flake. Same step can run twice. You charge your customer twice. So what do you need from the system now? You need it to retry safely. That's what makes the step stable.\"",
   },
   {
     slug: "retry/solution",
-    title: "The Retry · Workflow Code",
+    title: "Stable · Code",
     number: 7,
-    breadcrumb: "retry / solution",
+    breadcrumb: "stable / code",
     notes: "SAY: \"Every step gets a stable ID. Pass it to Stripe. Second call deduplicates. One line.\"",
   },
   {
     slug: "retry/pattern",
-    title: "The Retry · Pattern",
+    title: "Stable · Pattern",
     number: 8,
-    breadcrumb: "retry / pattern",
+    breadcrumb: "stable / pattern",
     notes: "SAY: \"This is the Idempotency pattern. getStepMetadata().stepId gives you a stable key per step per retry.\"\n\nPOINT at the URL.",
   },
 
-  // --- Slow restaurant ---
+  // --- Suspendable ---
   {
     slug: "suspend/demo",
-    title: "The Suspend · Demo",
+    title: "Suspendable · Demo",
     number: 9,
-    breadcrumb: "suspend / demo",
-    notes: "PRESS r. It pauses at pingRestaurant. Click 'Accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. What do you do now?\"",
+    breadcrumb: "suspendable / demo",
+    notes: "PRESS r. It pauses at pingRestaurant. Click 'Accept'.\n\nSAY: \"Restaurant takes ten minutes to accept. So what do you need from the system now? You need it to park. That's what makes the workflow suspendable.\"",
   },
   {
     slug: "suspend/solution",
-    title: "The Suspend · Workflow Code",
+    title: "Suspendable · Code",
     number: 10,
-    breadcrumb: "suspend / solution",
+    breadcrumb: "suspendable / code",
     notes: "SAY: \"createWebhook. One line gives you a URL. That URL goes to the restaurant's dashboard. They tap accept. The same workflow resumes from that line. No custom route, no resume worker.\"",
   },
   {
     slug: "suspend/pattern",
-    title: "The Suspend · Pattern",
+    title: "Suspendable · Pattern",
     number: 11,
-    breadcrumb: "suspend / pattern",
+    breadcrumb: "suspendable / pattern",
     notes: "SAY: \"This is the Human-in-the-Loop pattern. createHook suspends the workflow and generates a token. Any external system can resume it.\"\n\nPOINT at the URL.",
   },
 
-  // --- Dispute (driver refuses) ---
+  // --- Undoable ---
   {
     slug: "rollback/demo",
-    title: "The Rollback · Demo",
+    title: "Undoable · Demo",
     number: 12,
-    breadcrumb: "rollback / demo",
-    notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. What do you do now?\"",
+    breadcrumb: "undoable / demo",
+    notes: "PRESS r. Let every step go green. When the fuchsia 'Dispute order' button lights up, CLICK it.\n\nSAY: \"Order delivered. All six steps green. Customer says the food never arrived. So what do you need from the system now? You need it to unwind. That's what makes the workflow undoable.\"",
   },
   {
     slug: "rollback/solution",
-    title: "The Rollback · Workflow Code",
+    title: "Undoable · Code",
     number: 13,
-    breadcrumb: "rollback / solution",
+    breadcrumb: "undoable / code",
     notes: "SAY: \"Push an undo for each step. The workflow's catch pops compensations in reverse. Receipts voided. Driver released. Restaurant cancelled. Payment refunded. Automatically.\"",
   },
   {
     slug: "rollback/pattern",
-    title: "The Rollback · Pattern",
+    title: "Undoable · Pattern",
     number: 14,
-    breadcrumb: "rollback / pattern",
+    breadcrumb: "undoable / pattern",
     notes: "SAY: \"This is the Saga pattern — Transactions and Rollbacks. Push compensations, the workflow-body error triggers the reverse unwind. Each compensation is itself a durable step.\"\n\nPOINT at the URL.",
   },
 
@@ -151,7 +151,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Our First Agent · Pattern",
     number: 18,
     breadcrumb: "first agent / pattern",
-    notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we add three verbs.\"",
+    notes: "SAY: \"This is the Resumable Streams pattern. DurableAgent plus WorkflowChatTransport. The client stores the run id, reconnects to the live stream, and picks up where it left off.\"\n\nPOINT at the URL.\n\nThen: \"From here we make the agent stable, suspendable, and undoable.\"",
   },
 
   // ─── Act V · Observer agent ────────────────────────────────
@@ -192,7 +192,7 @@ export const SLIDES: SlideInfo[] = [
     title: "Analyst · Workflow Code",
     number: 23,
     breadcrumb: "analyst / solution",
-    notes: "THIS IS THE RECAP. Point at each verb in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nRETRY — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent in Act II.\n\nSUSPEND — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nROLLBACK — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nRetry, suspend, rollback. Three primitives, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (retry), 19 (suspend), 25 (rollback).",
+    notes: "THIS IS THE RECAP. Point at each property in the status pill as you name it.\n\nSAY: \"Look at this file. It's the whole workshop.\n\nSTABLE — every tool on this agent is a step. If the server crashes mid-turn, the event log replays the finished tool calls. Same primitive that made the charge idempotent in Act II.\n\nSUSPENDABLE — the approval hook. The agent awaits it. That line parks the whole loop until a human taps the phone. Same primitive that waited for the slow restaurant.\n\nUNDOABLE — rollbackMenuChange is just another tool. The operator asks the agent to undo a change, the agent calls it, the compensation fires as a durable step. Same saga unwind from the dispute — but the operator is driving it through the agent.\n\nStable, suspendable, undoable. Three properties, one file, one loop. That's the point of the whole SDK.\"\n\nPOINT at the three highlighted lines: 11 (stable), 19 (suspendable), 25 (undoable).",
   },
   {
     slug: "analyst/pattern",
@@ -207,7 +207,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "the-mirror",
     title: "The Payoff",
     number: 25,
-    notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"That's how you build reliable agents.\"\n\nPAUSE.\n\nPOINT at each pill in turn:\n- RETRY: \"Agents that survive. Streams reconnect. Tool calls replay.\"\n- SUSPEND: \"Agents that wait. Pause for a human, pick up where you left off.\"\n- ROLLBACK: \"Agents that undo. Compensations unwind the loop.\"\n\nSAY: \"Same three verbs you already learned. One SDK.\"",
+    notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"That's how you build reliable agents.\"\n\nPAUSE.\n\nPOINT at each pill in turn:\n- STABLE: \"Agents that survive. Streams reconnect. Tool calls replay.\"\n- SUSPENDABLE: \"Agents that wait. Pause for a human, pick up where you left off.\"\n- UNDOABLE: \"Agents that undo. Compensations unwind the loop.\"\n\nSAY: \"Same three properties you already learned. One SDK.\"",
   },
   {
     slug: "it-is-that-easy",
@@ -249,7 +249,7 @@ export const SLIDES: SlideInfo[] = [
     slug: "closer/replay",
     title: "Closer · Replay",
     number: 32,
-    notes: "SAY: \"If the server dies here, replay resumes from the event log and the receipts still go out.\"\n\nPAUSE.\n\nSAY: \"Retry, suspend, rollback. Same function. Now it finishes what it starts.\"",
+    notes: "SAY: \"If the server dies here, replay resumes from the event log and the receipts still go out.\"\n\nPAUSE.\n\nSAY: \"Stable, suspendable, undoable. Same function. Now it finishes what it starts.\"",
   },
   {
     slug: "close",

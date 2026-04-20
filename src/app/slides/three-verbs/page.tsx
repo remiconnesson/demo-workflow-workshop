@@ -5,45 +5,47 @@ const geistMono = Geist_Mono({
   weight: ["400"],
 });
 
-const PRIMITIVES = [
+const PROPERTIES = [
   {
-    verb: "RETRY",
-    verbClass: "text-sky-400",
+    label: "STABLE",
+    labelClass: "text-sky-400",
     pillAccent: "border-sky-500/30 bg-sky-500/5",
-    consequence: "When a step fails, try again without duplicating work.",
+    consequence: "A step can run again without doing the work twice.",
   },
   {
-    verb: "SUSPEND",
-    verbClass: "text-amber-400",
+    label: "SUSPENDABLE",
+    labelClass: "text-amber-400",
     pillAccent: "border-amber-500/30 bg-amber-500/5",
-    consequence: "Pause for hours or days without losing progress.",
+    consequence: "A run can park until the world catches up.",
   },
   {
-    verb: "ROLLBACK",
-    verbClass: "text-fuchsia-400",
+    label: "UNDOABLE",
+    labelClass: "text-fuchsia-400",
     pillAccent: "border-fuchsia-500/30 bg-fuchsia-500/5",
-    consequence: "When something breaks, undo everything that already happened.",
+    consequence: "Side effects can unwind when reality changes.",
   },
 ] as const;
 
 export default function ThreeVerbsSlide() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-20 p-10 text-center">
-      <h2 className="text-6xl font-semibold tracking-tight">
-        Reliable software must be able to
+      <h2 className="text-7xl font-semibold tracking-tight">
+        Reliable software is
       </h2>
 
-      <div className="flex w-full max-w-7xl flex-row items-start justify-center gap-10">
-        {PRIMITIVES.map((p) => (
-          <div key={p.verb} className="flex flex-1 flex-col items-center gap-6">
+      <div className="flex w-full max-w-[1680px] flex-row items-start justify-center gap-6">
+        {PROPERTIES.map((p) => (
+          <div key={p.label} className="flex flex-1 flex-col items-center gap-6">
             <div
-              className={`flex items-center justify-center rounded-full border px-12 py-5 ${p.pillAccent} ${geistMono.className}`}
+              className={`flex min-w-[420px] items-center justify-center rounded-full border px-10 py-5 ${p.pillAccent} ${geistMono.className}`}
             >
-              <span className={`text-4xl font-medium tracking-tight ${p.verbClass}`}>
-                {p.verb}
+              <span
+                className={`text-[38px] font-semibold uppercase leading-none tracking-[0.08em] ${p.labelClass}`}
+              >
+                {p.label}
               </span>
             </div>
-            <p className="max-w-sm text-xl leading-snug text-zinc-400">
+            <p className="max-w-md text-2xl leading-snug text-zinc-400">
               {p.consequence}
             </p>
           </div>

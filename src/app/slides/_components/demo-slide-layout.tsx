@@ -34,7 +34,7 @@ function AgentVerbMappingRow({
   return (
     <div className="flex min-h-[56px] items-center gap-5">
       <span
-        className={`inline-flex shrink-0 items-center rounded-full border px-5 py-2.5 font-mono text-xl font-semibold uppercase tracking-[0.18em] ${VERB_MAPPING_TONE_CLASS[mapping.tone]}`}
+        className={`inline-flex shrink-0 items-center rounded-full border px-5 py-2.5 font-mono text-xl font-semibold uppercase tracking-[0.12em] ${VERB_MAPPING_TONE_CLASS[mapping.tone]}`}
       >
         {mapping.label}
       </span>

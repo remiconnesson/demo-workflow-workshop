@@ -25,25 +25,25 @@ const TONE = {
 
 const MAPPINGS = [
   {
-    verb: "RETRY",
+    label: "STABLE",
     tone: "sky",
-    workflow: "Retry the charge safely.",
-    agent: "Observer replays tool calls.",
-    detail: "Finished steps return from the event log.",
+    workflow: "Charge once, even when the step retries.",
+    agent: "Tool calls replay without re-executing.",
+    detail: "Finished work returns from the event log.",
   },
   {
-    verb: "SUSPEND",
+    label: "SUSPENDABLE",
     tone: "amber",
     workflow: "Wait for the restaurant.",
-    agent: "Analyst awaits approval.",
-    detail: "The loop parks until a human taps.",
+    agent: "Await human approval mid-loop.",
+    detail: "The run parks, then resumes at the same line.",
   },
   {
-    verb: "ROLLBACK",
+    label: "UNDOABLE",
     tone: "fuchsia",
-    workflow: "Unwind a bad order.",
-    agent: "Analyst undoes a change.",
-    detail: "Rollback is a tool the agent can call.",
+    workflow: "Unwind a disputed order.",
+    agent: "Roll back an applied change.",
+    detail: "Compensation is just durable work in reverse.",
   },
 ] as const;
 
@@ -81,14 +81,14 @@ export default function TheMirrorSlide() {
           const tone = TONE[m.tone];
           return (
             <section
-              key={m.verb}
+              key={m.label}
               className={`flex min-h-[360px] flex-col rounded-3xl border p-8 text-left ${tone.card}`}
             >
               <div className="flex items-center justify-between gap-4">
                 <span
-                  className={`rounded-full border px-5 py-2.5 text-2xl font-semibold tracking-[0.16em] ${tone.pill} ${geistMono.className}`}
+                  className={`rounded-full border px-5 py-2.5 text-[22px] font-semibold uppercase leading-none tracking-[0.12em] ${tone.pill} ${geistMono.className}`}
                 >
-                  {m.verb}
+                  {m.label}
                 </span>
                 <span
                   className={`text-sm uppercase tracking-[0.24em] text-zinc-600 ${geistMono.className}`}

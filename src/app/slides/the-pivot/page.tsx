@@ -16,12 +16,12 @@ export default function ThePivotSlide() {
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-6 font-mono text-4xl tracking-[0.3em]">
-        <span className="text-sky-400">RETRY</span>
+      <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 font-mono text-[38px] font-semibold uppercase tracking-[0.14em]">
+        <span className="text-sky-400">STABLE</span>
         <span aria-hidden className="text-zinc-700">·</span>
-        <span className="text-amber-400">SUSPEND</span>
+        <span className="text-amber-400">SUSPENDABLE</span>
         <span aria-hidden className="text-zinc-700">·</span>
-        <span className="text-fuchsia-400">ROLLBACK</span>
+        <span className="text-fuchsia-400">UNDOABLE</span>
       </div>
     </div>
   );

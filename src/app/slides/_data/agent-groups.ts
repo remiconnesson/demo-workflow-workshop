@@ -71,7 +71,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
     eyebrow: "Durable agent · autonomous monitoring",
     verbMapping: {
       proves: ["retry"],
-      label: "RETRY",
+      label: "STABLE",
       tone: "sky",
       caption: "Finished tool calls replay instead of re-executing.",
     },
@@ -89,7 +89,7 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
     eyebrow: "Durable agent · human-in-the-loop",
     verbMapping: {
       proves: ["suspend", "rollback"],
-      label: "SUSPEND + ROLLBACK",
+      label: "SUSPENDABLE + UNDOABLE",
       tone: "amber-fuchsia",
       caption: "Await approval, then undo on request.",
     },

@@ -100,7 +100,7 @@ export default function HowItWorksSlide() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1560px] flex-col justify-center gap-14 px-16 py-20">
       <h2 className="max-w-6xl text-6xl font-semibold leading-[1.05] tracking-tight">
-        For each verb:
+        For each property:
         <span className="text-zinc-500"> break it, fix it, name it.</span>
       </h2>
 

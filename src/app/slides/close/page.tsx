@@ -1,18 +1,18 @@
 import { WorkflowMark } from "../_components/workflow-mark";
 
-const VERBS = [
+const PROPERTIES = [
   {
-    label: "RETRY",
+    label: "STABLE",
     className:
       "border-sky-400/35 bg-sky-500/10 text-sky-300 shadow-[0_0_36px_rgba(56,189,248,0.12)]",
   },
   {
-    label: "SUSPEND",
+    label: "SUSPENDABLE",
     className:
       "border-amber-400/35 bg-amber-500/10 text-amber-300 shadow-[0_0_36px_rgba(251,191,36,0.12)]",
   },
   {
-    label: "ROLLBACK",
+    label: "UNDOABLE",
     className:
       "border-fuchsia-400/35 bg-fuchsia-500/10 text-fuchsia-300 shadow-[0_0_36px_rgba(232,121,249,0.12)]",
   },
@@ -31,12 +31,12 @@ export default function CloseSlide() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-4">
-          {VERBS.map((verb) => (
+          {PROPERTIES.map((property) => (
             <span
-              key={verb.label}
-              className={`rounded-full border px-6 py-3 font-mono text-2xl font-semibold uppercase leading-none tracking-[0.18em] ${verb.className}`}
+              key={property.label}
+              className={`rounded-full border px-6 py-3 font-mono text-[24px] font-semibold uppercase leading-none tracking-[0.12em] ${property.className}`}
             >
-              {verb.label}
+              {property.label}
             </span>
           ))}
         </div>
