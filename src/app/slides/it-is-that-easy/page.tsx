@@ -33,7 +33,7 @@ export default async function ItIsThatEasySlide() {
             7: "**idempotency**: stepId keys Stripe; retry returns original charge",
             9: "**hook/webhook**: workflow parks; restaurant tap resumes this await",
             11: "**sleep+race**: no driver times out cleanly; retry or unwind",
-            13: "**compensation**: driver cancel throws; saga unwinds restaurant first",
+            13: "**compensation**: customer cancel throws; saga unwinds restaurant first",
             15: "**replay**: event log resumes after crash; receipts still send",
           }}
         />

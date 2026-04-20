@@ -23,7 +23,7 @@ const RISK_GROUPS = [
   {
     property: "Undoable",
     tone: "fuchsia",
-    items: [{ line: "11", label: "Driver cancellation" }],
+    items: [{ line: "11", label: "Customer cancellation" }],
   },
 ] as const;
 
@@ -68,7 +68,7 @@ const SETUP_RISK_HIGHLIGHT_CLASS = [
   "[&_.code-line-9.code-hl]:!bg-amber-500/10",
   "[&_.code-line-9.code-hl]:!ring-1",
   "[&_.code-line-9.code-hl]:!ring-amber-400/30",
-  // Rollback family — driver cancellation
+  // Rollback family — customer cancellation
   "[&_.code-line-11.code-hl]:!bg-fuchsia-500/10",
   "[&_.code-line-11.code-hl]:!ring-1",
   "[&_.code-line-11.code-hl]:!ring-fuchsia-400/30",
@@ -103,7 +103,7 @@ export default async function TheSetupSlide() {
                 5: "What if this **fails halfway**? The customer gets **charged twice**.",
                 7: "What if the restaurant takes **10 minutes**? This function **times out**.",
                 9: "What if **no drivers** are available? The order is stuck **forever**.",
-                11: "What if the driver **cancels**? Who rolls back the restaurant?",
+                11: "What if the customer **cancels**? Who rolls back the restaurant?",
                 13: "What if the server **crashes** here? The customer never gets receipts.",
               }}
             />

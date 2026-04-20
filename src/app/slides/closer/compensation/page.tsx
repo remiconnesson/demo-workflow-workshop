@@ -6,8 +6,8 @@ export default function CloserCompensationSlide() {
       primitive="compensation"
       title="Undoable"
       lineNumber={13}
-      setupWorry="What if the driver cancels? Who rolls back the restaurant?"
-      description="Driver cancel throws; saga unwinds restaurant first."
+      setupWorry="What if the customer cancels? Who rolls back the restaurant?"
+      description="Customer cancel throws; saga unwinds restaurant first."
     />
   );
 }
