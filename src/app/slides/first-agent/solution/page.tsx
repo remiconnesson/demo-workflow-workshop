@@ -12,7 +12,7 @@ export default function AgentFirstFixSlide() {
       marker="span"
       filename="supportAgent.ts"
       statusTone="emerald"
-      statusLabel="resumable stream"
+      statusLabel="stream · resume"
       steps={[
         {
           label: <>Wrap the function in a <code className="font-mono">workflow</code></>,

@@ -12,7 +12,7 @@ export default function AgentObserverFixSlide() {
       marker="span"
       filename="observerAgent.ts"
       statusTone="sky"
-      statusLabel="autonomous loop"
+      statusLabel="retry · replay"
       steps={[
         {
           label: <>Mark the fetch <code className="font-mono">&quot;use step&quot;</code></>,

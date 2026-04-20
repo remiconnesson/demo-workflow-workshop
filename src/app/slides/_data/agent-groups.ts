@@ -17,9 +17,33 @@ export type AgentGroupPattern = {
   docSection: string;
 };
 
+export type AgentProof = "foundation" | "retry" | "suspend" | "rollback";
+
+export type AgentVerbMappingTone =
+  | "emerald"
+  | "sky"
+  | "amber"
+  | "fuchsia"
+  | "amber-fuchsia";
+
+export type AgentVerbMapping = {
+  /**
+   * What this agent act proves in the story.
+   * `foundation` is intentionally not a fourth verb — it sets up the agent half.
+   */
+  proves: AgentProof[];
+  /** Short stage label rendered in the demo chip. */
+  label: string;
+  /** Visual treatment for the chip/card. */
+  tone: AgentVerbMappingTone;
+  /** One-line audience translation shown next to the chip. */
+  caption: string;
+};
+
 export type AgentGroup = {
   slug: AgentGroupSlug;
   eyebrow: string;
+  verbMapping: AgentVerbMapping;
   pattern: AgentGroupPattern;
 };
 
@@ -27,6 +51,12 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   "agent-first": {
     slug: "agent-first",
     eyebrow: "Durable agent · resumable stream",
+    verbMapping: {
+      proves: ["foundation"],
+      label: "STREAM · RESUME",
+      tone: "emerald",
+      caption: "Foundation: one durable agent run survives refresh.",
+    },
     pattern: {
       name: "DurableAgent + WorkflowChatTransport",
       description:
@@ -39,6 +69,12 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   "agent-observer": {
     slug: "agent-observer",
     eyebrow: "Durable agent · autonomous monitoring",
+    verbMapping: {
+      proves: ["retry"],
+      label: "RETRY",
+      tone: "sky",
+      caption: "Finished tool calls replay instead of re-executing.",
+    },
     pattern: {
       name: "DurableAgent",
       description:
@@ -51,6 +87,12 @@ export const AGENT_GROUPS: Record<AgentGroupSlug, AgentGroup> = {
   "agent-analyst": {
     slug: "agent-analyst",
     eyebrow: "Durable agent · human-in-the-loop",
+    verbMapping: {
+      proves: ["suspend", "rollback"],
+      label: "SUSPEND + ROLLBACK",
+      tone: "amber-fuchsia",
+      caption: "Await approval, then undo on request.",
+    },
     pattern: {
       name: "DurableAgent + defineHook",
       description:

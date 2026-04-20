@@ -10,6 +10,7 @@ export default function AgentObserverDemoSlide() {
       slide={group.slug}
       eyebrow={group.eyebrow}
       headline="... an Agent loses its server?"
+      verbMapping={group.verbMapping}
       rightPanel={<ObserverChatPane slug={group.slug} />}
     />
   );

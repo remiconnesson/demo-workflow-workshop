@@ -45,9 +45,10 @@ export default function AgentAnalystDemoSlide() {
   const group = AGENT_GROUPS["agent-analyst"];
   return (
     <DemoSlideLayout
-      slide="agent-analyst"
+      slide={group.slug}
       eyebrow={group.eyebrow}
       headline="...an Agent that needs undo?"
+      verbMapping={group.verbMapping}
       rightPanel={<AnalystDemoSurface />}
     />
   );
