@@ -69,7 +69,7 @@ export function ConveyorDemo() {
   const frozen = 1_248 + (m.isResumed ? 1 : 0);
   const loop = STARTING_LOOP + (m.active ? 1 : 0);
 
-  // Arm stage — blends based on phase
+  // Arm stage, blends based on phase
   const armStage: ArmStage = m.isCrashed
     ? "frozen-mid"
     : m.isReplaying
@@ -220,7 +220,7 @@ export function ConveyorDemo() {
         {/* overhead gantry */}
         <div className="pointer-events-none absolute top-16 left-8 right-8 h-3 rounded-sm bg-zinc-800" />
 
-        {/* robot arm — positioned at the stamp x-center (fixed), descending into belt */}
+        {/* robot arm, positioned at the stamp x-center (fixed) and descending into belt */}
         <div
           className="pointer-events-none absolute top-16"
           style={{ left: "50%", transform: "translateX(-50%)" }}
@@ -258,7 +258,7 @@ export function ConveyorDemo() {
             <div className="absolute inset-2 rounded bg-emerald-500 flex items-center justify-center font-mono text-2xl text-white">
               ✓
             </div>
-            {/* red face (opposite — rotated 180) */}
+            {/* red face (opposite side, rotated 180) */}
             <div
               className="absolute inset-2 rounded bg-red-500 flex items-center justify-center font-mono text-xl font-bold text-white"
               style={{ transform: "rotate(180deg)" }}
@@ -300,7 +300,7 @@ export function ConveyorDemo() {
           </span>
         </div>
 
-        {/* BELT — horizontal across mid-screen */}
+        {/* BELT: horizontal across mid-screen */}
         <div className="absolute top-1/2 left-0 h-[140px] w-full -translate-y-1/2 overflow-hidden border-y-2 border-zinc-800 bg-zinc-900">
           {/* belt stripes */}
           <div

@@ -95,17 +95,17 @@ const FRAMES: Frame[] = [
     loop: 2, sleeping: false, crashPhase: "replaying",
     crashReady: false, activeTool: "analyze", delayMs: 1400,
   }),
-  // 9 — scan replayed (cached), analyze resumes running
+  // 9: scan replayed (cached), analyze resumes running
   f(["replayed", "running", "pending"], {
     loop: 2, sleeping: false, crashPhase: "replaying",
     crashReady: false, activeTool: "analyze", delayMs: 1800,
   }),
-  // 10 — analyze done, report running (back to live)
+  // 10: analyze done, report running (back to live)
   f(["replayed", "success", "running"], {
     loop: 2, sleeping: false, crashPhase: "live",
     crashReady: false, activeTool: "report", delayMs: 1500,
   }),
-  // 11 — resumed, fully complete
+  // 11: resumed, fully complete
   f(["replayed", "success", "success"], {
     loop: 2, sleeping: false, crashPhase: "resumed",
     crashReady: false, activeTool: null, delayMs: 0,
@@ -164,7 +164,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
   }, [slug, handleStart, handleReset]);
 
   // Fire-and-forget kickoff of the real durable run so the debug drawer
-  // shows a real run ID. We don't depend on the run output — the timeline
+  // shows a real run ID. We don't depend on the run output; the timeline
   // is scripted for stage reliability.
   const [runId, setRunId] = useState<string | undefined>(undefined);
   useEffect(() => {
@@ -186,7 +186,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
       const fr = FRAMES[i];
       if (!fr) break;
       if (fr.crashPhase === "crashed") {
-        out.push({ kind: "ERR", msg: "server down — process killed" });
+        out.push({ kind: "ERR", msg: "server down, process killed" });
         continue;
       }
       if (fr.crashPhase === "replaying" && FRAMES[i - 1]?.crashPhase === "crashed") {
@@ -216,7 +216,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
   const isIdle = fi === 0;
   const isResumed = frame.crashPhase === "resumed";
 
-  // Build chat "history" from frame index — past loops render full,
+  // Build chat "history" from frame index. Past loops render full,
   // current loop renders live.
   const showLoop1 = fi >= 1;
   const showLoop1Complete = fi >= 4;
@@ -231,7 +231,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
 
   return (
     <div className="grid h-full min-h-0 grid-cols-[1fr_440px] gap-8 overflow-hidden">
-      {/* LEFT — chat surface */}
+      {/* LEFT: chat surface */}
       <div className="relative flex min-h-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-zinc-950">
         {/* header */}
         <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
@@ -316,7 +316,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
 
       </div>
 
-      {/* RIGHT — kill-server CTA + debug drawer */}
+      {/* RIGHT: kill-server CTA + debug drawer */}
       <aside
         className={`flex min-h-0 flex-col overflow-hidden ${
           debugOpen ? "gap-6" : "justify-center"
@@ -390,7 +390,7 @@ export function ObserverChatPane({ slug = "agent-observer" }: { slug?: string })
 }
 
 // ---------------------------------------------------------------------------
-// Chat scroll — renders the cumulative conversation based on frame state
+// Chat scroll: renders the cumulative conversation based on frame state
 // ---------------------------------------------------------------------------
 
 type ChatScrollProps = {
@@ -424,7 +424,7 @@ function ChatScroll({
 
   // Loop-1 tool states: at frame 4 (done/sleeping), all three are success.
   // While in loop 1 (fi=1..3), they track the live frame.
-  // In loop 2 (fi>=5), loop 1 is complete — all three success.
+  // In loop 2 (fi>=5), loop 1 is complete, so all three are success.
   const loop1States: Record<ToolId, ToolState> =
     fi >= 4
       ? { scan: "success", analyze: "success", report: "success" }
@@ -456,7 +456,7 @@ function ChatScroll({
         />
       )}
 
-      {/* inline system rows — appear right where the crash happened */}
+      {/* inline system rows, placed right where the crash happened */}
       {showCrashRow && <SystemRow kind="crash" active={frame.crashPhase === "crashed"} />}
       {showReplayRow && <SystemRow kind="replay" active={frame.crashPhase === "replaying"} />}
       {showResumedRow && <SystemRow kind="resumed" active />}
@@ -467,7 +467,7 @@ function ChatScroll({
 }
 
 // ---------------------------------------------------------------------------
-// Loop block — a "user turn" (the loop prompt) followed by the assistant's
+// Loop block: a "user turn" (the loop prompt) followed by the assistant's
 // response: one text bubble and three tool-call pills.
 // ---------------------------------------------------------------------------
 
@@ -521,12 +521,12 @@ function LoopBlock({
           </p>
           <p className="mt-2 text-lg leading-[1.35] text-zinc-100">
             {isCrashed
-              ? "—"
+              ? "\u2026"
               : isReplaying
                 ? "Reconnecting to the run…"
                 : complete
                   ? anyReplayed
-                    ? "Picked up where I left off. One tool call replayed from the event log — the other two finished fresh."
+                    ? "Picked up where I left off. One tool call replayed from the event log; the other two finished fresh."
                     : "Loop complete. Sleeping until the next window."
                   : anyRunning
                     ? "Scanning recent orders, looking for anomalies, and appending report entries…"
@@ -545,7 +545,7 @@ function LoopBlock({
 }
 
 // ---------------------------------------------------------------------------
-// Tool pill — renders running / done / cached (replayed) with clear affordance
+// Tool pill: renders running / done / cached (replayed) with clear affordance
 // ---------------------------------------------------------------------------
 
 function ToolPill({
@@ -634,7 +634,7 @@ function ToolPill({
 }
 
 // ---------------------------------------------------------------------------
-// Sleep divider — an amber chip that marks the sleep(30s) between loops
+// Sleep divider: an amber chip that marks the sleep(30s) between loops
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

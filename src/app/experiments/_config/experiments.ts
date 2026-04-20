@@ -1,7 +1,7 @@
 /**
  * Manifest of all 21 experiment demos. Each theme has one DurableAgent
  * demonstrated across the three property groups (stable / suspendable
- * / undoable — legacy slugs retry · suspend · rollback).
+ * / undoable, with legacy slugs retry · suspend · rollback).
  *
  * Slug format: `{theme}-{verb}`. Routes live at `/experiments/{slug}`.
  */

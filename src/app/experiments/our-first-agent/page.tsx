@@ -127,9 +127,9 @@ export default function OurFirstAgentPage() {
               Hit <kbd className="rounded border border-white/20 bg-white/10 px-2 py-0.5 font-mono text-sm">F5</kbd> mid-response
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-              While the agent is streaming a reply — or waiting on the
+              While the agent is streaming a reply, or waiting on the
               <span className="px-1 font-mono text-xs text-sky-400">fetchOrderDetails</span>
-              tool — reload the page. The stream reconnects. The same
+              tool, reload the page. The stream reconnects. The same
               sentence finishes itself.
             </p>
           </div>

@@ -88,13 +88,13 @@ The deck is defined in `src/app/slides/config.ts`, a 34-slide, ~1-hour workshop 
   3. **Pattern**: names the SDK pattern, shows real-world examples, and hands the run to an AI agent via the `InspectorBand` (`npx workflow inspect run <id>` + a "Paste to your agent" Coding-Agent Friendly caption).
 
   The three properties: **Stable** (idempotency), **Suspendable** (hooks), **Undoable** (saga).
-- **The Pivot** (16) — same durable run, new caller: agents.
-- **Hello World agent** (17–19) — demo / code / pattern for resumable streams (F5 proof).
-- **Autonomous agent** (20–22) — demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
-- **Optimize agent** (23–25) — demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
-- **Close** (26–34) — **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides (**Stable / Suspendable / Undoable** titles, one per line of the original function) with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
+- **The Pivot** (16): same durable run, new caller: agents.
+- **Hello World agent** (17–19): demo / code / pattern for resumable streams (F5 proof).
+- **Autonomous agent** (20–22): demo / code / pattern for a forever-running durable agent that survives a mid-loop server kill.
+- **Optimize agent** (23–25): demo / code / pattern for a human-in-the-loop + undoable restaurant-manager agent.
+- **Close** (26–34): **The Mirror** (foundation + workflow → agent mapping), **It is that easy** (original placeOrder overview), six `closer/*` per-line recap slides (**Stable / Suspendable / Undoable** titles, one per line of the original function) with a cumulative cadence footer, and **Ship it tonight** with the `npx skills add …` CTA.
 
-Breadcrumbs on the grouped slides show the new vocabulary — `stable / demo`, `suspendable / code`, `undoable / pattern` — while the underlying route paths retain the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for dev-link and test stability. The only route that was actually renamed is `/slides/three-verbs` → `/slides/reliable-software`, which matched the slide's own title and removed the last verb-era URL.
+Breadcrumbs on the grouped slides show the new vocabulary (`stable / demo`, `suspendable / code`, `undoable / pattern`) while the underlying route paths retain the original verbs (`/slides/retry/*`, `/slides/suspend/*`, `/slides/rollback/*`) for dev-link and test stability. The only route that was actually renamed is `/slides/three-verbs` → `/slides/reliable-software`, which matched the slide's own title and removed the last verb-era URL.
 
 Presenter voice deliberately uses verbs ("retry safely", "park", "unwind") as the bridge into each property, but every audience-visible label is a property.
 
@@ -103,23 +103,23 @@ Presenter voice deliberately uses verbs ("retry safely", "park", "unwind") as th
 Important routes:
 
 - `/` redirects to `/slides/title`
-- `/slides/title` slide 1 — workshop intro
-- `/slides/the-demo` slide 2 — happy-path order demo
-- `/slides/the-setup` slide 3 — 15-line starter code + `ObservableCallout`
-- `/slides/reliable-software` slide 4 — introduces the stable / suspendable / undoable framing
-- `/slides/how-it-works` slide 5 — Break → Fix → Name rhythm
-- `/slides/observability` slide 6 — "Every run is observable." Human (`npx workflow web`) + Agent (`npx workflow inspect`) payoff slide
-- `/slides/retry/demo` ... `/slides/retry/pattern` — **stable** property group (URL retained)
-- `/slides/suspend/demo` ... `/slides/suspend/pattern` — **suspendable** property group (URL retained)
-- `/slides/rollback/demo` ... `/slides/rollback/pattern` — **undoable** property group (URL retained)
-- `/slides/the-pivot` slide 16 — the workflows-to-agents hinge
-- `/slides/first-agent/demo` ... `/slides/first-agent/pattern` — **Hello World** agent group (F5 proof; routes unchanged for stability)
-- `/slides/observer/demo` ... `/slides/observer/pattern` — **Autonomous** agent group (kill-server proof of a forever loop)
-- `/slides/analyst/demo` ... `/slides/analyst/pattern` — **Optimize** agent group (suspend + undo inside a restaurant-manager agent)
-- `/slides/the-mirror` slide 26 — foundation + workflow → agent mapping
-- `/slides/it-is-that-easy` slide 27 — original placeOrder overview
-- `/slides/closer/step` ... `/slides/closer/replay` slides 28–33 — per-line primitive recap
-- `/slides/close` slide 34 — Ship it tonight + `npx skills add …` hero
+- `/slides/title` slide 1: workshop intro
+- `/slides/the-demo` slide 2: happy-path order demo
+- `/slides/the-setup` slide 3: 15-line starter code + `ObservableCallout`
+- `/slides/reliable-software` slide 4: introduces the stable / suspendable / undoable framing
+- `/slides/how-it-works` slide 5: Break → Fix → Name rhythm
+- `/slides/observability` slide 6: "Every run is observable." Human (`npx workflow web`) + Agent (`npx workflow inspect`) payoff slide
+- `/slides/retry/demo` ... `/slides/retry/pattern`: **stable** property group (URL retained)
+- `/slides/suspend/demo` ... `/slides/suspend/pattern`: **suspendable** property group (URL retained)
+- `/slides/rollback/demo` ... `/slides/rollback/pattern`: **undoable** property group (URL retained)
+- `/slides/the-pivot` slide 16: the workflows-to-agents hinge
+- `/slides/first-agent/demo` ... `/slides/first-agent/pattern`: **Hello World** agent group (F5 proof; routes unchanged for stability)
+- `/slides/observer/demo` ... `/slides/observer/pattern`: **Autonomous** agent group (kill-server proof of a forever loop)
+- `/slides/analyst/demo` ... `/slides/analyst/pattern`: **Optimize** agent group (suspend + undo inside a restaurant-manager agent)
+- `/slides/the-mirror` slide 26: foundation + workflow → agent mapping
+- `/slides/it-is-that-easy` slide 27: original placeOrder overview
+- `/slides/closer/step` ... `/slides/closer/replay` slides 28–33: per-line primitive recap
+- `/slides/close` slide 34: Ship it tonight + `npx skills add …` hero
 - `/experiments` 21 DurableAgent experiment demos for narrative exploration
 - `/variations` index of older visual experiments
 

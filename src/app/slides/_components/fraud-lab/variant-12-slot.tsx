@@ -22,7 +22,7 @@ import {
 // ---------------------------------------------------------------------------
 // Variant 12 · Slot machine
 // Oversized cabinet with three giant reels (card, merchant, country). Every
-// charge pulls the lever automatically — click click click to CLEAR. On fraud
+// charge pulls the lever automatically, click click click to CLEAR. On fraud
 // the three reels land [8891][CRYPTONOME][RU] in red, siren flashes, lever
 // LOCKS, and a FROZEN card slides out the front. Crash freezes reels with blur
 // and a "OUT OF ORDER" marquee. Replay unblurs; resume keeps the frozen drawer.
@@ -89,7 +89,7 @@ export function SlotDemo() {
   const lockedOnFraud =
     m.isArmed || m.isCrashed || m.isReplaying || m.isResumed;
 
-  // spinning state — brief spin between stops
+  // spinning state: brief spin between stops
   const spinT = (elapsed % SPIN_PERIOD_MS) / SPIN_PERIOD_MS;
   const isSpinning = !lockedOnFraud && spinT < 0.45 && m.active;
 
@@ -283,7 +283,7 @@ function Reel({
   spinSeed: number;
   revealDelay: number;
 }) {
-  // Compute a "spin" offset — items whirl when spinning, otherwise stop on currentIdx.
+  // Compute a "spin" offset. Items whirl when spinning, otherwise stop on currentIdx.
   const visibleIdx = spinning
     ? (currentIdx + spinSeed * 3) % items.length
     : currentIdx % items.length;

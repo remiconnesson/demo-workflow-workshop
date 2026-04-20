@@ -30,7 +30,7 @@ import {
 
 const FRAUD_IDX = CHARGES.length - 1;
 
-// Verdict lines per charge — first few are neutral, fraud row gets a full
+// Verdict lines per charge. First few are neutral; the fraud row gets a full
 // escalating monologue.
 type LineTone = "neutral" | "amber" | "red" | "final";
 type Line = { text: string; tone: LineTone };
@@ -162,7 +162,7 @@ export function CourtroomDemo() {
           </div>
         </div>
 
-        {/* center stage — spotlight */}
+        {/* center stage with spotlight */}
         <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
           {/* spotlight */}
           <div

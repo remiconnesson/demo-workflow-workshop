@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ---------------------------------------------------------------------------
-// Mocks — must come before route imports
+// Mocks (must come before route imports)
 // ---------------------------------------------------------------------------
 
 function makeClosedStream() {

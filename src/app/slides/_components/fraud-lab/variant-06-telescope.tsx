@@ -30,7 +30,7 @@ import {
 
 const FRAUD_IDX = CHARGES.length - 1;
 
-// Deterministic starfield — ambient stars (decorative) + charge stars (labeled).
+// Deterministic starfield: ambient stars (decorative) + charge stars (labeled).
 type Star = { x: number; y: number; r: number; twinkle: number };
 
 const AMBIENT_STARS: Star[] = Array.from({ length: 140 }, (_, i) => {
@@ -45,7 +45,7 @@ const AMBIENT_STARS: Star[] = Array.from({ length: 140 }, (_, i) => {
   };
 });
 
-// Charge stars placed around the field — fraud star on the rim.
+// Charge stars placed around the field. Fraud star sits on the rim.
 const CHARGE_POS: { x: number; y: number }[] = [
   { x: 22, y: 38 },
   { x: 35, y: 62 },
@@ -57,7 +57,7 @@ const CHARGE_POS: { x: number; y: number }[] = [
   { x: 72, y: 58 },
   { x: 55, y: 22 },
   { x: 38, y: 18 },
-  { x: 88, y: 82 }, // fraud — far rim
+  { x: 88, y: 82 }, // fraud, far rim
 ];
 
 // Constellation lines (faint grid)

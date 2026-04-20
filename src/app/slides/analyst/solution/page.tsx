@@ -8,22 +8,22 @@ export default function AgentAnalystFixSlide() {
     <FixSlideLayout
       slide="agent-analyst"
       eyebrow={group.eyebrow}
-      headline="The whole workshop — in one agent."
+      headline="The whole workshop, in one agent."
       marker="span"
       filename="analystAgent.ts"
       statusTone="emerald"
       statusLabel="Stable · Suspendable · Undoable"
       steps={[
         {
-          label: <><span className="font-mono text-emerald-300">Stable</span> — tools become <code className="font-mono">steps</code></>,
+          label: <><span className="font-mono text-emerald-300">Stable</span>: tools become <code className="font-mono">steps</code></>,
           detail: <>tool calls <span className="text-zinc-300">replay from the log</span></>,
         },
         {
-          label: <><span className="font-mono text-amber-300">Suspendable</span> — <code className="font-mono">await approvalHook</code></>,
+          label: <><span className="font-mono text-amber-300">Suspendable</span>: <code className="font-mono">await approvalHook</code></>,
           detail: <>agent <span className="text-zinc-300">parks mid-tool-call</span></>,
         },
         {
-          label: <><span className="font-mono text-fuchsia-300">Undoable</span> — <code className="font-mono">rollbackMenuChange</code></>,
+          label: <><span className="font-mono text-fuchsia-300">Undoable</span>: <code className="font-mono">rollbackMenuChange</code></>,
           detail: <>undo is <span className="text-zinc-300">another durable tool</span></>,
         },
       ]}
@@ -49,7 +49,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           {
             highlightLines: {
               2: "",
-              3: "**stable** — [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) — finished calls **replay from the event log** on restart (same primitive as the earlier charge scenario)",
+              3: "**stable**: [`\"use step\"`](https://workflow-sdk.dev/docs/foundations/workflows-and-steps) turns the tool into a [durable step](https://workflow-sdk.dev/docs/foundations/workflows-and-steps). Finished calls **replay from the event log** on restart (same primitive as the earlier charge scenario)",
             },
             code: `async function queryOrders({ limit }) {
   // stable: tool call replays from the event log on restart
@@ -73,7 +73,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
             highlightLines: {
               6: "",
               7: "",
-              8: "[`hook.create({ token })`](https://workflow-sdk.dev/docs/ai/human-in-the-loop) — the UI references this token to submit the approval",
+              8: "[`hook.create({ token })`](https://workflow-sdk.dev/docs/ai/human-in-the-loop). The UI references this token to submit the approval",
               9: "**suspendable** — `await hook` parks the agent until a human taps the phone — [same hook primitive](https://workflow-sdk.dev/docs/foundations/hooks) as the slow-restaurant webhook",
               10: "",
             },

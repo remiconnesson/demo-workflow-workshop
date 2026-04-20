@@ -19,8 +19,8 @@ export default function ExperimentsIndexPage() {
             7 DurableAgents × 3 verbs
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-zinc-400">
-            Each theme runs one DurableAgent across three demos — retry,
-            suspend, rollback — so we can see which agent story lands
+            Each theme runs one DurableAgent across three demos (retry,
+            suspend, rollback) so we can see which agent story lands
             hardest for the workshop.
           </p>
         </header>
@@ -37,7 +37,7 @@ export default function ExperimentsIndexPage() {
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-zinc-400">
             A DurableAgent with one slow tool. Hit F5 while it&apos;s
-            streaming — the same sentence finishes itself. The quick
+            streaming, and the same sentence finishes itself. The quick
             win before the three properties.
           </p>
           <p className="mt-3 font-mono text-xs text-zinc-500">
