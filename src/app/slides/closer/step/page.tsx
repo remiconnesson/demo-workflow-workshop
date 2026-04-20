@@ -5,7 +5,7 @@ export default function CloserStepSlide() {
     <CloserRecapSlide
       primitive="step"
       title="Stable"
-      lineNumber={5}
+      lineNumber={4}
       setupWorry="What if the input is invalid but the next step already ran?"
       description="Result replays on retry; invalid input stops before charge."
     />

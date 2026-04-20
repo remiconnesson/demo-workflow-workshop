@@ -29,12 +29,12 @@ export default async function ItIsThatEasySlide() {
           lang="ts"
           textClass="text-[26px]"
           highlightLines={{
-            5: "**step**: result replays on retry; invalid input stops before charge",
-            7: "**idempotency**: stepId keys Stripe; retry returns original charge",
-            9: "**hook/webhook**: workflow parks; restaurant tap resumes this await",
-            11: "**sleep+race**: no driver times out cleanly; retry or unwind",
-            13: "**compensation**: customer cancel throws; saga unwinds restaurant first",
-            15: "**replay**: event log resumes after crash; receipts still send",
+            4: "**step**: result replays on retry; invalid input stops before charge",
+            5: "**idempotency**: stepId keys Stripe; retry returns original charge",
+            6: "**hook/webhook**: workflow parks; restaurant tap resumes this await",
+            7: "**sleep+race**: no driver times out cleanly; retry or unwind",
+            8: "**compensation**: customer cancel throws; saga unwinds restaurant first",
+            9: "**replay**: event log resumes after crash; receipts still send",
           }}
         />
       </div>

@@ -64,9 +64,6 @@ export function ObservableCallout() {
           </span>
         )}
       </div>
-      <span className="shrink-0 text-base text-zinc-400">
-        Live dashboard · timeline · streams · every step visible
-      </span>
     </div>
   );
 }

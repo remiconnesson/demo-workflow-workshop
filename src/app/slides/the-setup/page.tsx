@@ -100,11 +100,11 @@ export default async function TheSetupSlide() {
               textClass="text-[26px]"
               highlightLines={{
                 3: "What if the input is **invalid** but the next step already ran?",
-                5: "What if this **fails halfway**? The customer gets **charged twice**.",
-                7: "What if the restaurant takes **10 minutes**? This function **times out**.",
-                9: "What if **no drivers** are available? The order is stuck **forever**.",
-                11: "What if the customer **cancels**? Who rolls back the restaurant?",
-                13: "What if the server **crashes** here? The customer never gets receipts.",
+                4: "What if this **fails halfway**? The customer gets **charged twice**.",
+                5: "What if the restaurant takes **10 minutes**? This function **times out**.",
+                6: "What if **no drivers** are available? The order is stuck **forever**.",
+                7: "What if the customer **cancels**? Who rolls back the restaurant?",
+                8: "What if the server **crashes** here? The customer never gets receipts.",
               }}
             />
           </div>

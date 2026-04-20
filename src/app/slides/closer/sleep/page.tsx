@@ -5,7 +5,7 @@ export default function CloserSleepSlide() {
     <CloserRecapSlide
       primitive="sleep-race"
       title="Suspendable"
-      lineNumber={11}
+      lineNumber={7}
       setupWorry="What if no drivers are available? The order is stuck forever."
       description="No driver times out cleanly; retry or unwind."
     />

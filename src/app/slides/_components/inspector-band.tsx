@@ -3,7 +3,7 @@
 import { CopyablePrompt } from "./copyable-prompt";
 
 const INSTALL_COMMAND =
-  "npx skills add https://github.com/vercel/workflow --skill workflow-init";
+  "npx skills add https://github.com/vercel/workflow";
 
 type InspectorBandProps = {
   inspectPrompt?: string;

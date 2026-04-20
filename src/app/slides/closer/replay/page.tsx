@@ -5,7 +5,7 @@ export default function CloserReplaySlide() {
     <CloserRecapSlide
       primitive="replay"
       title="Stable"
-      lineNumber={15}
+      lineNumber={9}
       setupWorry="What if the server crashes here? The customer never gets receipts."
       description="Event log resumes after crash; receipts still send."
     />

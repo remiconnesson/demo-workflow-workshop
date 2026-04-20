@@ -195,7 +195,7 @@ export function TheDemoPhoneLab() {
                   <rect x="14.4" y="0" width="3.2" height="12" rx="0.7" fill="currentColor" />
                 </svg>
                 {/* wifi — three arcs + dot */}
-                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-black">
+                <svg width="16" height="12" viewBox="0 0 16 12" fill="none" className="text-black overflow-visible">
                   <circle cx="8" cy="10.75" r="1.25" fill="currentColor" />
                   <path d="M4.93 7.7a4.37 4.37 0 0 1 6.14 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                   <path d="M2.34 5.1a7.87 7.87 0 0 1 11.32 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

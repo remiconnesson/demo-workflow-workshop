@@ -15,7 +15,6 @@ type CloserRecapSlideProps = {
   lineNumber: SpotlightLine;
   setupWorry: string;
   description: string;
-  sdkExplanation?: string;
 };
 
 type VerbFamily = "retry" | "suspend" | "rollback";
@@ -132,21 +131,12 @@ const PRIMITIVE_FAMILY: Record<CloserPrimitive, VerbFamily> = {
 };
 
 const HIGHLIGHT_LINES: Record<number, string> = {
+  4: "",
   5: "",
+  6: "",
   7: "",
+  8: "",
   9: "",
-  11: "",
-  13: "",
-  15: "",
-};
-
-const SDK_EXPLANATION: Record<CloserPrimitive, string> = {
-  step: "The SDK records this step boundary, so a retry reuses the completed result instead of replaying side effects.",
-  idempotency: "getStepMetadata().stepId becomes the external dedupe key for the charge.",
-  hook: "A hook suspends the workflow and resumes it with the restaurant's decision.",
-  "sleep-race": "sleep() is durable; Promise.race turns no driver into a clean timeout path.",
-  compensation: "Throwing from a later step walks the compensation stack backward.",
-  replay: "The event log lets the run restart after a crash and continue from the last completed step.",
 };
 
 const ASIDE_CLASS_BY_FAMILY: Record<VerbFamily, string> = {
@@ -186,6 +176,15 @@ type SpotlightKey = `${VerbFamily}-${SpotlightLine}`;
 
 const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
   // ── retry family (sky) ────────────────────────────────────────────
+  "retry-4": [
+    "[&_.code-hl:not(.code-line-4)]:opacity-25",
+    "[&_.code-line-4.code-hl]:!opacity-100",
+    "[&_.code-line-4.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-4.code-hl]:!border-l-sky-300",
+    "[&_.code-line-4.code-hl]:!ring-2",
+    "[&_.code-line-4.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-4.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
+  ].join(" "),
   "retry-5": [
     "[&_.code-hl:not(.code-line-5)]:opacity-25",
     "[&_.code-line-5.code-hl]:!opacity-100",
@@ -194,6 +193,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-5.code-hl]:!ring-2",
     "[&_.code-line-5.code-hl]:!ring-sky-400/45",
     "[&_.code-line-5.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
+  ].join(" "),
+  "retry-6": [
+    "[&_.code-hl:not(.code-line-6)]:opacity-25",
+    "[&_.code-line-6.code-hl]:!opacity-100",
+    "[&_.code-line-6.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-6.code-hl]:!border-l-sky-300",
+    "[&_.code-line-6.code-hl]:!ring-2",
+    "[&_.code-line-6.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-6.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
   "retry-7": [
     "[&_.code-hl:not(.code-line-7)]:opacity-25",
@@ -204,6 +212,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-7.code-hl]:!ring-sky-400/45",
     "[&_.code-line-7.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
+  "retry-8": [
+    "[&_.code-hl:not(.code-line-8)]:opacity-25",
+    "[&_.code-line-8.code-hl]:!opacity-100",
+    "[&_.code-line-8.code-hl]:!bg-sky-500/10",
+    "[&_.code-line-8.code-hl]:!border-l-sky-300",
+    "[&_.code-line-8.code-hl]:!ring-2",
+    "[&_.code-line-8.code-hl]:!ring-sky-400/45",
+    "[&_.code-line-8.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
+  ].join(" "),
   "retry-9": [
     "[&_.code-hl:not(.code-line-9)]:opacity-25",
     "[&_.code-line-9.code-hl]:!opacity-100",
@@ -213,34 +230,16 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-9.code-hl]:!ring-sky-400/45",
     "[&_.code-line-9.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
   ].join(" "),
-  "retry-11": [
-    "[&_.code-hl:not(.code-line-11)]:opacity-25",
-    "[&_.code-line-11.code-hl]:!opacity-100",
-    "[&_.code-line-11.code-hl]:!bg-sky-500/10",
-    "[&_.code-line-11.code-hl]:!border-l-sky-300",
-    "[&_.code-line-11.code-hl]:!ring-2",
-    "[&_.code-line-11.code-hl]:!ring-sky-400/45",
-    "[&_.code-line-11.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
-  ].join(" "),
-  "retry-13": [
-    "[&_.code-hl:not(.code-line-13)]:opacity-25",
-    "[&_.code-line-13.code-hl]:!opacity-100",
-    "[&_.code-line-13.code-hl]:!bg-sky-500/10",
-    "[&_.code-line-13.code-hl]:!border-l-sky-300",
-    "[&_.code-line-13.code-hl]:!ring-2",
-    "[&_.code-line-13.code-hl]:!ring-sky-400/45",
-    "[&_.code-line-13.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
-  ].join(" "),
-  "retry-15": [
-    "[&_.code-hl:not(.code-line-15)]:opacity-25",
-    "[&_.code-line-15.code-hl]:!opacity-100",
-    "[&_.code-line-15.code-hl]:!bg-sky-500/10",
-    "[&_.code-line-15.code-hl]:!border-l-sky-300",
-    "[&_.code-line-15.code-hl]:!ring-2",
-    "[&_.code-line-15.code-hl]:!ring-sky-400/45",
-    "[&_.code-line-15.code-hl]:!shadow-[0_0_46px_rgba(56,189,248,0.28),inset_0_0_0_1px_rgba(56,189,248,0.35)]",
-  ].join(" "),
   // ── suspend family (amber) ────────────────────────────────────────
+  "suspend-4": [
+    "[&_.code-hl:not(.code-line-4)]:opacity-25",
+    "[&_.code-line-4.code-hl]:!opacity-100",
+    "[&_.code-line-4.code-hl]:!bg-amber-500/10",
+    "[&_.code-line-4.code-hl]:!border-l-amber-300",
+    "[&_.code-line-4.code-hl]:!ring-2",
+    "[&_.code-line-4.code-hl]:!ring-amber-400/45",
+    "[&_.code-line-4.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
+  ].join(" "),
   "suspend-5": [
     "[&_.code-hl:not(.code-line-5)]:opacity-25",
     "[&_.code-line-5.code-hl]:!opacity-100",
@@ -249,6 +248,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-5.code-hl]:!ring-2",
     "[&_.code-line-5.code-hl]:!ring-amber-400/45",
     "[&_.code-line-5.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
+  ].join(" "),
+  "suspend-6": [
+    "[&_.code-hl:not(.code-line-6)]:opacity-25",
+    "[&_.code-line-6.code-hl]:!opacity-100",
+    "[&_.code-line-6.code-hl]:!bg-amber-500/10",
+    "[&_.code-line-6.code-hl]:!border-l-amber-300",
+    "[&_.code-line-6.code-hl]:!ring-2",
+    "[&_.code-line-6.code-hl]:!ring-amber-400/45",
+    "[&_.code-line-6.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
   ].join(" "),
   "suspend-7": [
     "[&_.code-hl:not(.code-line-7)]:opacity-25",
@@ -259,6 +267,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-7.code-hl]:!ring-amber-400/45",
     "[&_.code-line-7.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
   ].join(" "),
+  "suspend-8": [
+    "[&_.code-hl:not(.code-line-8)]:opacity-25",
+    "[&_.code-line-8.code-hl]:!opacity-100",
+    "[&_.code-line-8.code-hl]:!bg-amber-500/10",
+    "[&_.code-line-8.code-hl]:!border-l-amber-300",
+    "[&_.code-line-8.code-hl]:!ring-2",
+    "[&_.code-line-8.code-hl]:!ring-amber-400/45",
+    "[&_.code-line-8.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
+  ].join(" "),
   "suspend-9": [
     "[&_.code-hl:not(.code-line-9)]:opacity-25",
     "[&_.code-line-9.code-hl]:!opacity-100",
@@ -268,34 +285,16 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-9.code-hl]:!ring-amber-400/45",
     "[&_.code-line-9.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
   ].join(" "),
-  "suspend-11": [
-    "[&_.code-hl:not(.code-line-11)]:opacity-25",
-    "[&_.code-line-11.code-hl]:!opacity-100",
-    "[&_.code-line-11.code-hl]:!bg-amber-500/10",
-    "[&_.code-line-11.code-hl]:!border-l-amber-300",
-    "[&_.code-line-11.code-hl]:!ring-2",
-    "[&_.code-line-11.code-hl]:!ring-amber-400/45",
-    "[&_.code-line-11.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
-  ].join(" "),
-  "suspend-13": [
-    "[&_.code-hl:not(.code-line-13)]:opacity-25",
-    "[&_.code-line-13.code-hl]:!opacity-100",
-    "[&_.code-line-13.code-hl]:!bg-amber-500/10",
-    "[&_.code-line-13.code-hl]:!border-l-amber-300",
-    "[&_.code-line-13.code-hl]:!ring-2",
-    "[&_.code-line-13.code-hl]:!ring-amber-400/45",
-    "[&_.code-line-13.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
-  ].join(" "),
-  "suspend-15": [
-    "[&_.code-hl:not(.code-line-15)]:opacity-25",
-    "[&_.code-line-15.code-hl]:!opacity-100",
-    "[&_.code-line-15.code-hl]:!bg-amber-500/10",
-    "[&_.code-line-15.code-hl]:!border-l-amber-300",
-    "[&_.code-line-15.code-hl]:!ring-2",
-    "[&_.code-line-15.code-hl]:!ring-amber-400/45",
-    "[&_.code-line-15.code-hl]:!shadow-[0_0_46px_rgba(251,191,36,0.28),inset_0_0_0_1px_rgba(251,191,36,0.35)]",
-  ].join(" "),
   // ── rollback family (fuchsia) ─────────────────────────────────────
+  "rollback-4": [
+    "[&_.code-hl:not(.code-line-4)]:opacity-25",
+    "[&_.code-line-4.code-hl]:!opacity-100",
+    "[&_.code-line-4.code-hl]:!bg-fuchsia-500/10",
+    "[&_.code-line-4.code-hl]:!border-l-fuchsia-300",
+    "[&_.code-line-4.code-hl]:!ring-2",
+    "[&_.code-line-4.code-hl]:!ring-fuchsia-400/45",
+    "[&_.code-line-4.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
+  ].join(" "),
   "rollback-5": [
     "[&_.code-hl:not(.code-line-5)]:opacity-25",
     "[&_.code-line-5.code-hl]:!opacity-100",
@@ -304,6 +303,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-5.code-hl]:!ring-2",
     "[&_.code-line-5.code-hl]:!ring-fuchsia-400/45",
     "[&_.code-line-5.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
+  ].join(" "),
+  "rollback-6": [
+    "[&_.code-hl:not(.code-line-6)]:opacity-25",
+    "[&_.code-line-6.code-hl]:!opacity-100",
+    "[&_.code-line-6.code-hl]:!bg-fuchsia-500/10",
+    "[&_.code-line-6.code-hl]:!border-l-fuchsia-300",
+    "[&_.code-line-6.code-hl]:!ring-2",
+    "[&_.code-line-6.code-hl]:!ring-fuchsia-400/45",
+    "[&_.code-line-6.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
   ].join(" "),
   "rollback-7": [
     "[&_.code-hl:not(.code-line-7)]:opacity-25",
@@ -314,6 +322,15 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-7.code-hl]:!ring-fuchsia-400/45",
     "[&_.code-line-7.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
   ].join(" "),
+  "rollback-8": [
+    "[&_.code-hl:not(.code-line-8)]:opacity-25",
+    "[&_.code-line-8.code-hl]:!opacity-100",
+    "[&_.code-line-8.code-hl]:!bg-fuchsia-500/10",
+    "[&_.code-line-8.code-hl]:!border-l-fuchsia-300",
+    "[&_.code-line-8.code-hl]:!ring-2",
+    "[&_.code-line-8.code-hl]:!ring-fuchsia-400/45",
+    "[&_.code-line-8.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
+  ].join(" "),
   "rollback-9": [
     "[&_.code-hl:not(.code-line-9)]:opacity-25",
     "[&_.code-line-9.code-hl]:!opacity-100",
@@ -323,33 +340,6 @@ const SPOTLIGHT_CLASS_BY_KEY: Record<SpotlightKey, string> = {
     "[&_.code-line-9.code-hl]:!ring-fuchsia-400/45",
     "[&_.code-line-9.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
   ].join(" "),
-  "rollback-11": [
-    "[&_.code-hl:not(.code-line-11)]:opacity-25",
-    "[&_.code-line-11.code-hl]:!opacity-100",
-    "[&_.code-line-11.code-hl]:!bg-fuchsia-500/10",
-    "[&_.code-line-11.code-hl]:!border-l-fuchsia-300",
-    "[&_.code-line-11.code-hl]:!ring-2",
-    "[&_.code-line-11.code-hl]:!ring-fuchsia-400/45",
-    "[&_.code-line-11.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
-  ].join(" "),
-  "rollback-13": [
-    "[&_.code-hl:not(.code-line-13)]:opacity-25",
-    "[&_.code-line-13.code-hl]:!opacity-100",
-    "[&_.code-line-13.code-hl]:!bg-fuchsia-500/10",
-    "[&_.code-line-13.code-hl]:!border-l-fuchsia-300",
-    "[&_.code-line-13.code-hl]:!ring-2",
-    "[&_.code-line-13.code-hl]:!ring-fuchsia-400/45",
-    "[&_.code-line-13.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
-  ].join(" "),
-  "rollback-15": [
-    "[&_.code-hl:not(.code-line-15)]:opacity-25",
-    "[&_.code-line-15.code-hl]:!opacity-100",
-    "[&_.code-line-15.code-hl]:!bg-fuchsia-500/10",
-    "[&_.code-line-15.code-hl]:!border-l-fuchsia-300",
-    "[&_.code-line-15.code-hl]:!ring-2",
-    "[&_.code-line-15.code-hl]:!ring-fuchsia-400/45",
-    "[&_.code-line-15.code-hl]:!shadow-[0_0_46px_rgba(232,121,249,0.28),inset_0_0_0_1px_rgba(232,121,249,0.35)]",
-  ].join(" "),
 };
 
 export function CloserRecapSlide({
@@ -358,9 +348,7 @@ export function CloserRecapSlide({
   lineNumber,
   setupWorry,
   description,
-  sdkExplanation,
 }: CloserRecapSlideProps) {
-  const explanation = sdkExplanation ?? SDK_EXPLANATION[primitive];
   const family = PRIMITIVE_FAMILY[primitive];
   const spotlightClass =
     SPOTLIGHT_CLASS_BY_KEY[`${family}-${lineNumber}` as SpotlightKey];
@@ -371,8 +359,8 @@ export function CloserRecapSlide({
     >
       <section className="flex min-w-0 flex-col gap-8 overflow-hidden">
         <h2 className="text-5xl font-semibold tracking-tight">
-          Same shape.
-          <span className="text-zinc-500"> Durable underneath.</span>
+          Same code.
+          <span className="text-zinc-500"> Now reliable.</span>
         </h2>
         <div
           className={`overflow-hidden rounded-2xl border border-white/10 bg-zinc-950 p-10 ${RECAP_CODE_BASE_CLASS} ${spotlightClass}`}
@@ -394,24 +382,16 @@ export function CloserRecapSlide({
         >
           line {lineNumber}
         </p>
+        <p className="mt-6 text-3xl leading-snug text-zinc-500">
+          {setupWorry}
+        </p>
         <h1
-          className={`mt-5 text-7xl font-semibold leading-[1.05] tracking-tight ${TITLE_CLASS_BY_FAMILY[family]}`}
+          className={`mt-8 text-7xl font-semibold leading-[1.05] tracking-tight ${TITLE_CLASS_BY_FAMILY[family]}`}
         >
           {title}
         </h1>
         <p className="mt-7 text-3xl leading-tight text-zinc-100">
           {description}
-        </p>
-        <div className="mt-8 rounded-2xl border border-white/10 bg-black/30 p-5">
-          <p className="font-mono text-sm font-semibold uppercase tracking-[0.24em] text-zinc-600">
-            before
-          </p>
-          <p className="mt-2 text-2xl leading-snug text-zinc-500">
-            {setupWorry}
-          </p>
-        </div>
-        <p className="mt-8 text-2xl leading-snug text-zinc-400">
-          {explanation}
         </p>
       </aside>
       <CloserProgressFooter primitive={primitive} />
