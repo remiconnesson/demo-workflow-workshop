@@ -221,7 +221,9 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
 
   const runFallback = async () => {
     await runMockAgentTurn({
-      idPrefix: `mock-analyst-${Date.now().toString(36)}`,
+      // Deterministic — derived from workflow input (the messages array
+      // length is stable across replays of the same turn).
+      idPrefix: `mock-analyst-turn-${messages.length}`,
       script: {
         preludeText: [
           "The AI Gateway is unreachable right now, so I'm running in",

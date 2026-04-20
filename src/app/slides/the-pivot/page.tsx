@@ -1,7 +1,7 @@
 export default function ThePivotSlide() {
   return (
     <div className="mx-auto flex h-full w-full max-w-[1600px] flex-col items-center justify-center gap-24 px-40 text-center">
-      <p className="text-2xl font-semibold uppercase tracking-[0.2em] text-zinc-500">
+      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
         Workflow SDK + Agents
       </p>
 

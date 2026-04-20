@@ -46,11 +46,13 @@ export type MockAgentScript = {
 export type RunMockAgentOpts = {
   script: MockAgentScript;
   /**
-   * Prefix for text-part IDs so repeated fallback turns (e.g. observer's
-   * 20-loop scan) don't collide on stream IDs. Include whatever makes the
-   * caller unique — e.g. `mock-observer-${loopIndex}`.
+   * Prefix for text-part IDs. REQUIRED: must be a deterministic value
+   * derived from workflow inputs (loop index, message count, …) so the
+   * chunk IDs replay identically. Never use Date.now() or Math.random()
+   * here — the workflow runtime replays workflow-scope code on resume.
+   * Example: `mock-observer-${loopIndex}`.
    */
-  idPrefix?: string;
+  idPrefix: string;
 };
 
 /**
@@ -173,9 +175,6 @@ export async function runMockAgentTurn({
   script,
   idPrefix,
 }: RunMockAgentOpts): Promise<void> {
-  const prefix =
-    idPrefix ??
-    `mock-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const chunks = buildChunks(script, prefix);
+  const chunks = buildChunks(script, idPrefix);
   await writeMockChunks(chunks);
 }

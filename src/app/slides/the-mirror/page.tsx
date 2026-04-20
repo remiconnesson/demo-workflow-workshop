@@ -52,7 +52,7 @@ export default function TheMirrorSlide() {
     <div className="mx-auto flex h-full w-full max-w-[1660px] flex-col justify-center gap-10 px-14 py-16 text-center">
       <div className="flex flex-col items-center gap-5">
         <p
-          className={`text-xl uppercase tracking-[0.28em] text-zinc-500 ${geistMono.className}`}
+          className={`text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500 ${geistMono.className}`}
         >
           Same primitives, new surface
         </p>
