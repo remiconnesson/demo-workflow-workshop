@@ -26,7 +26,7 @@ const PROPERTIES = [
   },
 ] as const;
 
-export default function ThreePropertiesSlide() {
+export default function ReliableSoftwareSlide() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-20 p-10 text-center">
       <h2 className="text-7xl font-semibold tracking-tight">

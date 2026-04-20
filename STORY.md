@@ -29,7 +29,7 @@
 | 1 | `title` | Setup | Cold open |
 | 2 | `the-demo` | Setup | Full happy-path demo |
 | 3 | `the-setup` | Setup | "Wouldn't it be nice if it was this simple?" |
-| 4 | `three-verbs` | Setup | Stable · Suspendable · Undoable |
+| 4 | `reliable-software` | Setup | Stable · Suspendable · Undoable |
 | 5 | `how-it-works` | Setup | Break → Fix → Name rhythm |
 | 6 | `observability` | Setup | Every run is observable · `npx workflow web` for humans, `npx workflow inspect` for agents |
 | 7 | `retry/demo` | Stable | "What happens when an API call fails?" |

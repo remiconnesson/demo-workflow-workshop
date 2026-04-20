@@ -38,7 +38,7 @@ export const SLIDES: SlideInfo[] = [
     notes: "POINT at the code: \"Six awaits. Fifteen lines. No framework. This is the version we're about to break.\"",
   },
   {
-    slug: "three-verbs",
+    slug: "reliable-software",
     title: "Reliable Software",
     number: 4,
     notes: "POINT at the three properties: \"Stable. Suspendable. Undoable. For each one, I'm going to ask — so what do you need from the system now?\"",

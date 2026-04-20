@@ -93,7 +93,7 @@ Important routes:
 - `/slides/title` slide 1 — workshop intro
 - `/slides/the-demo` slide 2 — happy-path order demo
 - `/slides/the-setup` slide 3 — 15-line starter code + Observable callout
-- `/slides/three-verbs` slide 4 — introduces the stable / suspendable / undoable framing (URL kept for backlink stability)
+- `/slides/reliable-software` slide 4 — introduces the stable / suspendable / undoable framing
 - `/slides/how-it-works` slide 5 — Break → Fix → Name rhythm
 - `/slides/observability` slide 6 — "Every run is observable." Human (`npx workflow web`) + Agent (`npx workflow inspect`) payoff slide
 - `/slides/retry/demo` ... `/slides/retry/pattern` — **stable** property group (URL retained)

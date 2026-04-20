@@ -25,7 +25,7 @@ These are the files whose correctness determines whether the on-stage demos beha
 | 1 | done | `title` | `src/app/slides/title/page.tsx` | `.audit/title.md` |
 | 2 | pending | `the-demo` | `src/app/slides/the-demo/page.tsx` | `.audit/the-demo.md` |
 | 3 | pending | `the-setup` | `src/app/slides/the-setup/page.tsx` | `.audit/the-setup.md` |
-| 4 | pending | `three-verbs` | `src/app/slides/three-verbs/page.tsx` | `.audit/three-verbs.md` |
+| 4 | pending | `reliable-software` | `src/app/slides/reliable-software/page.tsx` | `.audit/reliable-software.md` |
 | 5 | pending | `how-it-works` | `src/app/slides/how-it-works/page.tsx` | `.audit/how-it-works.md` |
 | 6 | pending | `retry/demo` | `src/app/slides/retry/demo/page.tsx` | `.audit/retry-demo.md` |
 | 7 | pending | `retry/solution` | `src/app/slides/retry/solution/page.tsx` | `.audit/retry-solution.md` |

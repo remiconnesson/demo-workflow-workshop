@@ -21,7 +21,7 @@ Route dirs retain the original verb slugs (`/slides/retry/*`, `/slides/suspend/*
 
 Every pattern slide also renders a static **inspector band** at the bottom: one live `npx workflow inspect run <id>` command on the left (auto-filled from the latest run, clickable to the workflow web UI), one "Paste to your agent" caption on the right. No scrolling, no feed — one static command per `.impeccable.md` rule #8.
 
-See `STORY.md` for the narrative and `src/app/slides/config.ts` for the authoritative slide list. Do not reintroduce "four failures", "naive-slide", "nine concepts", "three verbs", or "Act I/II/…" framing — all retired.
+See `STORY.md` for the narrative and `src/app/slides/config.ts` for the authoritative slide list. Do not reintroduce retired framings: "four failures", "naive-slide", "nine concepts", the verb-based trio label (the old name for what is now *three properties* / stable·suspendable·undoable), or "Act I/II/…" structure.
 
 ## Architecture
 
