@@ -86,21 +86,21 @@ type ConceptCue = {
 
 const CONCEPT_CUE_BY_SLIDE: Partial<Record<string, ConceptCue>> = {
   retry: {
-    eyebrow: "Retry proof",
+    eyebrow: "Stable proof",
     headline: "Same payment step. Two attempts.",
     detail:
       "Watch the charge fail once, retry, and show why duplicate side effects are dangerous.",
     tone: "sky",
   },
   suspend: {
-    eyebrow: "Suspend proof",
+    eyebrow: "Suspendable proof",
     headline: "The workflow parks for a human.",
     detail:
       "The restaurant taps Accept, and the same run resumes from the waiting step.",
     tone: "amber",
   },
   rollback: {
-    eyebrow: "Rollback proof",
+    eyebrow: "Undoable proof",
     headline: "A finished order gets disputed.",
     detail:
       "Let the happy path finish, then trigger the dispute and watch the undo path light up.",

@@ -260,10 +260,6 @@ export default function SlidesLayout({
   }, [router]);
 
   useEffect(() => {
-    console.info("[slides] open", { slug });
-  }, [slug]);
-
-  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setPickerOpen(false);
@@ -319,14 +315,12 @@ export default function SlidesLayout({
       }
       if (e.key === "r") {
         e.preventDefault();
-        console.info("[slides] run_current", { slug });
         window.dispatchEvent(
           new CustomEvent("slide:run", { detail: { slug } }),
         );
       }
       if (e.key === "R") {
         e.preventDefault();
-        console.info("[slides] reset_current", { slug });
         window.dispatchEvent(
           new CustomEvent("slide:reset", { detail: { slug } }),
         );

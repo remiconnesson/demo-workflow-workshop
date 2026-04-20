@@ -4,7 +4,7 @@ export default function CloserCompensationSlide() {
   return (
     <CloserRecapSlide
       primitive="compensation"
-      title="Rollback"
+      title="Undoable"
       lineNumber={13}
       setupWorry="What if the driver cancels? Who rolls back the restaurant?"
       description="Driver cancel throws; saga unwinds restaurant first."

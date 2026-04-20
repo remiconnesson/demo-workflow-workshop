@@ -4,7 +4,7 @@ export default function CloserHookSlide() {
   return (
     <CloserRecapSlide
       primitive="hook"
-      title="Suspend"
+      title="Suspendable"
       lineNumber={9}
       setupWorry="What if the restaurant takes 10 minutes? This function times out."
       description="Workflow parks; the restaurant tap resumes this await."
