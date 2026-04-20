@@ -7,7 +7,7 @@ export type SlideInfo = {
 };
 
 /**
- * The 26-slide workshop arc (~1 hour).
+ * The 33-slide workshop arc (~1 hour).
  *
  * Act I — Setup (1–5): cold open, happy-path demo, code, reliability requirements, workshop map.
  * Act II — Three scenarios × 3 beats each (6–14): retry, slow restaurant, dispute.
@@ -15,7 +15,7 @@ export type SlideInfo = {
  * Act IV — First agent (16–18): demo (F5 proof), workflow code, pattern.
  * Act V — Observer agent (19–21): demo, fix, pattern.
  * Act VI — Analyst agent (22–24): demo, fix, pattern.
- * Act VII — Close (25–26): the mirror, ship it.
+ * Act VII — Close (25–33): the mirror, closer overview, six per-line recaps, ship it.
  */
 export const SLIDES: SlideInfo[] = [
   // ─── Act I · Setup ─────────────────────────────────────────
@@ -210,9 +210,51 @@ export const SLIDES: SlideInfo[] = [
     notes: "THIS IS THE PAYOFF. Take your time.\n\nSAY: \"That's how you build reliable agents.\"\n\nPAUSE.\n\nPOINT at each pill in turn:\n- RETRY: \"Agents that survive. Streams reconnect. Tool calls replay.\"\n- SUSPEND: \"Agents that wait. Pause for a human, pick up where you left off.\"\n- ROLLBACK: \"Agents that undo. Compensations unwind the loop.\"\n\nSAY: \"Same three verbs you already learned. One SDK.\"",
   },
   {
+    slug: "it-is-that-easy",
+    title: "It is that easy.",
+    number: 26,
+    notes: "SAY: \"It turns out, it is that easy — same 15 lines, but every one is durable.\"\n\nPAUSE.\n\nSAY: \"Let's walk them.\"",
+  },
+  {
+    slug: "closer/step",
+    title: "Closer · Step",
+    number: 27,
+    notes: "SAY: \"Validate is a step boundary. Bad input stops before charge; on retry, the result replays.\"",
+  },
+  {
+    slug: "closer/idempotency",
+    title: "Closer · Idempotency",
+    number: 28,
+    notes: "SAY: \"The charge line gets a stable stepId. Retry it all day; Stripe returns the first charge.\"",
+  },
+  {
+    slug: "closer/hook",
+    title: "Closer · Hook",
+    number: 29,
+    notes: "SAY: \"The restaurant line is a hook. The workflow parks, the process can disappear, and the tap resumes this exact await.\"",
+  },
+  {
+    slug: "closer/sleep",
+    title: "Closer · Sleep + Race",
+    number: 30,
+    notes: "SAY: \"Driver assignment races acceptance against durable sleep. No driver is a clean timeout, not a forever order.\"",
+  },
+  {
+    slug: "closer/compensation",
+    title: "Closer · Compensation",
+    number: 31,
+    notes: "SAY: \"If delivery fails, that throw walks the compensation stack backward — driver, restaurant, payment.\"",
+  },
+  {
+    slug: "closer/replay",
+    title: "Closer · Replay",
+    number: 32,
+    notes: "SAY: \"If the server dies here, replay resumes from the event log and the receipts still go out.\"\n\nPAUSE.\n\nSAY: \"Retry, suspend, rollback. Same function. Now it finishes what it starts.\"",
+  },
+  {
     slug: "close",
     title: "Ship It",
-    number: 26,
+    number: 33,
     notes: "SAY: \"One SDK. Workflows and agents. Steps, hooks, compensations. It's GA tonight. Go build something.\"\n\nPAUSE for applause.\n\nPress d to return to demo for a victory lap.",
   },
 ];
