@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Deck Shape
 
-The deck is a 26-slide, ~1-hour workshop organized around **three verbs**: `retry`, `suspend`, `rollback`. Each verb follows a three-beat rhythm: **Demo → Solution → Pattern**. Acts IV–VI then reuse the same verbs for three durable-agent demos (First Agent, Observer, Analyst), and Act VII closes on `the-mirror` — workflow and agent side-by-side.
+The deck is a 33-slide, ~1-hour workshop organized around **three verbs**: `retry`, `suspend`, `rollback`. Each verb follows a three-beat rhythm: **Demo → Solution → Pattern**. Acts IV–VI then reuse the same verbs for three durable-agent demos (First Agent, Observer, Analyst), and Act VII closes with `the-mirror`, `it-is-that-easy`, six `closer/*` per-line recap slides, and `close` — the side-by-side payoff, the overview, the line-by-line walk, then the shipping coda.
 
 Routes use nested paths that mirror the concept groupings: `/slides/retry/demo`, `/slides/retry/solution`, `/slides/retry/pattern`, etc. Each grouped slide displays a breadcrumb label (e.g., "retry / demo") in the top-left corner.
 

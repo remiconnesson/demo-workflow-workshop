@@ -14,7 +14,7 @@
 2. **Three-beat rhythm per scenario.** Every scenario is exactly three slides: **Demo → Solution → Pattern**. The demo establishes the pain, the solution slide is the fix, the pattern slide names the SDK vocabulary and links to docs.
 3. **"What happens when…?" is the demo headline.** Every demo slide — workflow or agent — leads with a question. Workflow demos use the full phrase; agent demos elide the opening with an ellipsis so the rhythm carries without the repetition.
 4. **Agents are the payoff, not an aside.** Acts IV–VI mirror the workflow act with three agent demos. First Agent proves resumable streams (F5 proof). Observer proves durable tool-call replay (kill-server proof). Analyst proves human-in-the-loop inside the agent (suspend + approve). They exist to prove the verbs carry over.
-5. **The Mirror is the close.** Slide 25 puts a workflow and an agent side-by-side using the same three verbs. Same primitives, same durability model, one vocabulary.
+5. **The Mirror is the payoff; the setup closer is the proof.** Slide 25 puts a workflow and an agent side-by-side using the same three verbs. Slide 26 returns to the original `placeOrder` with the overview headline ("It is that easy."), and slides 27–32 walk the six primitives one line at a time — step, idempotency, hook, sleep + race, compensation, replay. Slide 33 is the shipping coda.
 6. **Presenter voice: casual / stage-comic.** First-person, contractions, short sentences. The "what do you do now?" beat only has rhythm in this voice.
 7. **Experiments, not failures.** Additional DurableAgent demos live under `src/app/experiments/` (21 total, 7 per verb × 3 verbs) for narrative discovery. They are not part of the main deck.
 8. **One visual vocabulary across workflows and agents.** Timeline nodes with glows, state-colored badges, status pills, color-coded event kinds in the debug drawer, crash overlays, cached badges. The audience learns it once in Act II and reads it unchanged through Act VI.
@@ -22,7 +22,7 @@
 
 ---
 
-## The arc — 26 slides
+## The arc — 33 slides
 
 | # | Route | Act | Beat |
 |---|---|---|---|
@@ -51,7 +51,14 @@
 | 23 | `analyst/solution` | VI | Workflow code · `defineHook` inside the agent |
 | 24 | `analyst/pattern` | VI | Human-in-the-loop agents |
 | 25 | `the-mirror` | VII — Close | Workflow ↔ Agent |
-| 26 | `close` | VII | Ship it |
+| 26 | `it-is-that-easy` | VII | Setup closer |
+| 27 | `closer/step` | VII | Closer · step |
+| 28 | `closer/idempotency` | VII | Closer · idempotency |
+| 29 | `closer/hook` | VII | Closer · hook |
+| 30 | `closer/sleep` | VII | Closer · sleep + race |
+| 31 | `closer/compensation` | VII | Closer · compensation |
+| 32 | `closer/replay` | VII | Closer · replay |
+| 33 | `close` | VII | Ship it |
 
 ---
 

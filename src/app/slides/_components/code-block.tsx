@@ -11,6 +11,8 @@ type CodeBlockProps = {
   className?: string;
   /** Map of 1-based line number → tooltip text. Empty string = highlight only. */
   highlightLines?: Record<number, string>;
+  /** Render highlighted lines without tooltip DOM. Defaults to false. */
+  suppressTips?: boolean;
 };
 
 /**
@@ -52,7 +54,11 @@ function splitEyebrow(raw: string): { label: string | null; body: string } {
  * Tooltips default to "popping up" above the highlighted line. For lines near
  * the top of the block (first 3), we flip the tooltip below so it isn't
  * clipped by the editor chrome / container top edge. */
-function wrapLines(html: string, highlightLines?: Record<number, string>): string {
+function wrapLines(
+  html: string,
+  highlightLines?: Record<number, string>,
+  suppressTips = false,
+): string {
   if (!highlightLines || Object.keys(highlightLines).length === 0) return html;
   const lines = html.split("<br>");
   const FLIP_DOWN_BEFORE_LINE = 4; // lines 1..3 flip below
@@ -60,17 +66,24 @@ function wrapLines(html: string, highlightLines?: Record<number, string>): strin
     .map((line, i) => {
       const lineNumber = i + 1;
       const tooltip = highlightLines[lineNumber];
-      if (tooltip === undefined) return `<div>${line}</div>`;
-      if (!tooltip) return `<div class="code-hl">${line}</div>`;
+      const lineClass = `code-line code-line-${lineNumber}`;
+      if (tooltip === undefined) {
+        return `<div class="${lineClass}" data-line-number="${lineNumber}">${line}</div>`;
+      }
+      if (!tooltip || suppressTips) {
+        return `<div class="${lineClass} code-hl" data-line-number="${lineNumber}">${line}</div>`;
+      }
       const flip = lineNumber < FLIP_DOWN_BEFORE_LINE;
       const tipClass = flip ? "code-hl-tip code-hl-tip--below" : "code-hl-tip";
-      const hlClass = flip ? "code-hl code-hl--flip" : "code-hl";
+      const hlClass = flip
+        ? `${lineClass} code-hl code-hl--flip`
+        : `${lineClass} code-hl`;
       const { label, body } = splitEyebrow(tooltip);
       const eyebrow = label
         ? `<div class="code-hl-tip-eyebrow">${label}</div>`
         : "";
       const tip = `<div class="${tipClass}">${eyebrow}<div class="code-hl-tip-body">${formatTip(body)}</div></div>`;
-      return `<div class="${hlClass}">${line}${tip}</div>`;
+      return `<div class="${hlClass}" data-line-number="${lineNumber}">${line}${tip}</div>`;
     })
     .join("");
 }
@@ -81,6 +94,7 @@ export async function CodeBlock({
   textClass = "text-2xl",
   className = "",
   highlightLines,
+  suppressTips = false,
 }: CodeBlockProps) {
   const html = await codeToHtml(code, {
     lang,
@@ -92,7 +106,7 @@ export async function CodeBlock({
     <pre
       className={`m-0 whitespace-pre font-mono ${textClass} leading-[1.5] ${className}`}
       // biome-ignore lint: Shiki emits trusted, pre-escaped HTML
-      dangerouslySetInnerHTML={{ __html: wrapLines(html, highlightLines) }}
+      dangerouslySetInnerHTML={{ __html: wrapLines(html, highlightLines, suppressTips) }}
     />
   );
 }
