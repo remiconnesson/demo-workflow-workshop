@@ -16,6 +16,8 @@ import {
   subscribeIsStreaming,
   subscribePendingPrompt,
   type AppliedProposal,
+  type PendingApprovalPrompt,
+  type PendingInfoPrompt,
   type PendingPrompt,
 } from "./analyst-approval-bus";
 
@@ -52,6 +54,32 @@ function formatAppliedTime(ms: number): string {
   return `${hours}h ago`;
 }
 
+function isApprovalPrompt(
+  pending: PendingPrompt | null,
+): pending is PendingApprovalPrompt {
+  return pending?.kind === "approval";
+}
+
+function isInfoPrompt(
+  pending: PendingPrompt | null,
+): pending is PendingInfoPrompt {
+  return pending?.kind === "more-info";
+}
+
+function buildActionLabel(pending: PendingApprovalPrompt | null): string {
+  if (!pending) return "";
+  if (pending.patch.hidden === true) return `Hide ${pending.itemName}`;
+  if (pending.patch.hidden === false) return `Unhide ${pending.itemName}`;
+  if (typeof pending.patch.price === "number") {
+    return `Set price to $${pending.patch.price.toFixed(2)}`;
+  }
+  if (pending.patch.availableAfter || pending.patch.availableBefore) {
+    return "Change availability window";
+  }
+  if (pending.patch.name) return "Rename menu item";
+  return `Update ${pending.itemName}`;
+}
+
 export function AnalystApprovalPhone() {
   const [pending, setPending] = useState<PendingPrompt | null>(() =>
     getPendingPrompt(),
@@ -66,10 +94,9 @@ export function AnalystApprovalPhone() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [focusedSkus, setFocusedSkus] = useState<Set<string>>(new Set());
   const [input, setInput] = useState("");
-  const [suggestedProposals, setSuggestedProposals] = useState<string[]>([]);
-  const [isOptimizing, setIsOptimizing] = useState(false);
-  const [optimizeError, setOptimizeError] = useState<string | null>(null);
+  const [infoAnswer, setInfoAnswer] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const infoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => subscribePendingPrompt(setPending), []);
   useEffect(() => subscribeAppliedProposals(setApplied), []);
@@ -105,6 +132,8 @@ export function AnalystApprovalPhone() {
   // card, no checklist) and the input is enabled. Re-fires on every state
   // transition that could have moved focus away, i.e. view switches, streaming
   // start/stop, approval land/resolve.
+  const pendingApproval = isApprovalPrompt(pending) ? pending : null;
+  const pendingInfo = isInfoPrompt(pending) ? pending : null;
   const inputDisabled = isStreaming || Boolean(pending);
   useEffect(() => {
     if (view !== "idle" || inputDisabled) return;
@@ -116,21 +145,39 @@ export function AnalystApprovalPhone() {
     return () => window.clearTimeout(id);
   }, [view, inputDisabled, pending, isStreaming]);
 
+  useEffect(() => {
+    if (!pendingInfo || submitting) return;
+    const id = window.setTimeout(() => {
+      infoInputRef.current?.focus({ preventScroll: true });
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [pendingInfo, submitting]);
+
   const diffRows = useMemo(
-    () => (pending ? buildDiff(pending.current, pending.patch) : []),
-    [pending],
+    () =>
+      pendingApproval
+        ? buildDiff(pendingApproval.current, pendingApproval.patch)
+        : [],
+    [pendingApproval],
+  );
+  const lastApplied = applied[applied.length - 1] ?? null;
+  const approvalAction = buildActionLabel(pendingApproval);
+  const approvalEvidence = pendingApproval?.evidence;
+  const appliedDiffRows = useMemo(
+    () => (lastApplied ? buildDiff(lastApplied.current ?? null, lastApplied.patch) : []),
+    [lastApplied],
   );
 
   const decideApproval = async (approved: boolean) => {
-    if (!pending || submitting) return;
+    if (!pendingApproval || submitting) return;
     setSubmitting(true);
-    const itemName = pending.itemName;
+    const itemName = pendingApproval.itemName;
     pushOperatorEvent({
       kind: approved ? "approve" : "reject",
       label: `manager ${approved ? "approved" : "rejected"} · ${itemName}`,
     });
     const body: { token: string; approved: boolean; reason?: string } = {
-      token: pending.token,
+      token: pendingApproval.token,
       approved,
     };
     if (!approved) body.reason = "Operator rejected on stage";
@@ -149,6 +196,37 @@ export function AnalystApprovalPhone() {
       if (res.ok) setPendingPrompt(null);
     } catch (err) {
       console.error("[approval-phone] approve fetch threw", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const submitMoreInfo = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!pendingInfo || submitting) return;
+    const answer = infoAnswer.trim();
+    if (!answer) return;
+    setSubmitting(true);
+    pushOperatorEvent({
+      kind: "more-info",
+      label: `manager answered · ${answer.slice(0, 40)}`,
+    });
+    try {
+      const res = await fetch("/api/agent/respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: pendingInfo.token,
+          answer,
+        }),
+      });
+      await res.json().catch(() => ({}));
+      if (res.ok) {
+        setInfoAnswer("");
+        setPendingPrompt(null);
+      }
+    } catch (err) {
+      console.error("[approval-phone] more-info fetch threw", err);
     } finally {
       setSubmitting(false);
     }
@@ -196,13 +274,13 @@ export function AnalystApprovalPhone() {
     try {
       // If an approval is currently pending, clear it out first so the
       // agent can finish that turn before starting the rollback turn.
-      if (pending) {
+      if (pendingApproval) {
         try {
           await fetch("/api/agent/approve", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              token: pending.token,
+              token: pendingApproval.token,
               approved: false,
               reason: "undo_requested",
             }),
@@ -253,15 +331,6 @@ export function AnalystApprovalPhone() {
     if (dispatchSend(buildOutgoing(text))) {
       setInput("");
       setFocusedSkus(new Set());
-      setSuggestedProposals([]);
-    }
-  };
-
-  const sendChip = (text: string) => {
-    if (isStreaming) return;
-    if (dispatchSend(buildOutgoing(text))) {
-      setFocusedSkus(new Set());
-      setSuggestedProposals([]);
     }
   };
 
@@ -269,55 +338,52 @@ export function AnalystApprovalPhone() {
     if (isStreaming) return;
     dispatchReset();
     setInput("");
+    setInfoAnswer("");
     setFocusedSkus(new Set());
-    setSuggestedProposals([]);
-    setOptimizeError(null);
   };
 
-  const runOptimize = async () => {
-    if (isOptimizing || isStreaming || Boolean(pending)) return;
-    setIsOptimizing(true);
-    setOptimizeError(null);
+  const buildLuckyPrompt = (): string => {
+    const focus =
+      focusedItems.length > 0
+        ? `Focus on these menu items: ${focusedItems
+            .map((m) => `${m.sku} (${m.name})`)
+            .join(", ")}.`
+        : "Review the full menu.";
+    return [
+      "I'm feeling lucky.",
+      focus,
+      "Find the single highest-impact menu change from the ops report and recent orders.",
+      "Call readReport and queryOrders, then propose exactly one menu change.",
+      "Immediately request manager approval for that proposal.",
+      "If approved, apply the same proposal and confirm briefly.",
+    ].join(" ");
+  };
+
+  const runLucky = () => {
+    if (inputDisabled) return;
     pushOperatorEvent({
-      kind: "optimize",
+      kind: "lucky",
       label:
         focusedSkus.size > 0
-          ? `manager optimize · ${focusedSkus.size} in focus`
-          : "manager optimize · full menu",
+          ? `manager pressed lucky · ${focusedSkus.size} in focus`
+          : "manager pressed lucky · full menu",
     });
-    try {
-      const res = await fetch("/api/agent/analyst/optimize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ focusedSkus: Array.from(focusedSkus) }),
-      });
-      if (!res.ok) throw new Error(`optimize ${res.status}`);
-      const data = (await res.json()) as { proposals?: string[] };
-      const next = Array.isArray(data.proposals)
-        ? data.proposals.filter((p) => typeof p === "string" && p.trim())
-        : [];
-      if (next.length === 0) throw new Error("no proposals");
-      setSuggestedProposals(next);
-      pushOperatorEvent({
-        kind: "optimize",
-        label: `agent returned ${next.length} proposal${next.length === 1 ? "" : "s"}`,
-      });
-    } catch (err) {
-      console.error("[approval-phone] optimize failed", err);
-      setOptimizeError("Couldn't generate proposals. Try again.");
-    } finally {
-      setIsOptimizing(false);
+    if (dispatchSend(buildLuckyPrompt())) {
+      setFocusedSkus(new Set());
     }
   };
 
   const isChecklist = view === "checklist";
   const hasApplied = applied.length > 0;
-  const showApproval = Boolean(pending) && !isChecklist;
+  const showApproval = Boolean(pendingApproval) && !isChecklist;
+  const showInfo = Boolean(pendingInfo) && !isChecklist;
 
   const glowClass = isChecklist
     ? "shadow-[0_0_50px_rgba(232,121,249,0.55)]"
-    : pending
+    : pendingApproval
       ? "shadow-[0_0_50px_rgba(251,191,36,0.5)]"
+      : pendingInfo
+        ? "shadow-[0_0_50px_rgba(56,189,248,0.45)]"
       : hasApplied
         ? "shadow-[0_0_40px_rgba(232,121,249,0.25)]"
         : "";
@@ -340,11 +406,11 @@ export function AnalystApprovalPhone() {
           {/* ─────────── Idle / command-center state ─────────── */}
           <div
             className={`absolute inset-0 flex flex-col px-5 pb-4 pt-3 transition-opacity duration-200 ${
-              !showApproval && !isChecklist
+              !showApproval && !showInfo && !isChecklist
                 ? "opacity-100"
                 : "pointer-events-none opacity-0"
             }`}
-            aria-hidden={!showApproval && !isChecklist ? undefined : true}
+            aria-hidden={!showApproval && !showInfo && !isChecklist ? undefined : true}
           >
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -424,6 +490,34 @@ export function AnalystApprovalPhone() {
                     <path d="M3 3.2V5.5h2.3" />
                   </svg>
                 </button>
+              </div>
+            </div>
+
+            {/* Business signal */}
+            <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2">
+              <div className="flex flex-col">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-sky-600">
+                  signal
+                </span>
+                <span className="truncate text-xs font-semibold text-black">
+                  sushi delays
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-sky-600">
+                  impact
+                </span>
+                <span className="truncate text-xs font-semibold text-black">
+                  3 cancels
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-sky-600">
+                  action
+                </span>
+                <span className="truncate text-xs font-semibold text-black">
+                  approve gate
+                </span>
               </div>
             </div>
 
@@ -532,14 +626,47 @@ export function AnalystApprovalPhone() {
               ) : null}
             </div>
 
-            {/* Optimize row: AI-generated proposal chips.
-                Collapses between three states:
-                  1. idle          → full-width "Optimize" showstopper button
-                  2. loading       → full-width shimmer placeholder
-                  3. has proposals → stacked chips from the model + refresh
-             */}
+            {lastApplied ? (
+              <div className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                    Live menu changed
+                  </span>
+                  <span className="truncate font-mono text-[10px] text-emerald-700">
+                    {lastApplied.sku}
+                  </span>
+                </div>
+                <div className="mt-1.5 flex flex-col gap-1">
+                  {appliedDiffRows.length === 0 ? (
+                    <div className="text-xs text-emerald-900">
+                      Applied {lastApplied.itemName}
+                    </div>
+                  ) : (
+                    appliedDiffRows.map((row) => (
+                      <div
+                        key={row.key}
+                        className="flex items-baseline justify-between gap-2"
+                      >
+                        <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-700">
+                          {row.label}
+                        </span>
+                        <span className="truncate text-xs text-emerald-950">
+                          <span className="text-emerald-700/60 line-through">
+                            {row.from}
+                          </span>
+                          <span className="mx-1 text-emerald-700/60">→</span>
+                          <span className="font-semibold">{row.to}</span>
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Lucky row */}
             <div className="mt-2 flex flex-col gap-1.5">
-              {isOptimizing ? (
+              {isStreaming ? (
                 <div className="relative flex h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-fuchsia-100">
                   <span className="absolute inset-0 animate-pulse bg-gradient-to-r from-fuchsia-100 via-fuchsia-200 to-fuchsia-100" />
                   <span className="relative flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.24em] text-fuchsia-700">
@@ -555,50 +682,14 @@ export function AnalystApprovalPhone() {
                     >
                       <path d="M8 2v2.5M8 11.5V14M2 8h2.5M11.5 8H14M3.8 3.8l1.7 1.7M10.5 10.5l1.7 1.7M3.8 12.2l1.7-1.7M10.5 5.5l1.7-1.7" />
                     </svg>
-                    Optimizing
+                    Feeling lucky
                   </span>
                 </div>
-              ) : suggestedProposals.length > 0 ? (
-                <>
-                  {suggestedProposals.map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => sendChip(p)}
-                      disabled={inputDisabled}
-                      title={p}
-                      className="w-full truncate rounded-xl border border-fuchsia-300 bg-fuchsia-50 px-3 py-2 text-left text-xs font-medium leading-snug text-fuchsia-800 transition hover:border-fuchsia-500 hover:bg-fuchsia-100 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {p}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={runOptimize}
-                    disabled={inputDisabled || isOptimizing}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-fuchsia-300 bg-white px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-fuchsia-600 transition hover:border-fuchsia-500 hover:bg-fuchsia-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <svg
-                      viewBox="0 0 16 16"
-                      className="h-3 w-3"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M3 8a5 5 0 1 0 1.6-3.7" />
-                      <path d="M3 3.2V5.5h2.3" />
-                    </svg>
-                    Regenerate
-                  </button>
-                </>
               ) : (
                 <button
                   type="button"
-                  onClick={runOptimize}
-                  disabled={inputDisabled || isOptimizing}
+                  onClick={runLucky}
+                  disabled={inputDisabled}
                   className="group flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-fuchsia-600 px-4 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-lg shadow-fuchsia-500/30 transition hover:bg-fuchsia-700 hover:shadow-fuchsia-500/40 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-500 disabled:shadow-none"
                 >
                   <svg
@@ -613,7 +704,7 @@ export function AnalystApprovalPhone() {
                   >
                     <path d="M8 2v2.5M8 11.5V14M2 8h2.5M11.5 8H14M3.8 3.8l1.7 1.7M10.5 10.5l1.7 1.7M3.8 12.2l1.7-1.7M10.5 5.5l1.7-1.7" />
                   </svg>
-                  Optimize
+                  I&apos;m feeling lucky
                   {focusedSkus.size > 0 ? (
                     <span className="ml-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/20 px-1.5 font-mono text-[10px] font-bold text-white">
                       {focusedSkus.size}
@@ -621,9 +712,6 @@ export function AnalystApprovalPhone() {
                   ) : null}
                 </button>
               )}
-              {optimizeError ? (
-                <span className="text-[10px] text-red-600">{optimizeError}</span>
-              ) : null}
             </div>
 
             {/* Input */}
@@ -636,8 +724,10 @@ export function AnalystApprovalPhone() {
                 disabled={inputDisabled}
                 autoFocus
                 placeholder={
-                  pending
+                  pendingApproval
                     ? "Awaiting approval…"
+                    : pendingInfo
+                      ? "Awaiting details…"
                     : focusedSkus.size > 0
                       ? `Ask about ${focusedSkus.size} item${focusedSkus.size === 1 ? "" : "s"}…`
                       : "Ask the analyst…"
@@ -668,18 +758,58 @@ export function AnalystApprovalPhone() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-amber-600">
                 Approval requested
               </div>
-              <div className="mt-2 text-xl font-semibold leading-tight text-black">
-                {pending?.itemName ?? ""}
+              <div className="mt-2 text-2xl font-semibold leading-tight text-black">
+                {approvalAction}
               </div>
-              <div className="font-mono text-[11px] text-zinc-500">
-                {pending?.sku ?? ""}
+              <div className="mt-1 font-mono text-sm text-zinc-500">
+                {pendingApproval?.sku ?? ""}
               </div>
             </div>
 
-            {/* Diff rows */}
+            <div className="mt-3 grid grid-cols-3 gap-1.5">
+              <div className="rounded-xl bg-amber-50 px-3 py-2">
+                <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-amber-700">
+                  orders
+                </div>
+                <div className="text-xl font-semibold text-black">
+                  {approvalEvidence?.orders ?? "?"}
+                </div>
+              </div>
+              <div className="rounded-xl bg-red-50 px-3 py-2">
+                <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-red-600">
+                  failed
+                </div>
+                <div className="text-xl font-semibold text-black">
+                  {approvalEvidence?.failed ?? "?"}
+                </div>
+              </div>
+              <div className="rounded-xl bg-fuchsia-50 px-3 py-2">
+                <div className="font-mono text-[9px] uppercase tracking-[0.18em] text-fuchsia-700">
+                  comps
+                </div>
+                <div className="text-xl font-semibold text-black">
+                  {approvalEvidence?.compensations ?? "?"}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl bg-zinc-50 px-3 py-3 text-lg leading-snug text-zinc-800">
+              {approvalEvidence ? (
+                <>
+                  {approvalEvidence.cancelled} cancelled, {approvalEvidence.refunded} refunded,
+                  {" "}{approvalEvidence.delivered} delivered.
+                </>
+              ) : (
+                "Evidence unavailable for this proposal."
+              )}
+            </div>
+
             <div className="mt-3 flex flex-col gap-1.5 rounded-xl bg-zinc-100 px-3 py-3">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+                Proposed change
+              </div>
               {diffRows.length === 0 ? (
-                <div className="text-sm text-zinc-500">(no field changes)</div>
+                <div className="text-lg text-zinc-500">(no field changes)</div>
               ) : (
                 diffRows.map((row) => (
                   <div
@@ -689,7 +819,7 @@ export function AnalystApprovalPhone() {
                     <span className="font-mono text-[11px] uppercase tracking-wider text-zinc-500">
                       {row.label}
                     </span>
-                    <span className="truncate text-sm text-zinc-800">
+                    <span className="truncate text-lg text-zinc-800">
                       <span className="text-zinc-400 line-through">
                         {row.from}
                       </span>
@@ -701,27 +831,26 @@ export function AnalystApprovalPhone() {
               )}
             </div>
 
-            {/* Rationale */}
-            <div className="mt-3 flex-1 overflow-y-auto rounded-xl bg-zinc-50 px-3 py-2 text-sm leading-snug text-zinc-700">
-              {pending?.rationale ?? ""}
+            <div className="mt-3 flex-1 overflow-y-auto rounded-xl bg-amber-50 px-3 py-3 text-xl leading-snug text-amber-950">
+              {pendingApproval?.rationale ?? ""}
             </div>
 
             {/* Buttons */}
             <div className="mt-3 flex flex-col gap-2">
               <button
                 type="button"
-                disabled={!pending || submitting}
+                disabled={!pendingApproval || submitting}
                 onClick={() => void decideApproval(true)}
-                className="w-full rounded-xl bg-black px-4 py-2.5 text-base font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-40"
+                className="w-full rounded-xl bg-black px-4 py-2.5 text-lg font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-40"
               >
                 Approve
               </button>
               <div className="flex gap-2">
                 <button
                   type="button"
-                  disabled={!pending || submitting}
+                  disabled={!pendingApproval || submitting}
                   onClick={() => void decideApproval(false)}
-                  className="flex-1 rounded-xl border border-red-500/40 px-3 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-500/5 disabled:opacity-40"
+                  className="flex-1 rounded-xl border border-red-500/40 px-3 py-2.5 text-base font-semibold text-red-500 transition hover:bg-red-500/5 disabled:opacity-40"
                 >
                   Reject
                 </button>
@@ -729,12 +858,58 @@ export function AnalystApprovalPhone() {
                   type="button"
                   disabled={!hasApplied || submitting}
                   onClick={openChecklist}
-                  className="flex-1 rounded-xl border border-fuchsia-500/60 px-3 py-2.5 text-sm font-semibold text-fuchsia-500 transition hover:bg-fuchsia-500/5 disabled:opacity-30"
+                  className="flex-1 rounded-xl border border-fuchsia-500/60 px-3 py-2.5 text-base font-semibold text-fuchsia-500 transition hover:bg-fuchsia-500/5 disabled:opacity-30"
                 >
                   Undo…
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* ─────────── More-info prompt overlay ─────────── */}
+          <div
+            className={`absolute inset-0 flex flex-col px-5 pb-4 pt-3 transition-opacity duration-200 ${
+              showInfo
+                ? "opacity-100"
+                : "pointer-events-none opacity-0"
+            }`}
+            aria-hidden={showInfo ? undefined : true}
+          >
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-sky-600">
+                Agent needs input
+              </div>
+              <div className="mt-2 text-2xl font-semibold leading-tight text-black">
+                {pendingInfo?.question ?? ""}
+              </div>
+            </div>
+
+            <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-3 text-lg leading-snug text-sky-950">
+              {pendingInfo?.reason ?? ""}
+            </div>
+
+            <div className="mt-3 flex-1 overflow-y-auto rounded-xl bg-zinc-50 px-3 py-3 text-lg leading-snug text-zinc-700">
+              Answer here to resume the same run.
+            </div>
+
+            <form onSubmit={submitMoreInfo} className="mt-3 flex flex-col gap-2">
+              <input
+                ref={infoInputRef}
+                type="text"
+                value={infoAnswer}
+                onChange={(event) => setInfoAnswer(event.target.value)}
+                disabled={!pendingInfo || submitting}
+                placeholder="Give the agent the missing detail…"
+                className="w-full rounded-xl border border-zinc-300 bg-white px-3 py-2.5 text-lg text-black placeholder:text-zinc-400 focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-300 disabled:bg-zinc-100 disabled:opacity-60"
+              />
+              <button
+                type="submit"
+                disabled={!pendingInfo || submitting || !infoAnswer.trim()}
+                className="w-full rounded-xl bg-sky-600 px-4 py-2.5 text-lg font-semibold text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Send detail
+              </button>
+            </form>
           </div>
 
           {/* ─────────── Undo checklist overlay ─────────── */}

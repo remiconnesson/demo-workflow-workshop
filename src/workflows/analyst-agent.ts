@@ -14,7 +14,7 @@ import {
   type MenuItem,
   type Scenario,
 } from "@/lib/ops-data";
-import { approvalHook } from "./_hooks";
+import { approvalHook, managerInputHook } from "./_hooks";
 import {
   isGatewayFailure,
   runMockAgentTurn,
@@ -28,6 +28,11 @@ import {
 async function readReportTool() {
   "use step";
   return readReport();
+}
+
+async function inspectMenu() {
+  "use step";
+  return getMenu();
 }
 
 async function queryOrders({
@@ -54,8 +59,31 @@ async function proposeMenuChange({
 }) {
   "use step";
   const current = getMenu().find((m) => m.sku === sku) ?? null;
+  const matchingOrders = getRecentOrders(60).filter((order) =>
+    order.items.some((item) => item.sku === sku),
+  );
+  const evidence = matchingOrders.reduce(
+    (acc, order) => {
+      if (order.outcome === "delivered") acc.delivered += 1;
+      if (order.outcome === "cancelled") acc.cancelled += 1;
+      if (order.outcome === "refunded") acc.refunded += 1;
+      acc.compensations += order.compensationsFired;
+      acc.retries += order.retries;
+      return acc;
+    },
+    {
+      orders: matchingOrders.length,
+      delivered: 0,
+      failed: 0,
+      cancelled: 0,
+      refunded: 0,
+      compensations: 0,
+      retries: 0,
+    },
+  );
+  evidence.failed = evidence.cancelled + evidence.refunded;
   const proposal = createProposal({ sku, patch, rationale });
-  return { proposal, current };
+  return { proposal, current, evidence };
 }
 
 async function applyMenuChange({
@@ -112,6 +140,31 @@ async function requestApproval({ proposalId }: { proposalId: string }) {
   };
 }
 
+async function requestMoreInfo(
+  {
+    question,
+    reason,
+  }: {
+    question: string;
+    reason: string;
+  },
+  { toolCallId }: { toolCallId: string },
+) {
+  // Hooks awaited at workflow level; no "use step".
+  const token = `analyst-info:${toolCallId}`;
+  const hook = managerInputHook.create({ token });
+
+  const response = await hook;
+  hook.dispose();
+
+  return {
+    question,
+    reason,
+    answer: response.answer,
+    token,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Workflow
 // ---------------------------------------------------------------------------
@@ -130,18 +183,47 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
     model: "anthropic/claude-haiku-4.5",
     instructions: [
       "You are the restaurant manager's AI assistant for a food delivery app.",
-      "NEVER ask the manager clarifying questions. Always act.",
+      "Never ask free-form clarifying questions in plain text.",
+      "Every non-rollback turn must end in exactly one of two visible phone",
+      "states: either a concrete menu proposal awaiting approve/reject, or",
+      "a requestMoreInfo tool call awaiting manager input.",
+      "Do not finish a non-rollback turn after only assistant text.",
+      "Plain-text conclusions like 'no change needed', 'already optimized',",
+      "or 'nothing to do' are forbidden unless they come AFTER a human",
+      "approval/rejection result.",
+      "All user-facing copy must fit on a projected phone UI. Keep proposal",
+      "rationales to 10 words or fewer. Keep follow-up questions to 9 words",
+      "or fewer. Keep final confirmations to 7 words or fewer.",
       "",
       "DEFAULT FLOW: for any investigative user message (e.g. 'what's",
       "going wrong', 'why are we refunding so much', 'should we hide",
       "anything'), drive this pipeline to completion in one turn:",
-      "(1) call readReport and queryOrders to spot patterns.",
-      "(2) pick ONE highest-impact menu change and call proposeMenuChange.",
-      "(3) immediately call requestApproval with that proposalId.",
-      "(4) after the manager approves, call applyMenuChange with the",
+      "(1) call inspectMenu, readReport, and queryOrders before naming",
+      "or analyzing a target SKU.",
+      "(2) use inspectMenu results to exclude no-op actions. If an item",
+      "is already hidden, do not analyze it as the recommended hide. Pick",
+      "the next visible/actionable SKU instead.",
+      "(3) pick ONE highest-impact menu change and call proposeMenuChange.",
+      "The patch in proposeMenuChange MUST change at least one current menu",
+      "field. Never propose a no-op patch. If your preferred action is",
+      "already true (for example the item is already hidden), pick the next",
+      "best SKU/action with a real patch instead.",
+      "(4) immediately call requestApproval with that proposalId.",
+      "(5) after the manager approves, call applyMenuChange with the",
       "SAME proposalId, sku, and patch you used in proposeMenuChange,",
-      "then emit one short confirmation sentence and stop.",
+      "then emit one short confirmation sentence of 7 words or fewer and stop.",
       "If the manager rejects, acknowledge in one sentence and stop.",
+      "If the user request lacks enough detail to make a responsible menu",
+      "proposal, call requestMoreInfo with one concise question and a",
+      "brief reason. The question must be 9 words or fewer and the reason",
+      "must be 10 words or fewer. After the manager answers, continue the same turn:",
+      "investigate, propose exactly one menu change, and request approval.",
+      "For 'I'm feeling lucky' or similar broad requests, use the available",
+      "menu, report, and recent orders to choose the highest-impact proposal.",
+      "Lucky MUST call inspectMenu first, then readReport and queryOrders,",
+      "then ALWAYS call proposeMenuChange and requestApproval. Do not answer",
+      "Lucky with prose only. Do not ask for more info on Lucky unless menu",
+      "or order data is unavailable.",
       "",
       "ROLLBACK FLOW: if the manager asks you to roll back, undo, or",
       "revert one or more SKUs (e.g. 'roll back sushi-omakase' or",
@@ -150,7 +232,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       "then emit one short confirmation sentence per sku and stop.",
       "Do not re-investigate or propose new changes during a rollback.",
       "",
-      "Be concise. Cite numbers from the report when justifying proposals.",
+      "Be terse. Prefer fragments. Cite one number when justifying proposals.",
     ].join(" "),
     tools: {
       readReport: {
@@ -158,8 +240,15 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
         inputSchema: z.object({}),
         execute: readReportTool,
       },
+      inspectMenu: {
+        description:
+          "Read current menu state, including hidden, price, and availability. Call this before selecting a proposal SKU so already-applied actions are skipped.",
+        inputSchema: z.object({}),
+        execute: inspectMenu,
+      },
       queryOrders: {
-        description: "Query recent orders, optionally filtered by scenario.",
+        description:
+          "Query recent orders, optionally filtered by scenario. Pair with inspectMenu before choosing a target SKU.",
         inputSchema: z.object({
           scenario: z
             .enum(["happy", "payment-retry", "slow-restaurant", "driver-refuses"])
@@ -170,7 +259,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
       },
       proposeMenuChange: {
         description:
-          "Queue a proposed menu change. Does NOT apply it; requires approval first. Returns the proposal plus the current menu item so the UI can show a diff.",
+          "Queue a proposed menu change with a real field diff. Does NOT apply it; requires approval first. Inspect menu state first, then call this only for an actionable SKU. Returns the proposal plus the current menu item so the UI can show a diff. Do not call this with a patch that matches the current item state.",
         inputSchema: z.object({
           sku: z.string(),
           patch: z
@@ -182,7 +271,7 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
               hidden: z.boolean().optional(),
             })
             .passthrough(),
-          rationale: z.string(),
+          rationale: z.string().max(90),
         }),
         execute: proposeMenuChange,
       },
@@ -191,6 +280,15 @@ export async function analystAgentWorkflow(messages: ChatMessage[]) {
           "Suspend and ask the human manager to approve or reject a proposal.",
         inputSchema: z.object({ proposalId: z.string() }),
         execute: requestApproval,
+      },
+      requestMoreInfo: {
+        description:
+          "Suspend and ask the manager for missing information required before a responsible proposal can be made.",
+        inputSchema: z.object({
+          question: z.string().max(70),
+          reason: z.string().max(90),
+        }),
+        execute: requestMoreInfo,
       },
       applyMenuChange: {
         description:

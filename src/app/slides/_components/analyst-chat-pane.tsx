@@ -12,6 +12,7 @@ import {
   setIsStreaming as publishIsStreaming,
   setPendingPrompt,
   subscribeOperatorEvents,
+  type ApprovalEvidence,
   type AppliedProposal,
   type OperatorEvent,
 } from "./analyst-approval-bus";
@@ -66,6 +67,7 @@ type ProposalCacheEntry = {
   current: MenuItem | null;
   patch: Partial<MenuItem>;
   rationale: string;
+  evidence?: ApprovalEvidence;
 };
 
 function summarizeToolInput(name: string, input: unknown): string {
@@ -102,6 +104,7 @@ function summarizeToolOutput(name: string, output: unknown): string {
     if ("applied" in obj) return obj.applied ? "applied" : `skipped · ${obj.error ?? "?"}`;
     if ("rolledBack" in obj) return obj.rolledBack ? "rolled back" : "no history";
     if ("approved" in obj) return obj.approved ? "approved" : "rejected";
+    if ("answer" in obj && typeof obj.answer === "string") return "manager answered";
     const k = Object.keys(obj);
     if (k.length > 0) return k.slice(0, 2).join(" · ");
   }
@@ -349,6 +352,23 @@ export function AnalystChatPane({
             rationale:
               cached?.rationale ??
               "Agent proposed a menu optimization. Review and decide.",
+            evidence: cached?.evidence,
+          });
+        }
+        if (toolName === "requestMoreInfo" && chunk.type === "tool-input-available") {
+          const inputObj = input as { question?: string; reason?: string } | undefined;
+          const question =
+            inputObj?.question?.trim() ||
+            "What else should the agent know before making this change?";
+          const reason =
+            inputObj?.reason?.trim() ||
+            "The agent needs one more detail before it can propose a safe menu change.";
+          setAwaitingApproval({ summary: "Manager input required" });
+          setPendingPrompt({
+            kind: "more-info",
+            token: `analyst-info:${toolCallId}`,
+            question,
+            reason,
           });
         }
         return;
@@ -388,6 +408,7 @@ export function AnalystChatPane({
               rationale?: string;
             };
             current?: MenuItem | null;
+            evidence?: ApprovalEvidence;
           };
           const p = o.proposal;
           if (p && typeof p.id === "string" && typeof p.sku === "string") {
@@ -398,6 +419,7 @@ export function AnalystChatPane({
               current: o.current ?? null,
               patch: p.patch ?? {},
               rationale: p.rationale ?? "",
+              evidence: o.evidence,
             });
           }
         }
@@ -422,7 +444,10 @@ export function AnalystChatPane({
               proposalId,
               sku,
               itemName: cached?.itemName ?? o.menuItem?.name ?? sku,
+              current: cached?.current ?? null,
               patch: cached?.patch ?? {},
+              menuItem: o.menuItem,
+              evidence: cached?.evidence,
               appliedAt: Date.now(),
             };
             setApplied((prev) => [...prev, entry]);
@@ -452,7 +477,7 @@ export function AnalystChatPane({
           }
         }
 
-        // Approval prompt resolved. Clear banner/bus.
+        // Human prompt resolved. Clear banner/bus.
         setAwaitingApproval(null);
         setPendingPrompt(null);
         return;
@@ -700,7 +725,7 @@ export function AnalystChatPane({
   const statusLabel = isStreaming
     ? "Thinking"
     : awaitingApproval
-      ? "Awaiting approval"
+      ? "Awaiting human"
       : "Ready";
   const suspensionBarClass = awaitingApproval
     ? "border-amber-400/30 bg-amber-500/10 opacity-100"
@@ -714,7 +739,7 @@ export function AnalystChatPane({
       <div className="flex items-center justify-between border-b border-white/10 px-8 py-5">
         <div className="flex flex-col gap-1">
           <span className="text-sm font-semibold uppercase tracking-[0.2em] text-zinc-500">
-            Optimize agent
+            Analyst agent
           </span>
           <span className="font-mono text-sm text-zinc-500">
             anthropic/claude-haiku-4.5
@@ -797,16 +822,20 @@ export function AnalystChatPane({
                       ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
                       : e.kind === "reject"
                         ? "border-red-500/40 bg-red-500/10 text-red-100"
-                        : e.kind === "optimize"
+                        : e.kind === "lucky"
                           ? "border-sky-500/40 bg-sky-500/10 text-sky-100"
+                          : e.kind === "more-info"
+                            ? "border-amber-500/40 bg-amber-500/10 text-amber-100"
                           : "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-100";
                   const dotClass =
                     e.kind === "approve"
                       ? "bg-emerald-300"
                       : e.kind === "reject"
                         ? "bg-red-300"
-                        : e.kind === "optimize"
+                        : e.kind === "lucky"
                           ? "bg-sky-300"
+                          : e.kind === "more-info"
+                            ? "bg-amber-300"
                           : "bg-fuchsia-300";
                   return (
                     <div

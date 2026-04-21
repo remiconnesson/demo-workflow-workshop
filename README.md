@@ -4,6 +4,8 @@ A hands-on workshop for the Workflow SDK built on Next.js 16. The root `/` redir
 
 The workshop teaches **three properties of reliable software** (`stable`, `suspendable`, `undoable`) through interactive demos that break, fix, and name each pattern live. Every demo fires a real workflow run, and each pattern slide includes an `npx workflow inspect` command you can paste directly to your coding agent (Claude, Cursor, etc.) to explain the pattern or apply it to your own codebase.
 
+For someone teaching this workshop who did not build it, start with [`PRESENTER_HANDOFF.md`](./PRESENTER_HANDOFF.md). It summarizes the core beats, stage flow, agent scenarios, and final agentic-coding CTA.
+
 ## Running It
 
 ```bash

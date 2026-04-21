@@ -15,3 +15,11 @@ export const approvalHook = defineHook({
 });
 
 export type ApprovalPayload = { approved: boolean; reason?: string };
+
+export const managerInputHook = defineHook({
+  schema: z.object({
+    answer: z.string().min(1),
+  }),
+});
+
+export type ManagerInputPayload = { answer: string };

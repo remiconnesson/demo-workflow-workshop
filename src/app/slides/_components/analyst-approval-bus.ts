@@ -2,6 +2,16 @@
 
 import type { MenuItem } from "@/lib/ops-data";
 
+export type ApprovalEvidence = {
+  orders: number;
+  delivered: number;
+  failed: number;
+  cancelled: number;
+  refunded: number;
+  compensations: number;
+  retries: number;
+};
+
 /**
  * Module-local event bus for the analyst demo. Three channels:
  *
@@ -21,7 +31,7 @@ import type { MenuItem } from "@/lib/ops-data";
 // 1. Pending approval prompt
 // ---------------------------------------------------------------------------
 
-export type PendingPrompt = {
+export type PendingApprovalPrompt = {
   kind: "approval";
   token: string;
   proposalId: string;
@@ -32,7 +42,17 @@ export type PendingPrompt = {
   /** Partial patch the agent wants to apply. */
   patch: Partial<MenuItem>;
   rationale: string;
+  evidence?: ApprovalEvidence;
 };
+
+export type PendingInfoPrompt = {
+  kind: "more-info";
+  token: string;
+  question: string;
+  reason: string;
+};
+
+export type PendingPrompt = PendingApprovalPrompt | PendingInfoPrompt;
 
 type PromptListener = (state: PendingPrompt | null) => void;
 
@@ -63,7 +83,10 @@ export type AppliedProposal = {
   proposalId: string;
   sku: string;
   itemName: string;
+  current?: MenuItem | null;
   patch: Partial<MenuItem>;
+  menuItem?: MenuItem;
+  evidence?: ApprovalEvidence;
   appliedAt: number;
 };
 
@@ -174,8 +197,9 @@ export function dispatchReset(): boolean {
 export type OperatorEventKind =
   | "approve"
   | "reject"
+  | "more-info"
   | "undo-requested"
-  | "optimize";
+  | "lucky";
 
 export type OperatorEvent = {
   id: string;

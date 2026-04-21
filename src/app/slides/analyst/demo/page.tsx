@@ -33,7 +33,7 @@ function AnalystDemoSurface() {
           />
         </div>
       ) : (
-        <div className="fixed inset-y-0 right-10 flex w-[420px] items-center justify-center pointer-events-none z-10">
+        <div className="flex min-h-0 items-center justify-center pointer-events-none">
           <div className="pointer-events-auto">
             <AnalystApprovalPhone />
           </div>
