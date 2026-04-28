@@ -1,11 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DebugDrawer } from "@/app/_components/debug-drawer";
 import { getSlideNav, SLIDES, type SlideInfo } from "./config";
 import { WorkflowMark } from "./_components/workflow-mark";
 import { SlidesDebugProvider } from "./_components/slides-debug-context";
+
+const DESIGN_W = 1920;
+const DESIGN_H = 1080;
 
 type RailTone =
   | "zinc"
@@ -197,6 +200,21 @@ function getAudienceRailInfo(
   return { family: slide.title, beat: "", tone: "zinc" };
 }
 
+function useSlideScale() {
+  const [scale, setScale] = useState(1);
+  const recalc = useCallback(() => {
+    const sx = window.innerWidth / DESIGN_W;
+    const sy = window.innerHeight / DESIGN_H;
+    setScale(Math.min(sx, sy, 1));
+  }, []);
+  useEffect(() => {
+    recalc();
+    window.addEventListener("resize", recalc);
+    return () => window.removeEventListener("resize", recalc);
+  }, [recalc]);
+  return scale;
+}
+
 export default function SlidesLayout({
   children,
 }: {
@@ -210,6 +228,8 @@ export default function SlidesLayout({
   const railTone = railInfo ? RAIL_TONE_CLASS[railInfo.tone] : null;
   const progressPercent =
     current && total > 0 ? `${(current.number / total) * 100}%` : "0%";
+
+  const scale = useSlideScale();
 
   const [runInfo, setRunInfo] = useState<{ runId: string; orderId: string } | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -340,7 +360,17 @@ export default function SlidesLayout({
   return (
     <SlidesDebugProvider value={debugOpen}>
     <div className="relative h-screen w-screen overflow-hidden bg-black text-white font-sans">
-      {children}
+      {/* Scale slide content to fit viewport while preserving 1920x1080 design */}
+      <div
+        className="absolute left-1/2 top-1/2 origin-center"
+        style={{
+          width: DESIGN_W,
+          height: DESIGN_H,
+          transform: `translate(-50%, -50%) scale(${scale})`,
+        }}
+      >
+        {children}
+      </div>
 
       {slug !== "title" && slug !== "close" && (
         <div className="pointer-events-none fixed top-8 right-8 z-50">
