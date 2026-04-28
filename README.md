@@ -1,4 +1,4 @@
-# Workflow Workshop
+# Demo Workflow Workshop
 
 A hands-on workshop for the Workflow SDK built on Next.js 16. The root `/` redirects to the deck at `/slides/title`; everything is a slide.
 
